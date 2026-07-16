@@ -1,0 +1,39 @@
+name: 每日自动更新消防数据
+
+on:
+  # 每天北京时间 08:00 自动运行（UTC+8，对应 UTC 00:00）
+  schedule:
+    - cron: '0 0 * * *'
+  # 也可以在 GitHub 手动点击触发（方便测试）
+  workflow_dispatch:
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 拉取代码
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🟢 设置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 🚀 运行飞书数据抓取脚本
+        env:
+          FEISHU_APP_ID:     ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_SHEET_TOKEN: ${{ secrets.FEISHU_SHEET_TOKEN }}
+        run: node scripts/fetch_feishu.js
+
+      - name: 📦 提交更新后的 data.json
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name  "GitHub Actions Bot"
+          git add data.json
+          # 只有文件有变化时才提交
+          git diff --staged --quiet || git commit -m "🔄 自动更新消防数据 $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')"
+          git push

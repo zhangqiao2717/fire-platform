@@ -1,0 +1,2194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>消防维保综合管理系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        /* ===== 全局重置 & 基础 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --primary: #0b2b5c;
+            --primary-light: #1a3f7a;
+            --primary-dark: #071d3d;
+            --accent: #e67e22;
+            --accent-light: #f39c12;
+            --bg: #f0f4f8;
+            --card-bg: #ffffff;
+            --text: #1a2a3a;
+            --text-light: #5a6a7a;
+            --border: #dce3ed;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 0.25s ease;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ===== 滚动条美化 ===== */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 10px;
+        }
+
+        /* ===== 侧边栏 ===== */
+        .sidebar {
+            width: 260px;
+            background: var(--primary-dark);
+            color: #fff;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform var(--transition);
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.15);
+        }
+        .sidebar-brand {
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sidebar-brand .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .sidebar-brand h1 {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            line-height: 1.2;
+        }
+        .sidebar-brand h1 small {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.6;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px 20px;
+            overflow-y: auto;
+        }
+        .sidebar-nav .nav-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            opacity: 0.4;
+            padding: 12px 12px 6px;
+            font-weight: 600;
+        }
+        .sidebar-nav .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background var(--transition), color var(--transition);
+            font-size: 14px;
+            font-weight: 450;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            margin-bottom: 2px;
+            position: relative;
+        }
+        .sidebar-nav .nav-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+        }
+        .sidebar-nav .nav-item.active {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            font-weight: 500;
+        }
+        .sidebar-nav .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 6px;
+            bottom: 6px;
+            width: 3px;
+            background: var(--accent);
+            border-radius: 0 4px 4px 0;
+        }
+        .sidebar-nav .nav-item .icon {
+            font-size: 17px;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .sidebar-nav .nav-item .badge {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 1px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .sidebar-footer {
+            padding: 14px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 12px;
+            opacity: 0.4;
+            text-align: center;
+        }
+
+        /* ===== 主内容 ===== */
+        .main {
+            flex: 1;
+            padding: 24px 30px 40px;
+            min-width: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+
+        /* ===== 顶部栏 ===== */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .topbar h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .topbar h2 small {
+            font-weight: 400;
+            font-size: 14px;
+            color: var(--text-light);
+            margin-left: 8px;
+        }
+        .topbar .date-badge {
+            background: var(--card-bg);
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            color: var(--text-light);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        /* ===== 页面容器 ===== */
+        .page {
+            display: none;
+            animation: fadeUp 0.35s ease;
+        }
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 卡片 ===== */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            padding: 20px 24px 24px;
+            margin-bottom: 24px;
+            transition: box-shadow var(--transition);
+        }
+        .card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .card-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .card-header .sub {
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 400;
+        }
+        .card-header .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .card-header .actions button {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: all var(--transition);
+        }
+        .card-header .actions button:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        /* ===== 统计卡片行 ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: transform var(--transition);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        .stat-card .label {
+            font-size: 13px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+        .stat-card .value .unit {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-light);
+            margin-left: 4px;
+        }
+        .stat-card .change {
+            font-size: 12px;
+            margin-top: 6px;
+            display: inline-block;
+            padding: 1px 10px;
+            border-radius: 20px;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .stat-card .change.danger {
+            background: #fce4ec;
+            color: #c62828;
+        }
+        .stat-card .change.warn {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        /* ===== 表格 ===== */
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        table th {
+            background: var(--bg);
+            text-align: left;
+            padding: 12px 14px;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        table tr:hover td {
+            background: #fafcfe;
+        }
+        table .status-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .status-badge.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status-badge.warning {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .status-badge.danger {
+            background: #fce4ec;
+            color: #c62828;
+        }
+        .status-badge.info {
+            background: #e3f2fd;
+            color: #0d47a1;
+        }
+        .status-badge.secondary {
+            background: #f5f5f5;
+            color: #616161;
+        }
+
+        .table-wrap.fixed-height {
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        /* ===== 图表容器 ===== */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .chart-box {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 16px 18px 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        .chart-box h4 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 10px;
+        }
+        .chart-box canvas {
+            max-height: 200px;
+            max-width: 100%;
+        }
+
+        @media (max-width: 900px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== 两列布局 ===== */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 780px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== 保养计划表格特殊样式 ===== */
+        .plan-grid {
+            display: grid;
+            grid-template-columns: auto repeat(12, 1fr);
+            gap: 2px;
+            font-size: 12px;
+            overflow-x: auto;
+            min-width: 100%;
+        }
+        .plan-grid .pg-cell {
+            padding: 6px 4px;
+            text-align: center;
+            background: var(--bg);
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        .plan-grid .pg-cell.done {
+            background: #c8e6c9;
+            color: #1b5e20;
+        }
+        .plan-grid .pg-cell.pending {
+            background: #ffecb3;
+            color: #e65100;
+        }
+        .plan-grid .pg-cell.label-cell {
+            background: transparent;
+            text-align: left;
+            font-weight: 500;
+            padding-right: 12px;
+            white-space: nowrap;
+        }
+
+        /* ===== 会议记录 ===== */
+        .meeting-item {
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .meeting-item:last-child {
+            border-bottom: none;
+        }
+        .meeting-item .meta {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+        .meeting-item .meta strong {
+            color: var(--text);
+        }
+        .meeting-item .content {
+            font-size: 14px;
+        }
+        .meeting-item .tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .meeting-item .tags span {
+            background: var(--bg);
+            padding: 1px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        /* ===== 技能鉴定表 ===== */
+        .skill-table td:first-child {
+            font-weight: 500;
+        }
+
+        /* ===== 电伴热 ===== */
+        .heat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        .heat-item {
+            background: var(--bg);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--accent);
+            font-size: 13px;
+        }
+        .heat-item .loc {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .heat-item .val {
+            color: var(--text-light);
+            font-size: 12px;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                transform: translateX(-100%);
+                width: 280px;
+                height: 100vh;
+                z-index: 999;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main {
+                padding: 16px;
+            }
+            .topbar h2 {
+                font-size: 18px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .mobile-toggle {
+                display: flex !important;
+            }
+        }
+        .mobile-toggle {
+            display: none;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 20px;
+            cursor: pointer;
+            align-items: center;
+            gap: 6px;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+        }
+        .overlay.active {
+            display: block;
+        }
+
+        /* ===== 工具类 ===== */
+        .text-muted {
+            color: var(--text-light);
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .mb-8 {
+            margin-bottom: 8px;
+        }
+        .flex {
+            display: flex;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .gap-8 {
+            gap: 8px;
+        }
+        .gap-12 {
+            gap: 12px;
+        }
+        .fw-600 {
+            font-weight: 600;
+        }
+
+        /* 加载占位 */
+        .placeholder-text {
+            color: var(--text-light);
+            font-size: 13px;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        /* ===== 管理员解锁弹窗 ===== */
+        .admin-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .admin-modal-overlay.show {
+            display: flex;
+        }
+        .admin-modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 36px 40px 32px;
+            width: 340px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            text-align: center;
+            animation: fadeUp 0.25s ease;
+        }
+        .admin-modal .modal-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        .admin-modal h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+        .admin-modal p {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+        .admin-modal input[type="password"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            letter-spacing: 4px;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 12px;
+        }
+        .admin-modal input[type="password"]:focus {
+            border-color: var(--primary);
+        }
+        .admin-modal input[type="password"].shake {
+            animation: shake 0.35s ease;
+            border-color: #e74c3c;
+        }
+        .admin-modal .modal-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 8px;
+        }
+        .admin-modal .modal-btn:hover {
+            background: var(--primary-light);
+        }
+        .admin-modal .modal-cancel {
+            font-size: 12px;
+            color: var(--text-light);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .admin-modal .modal-err {
+            font-size: 12px;
+            color: #e74c3c;
+            height: 16px;
+            margin-bottom: 6px;
+        }
+        /* 右上角解锁入口（普通用户看不见，需知道入口位置） */
+        .admin-entry {
+            position: fixed;
+            bottom: 18px;
+            right: 18px;
+            width: 36px;
+            height: 36px;
+            background: rgba(11,43,92,0.08);
+            border: 1.5px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 500;
+            transition: all 0.2s;
+            opacity: 0.35;
+        }
+        .admin-entry:hover {
+            opacity: 1;
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        /* ===== Excel 导入区域 ===== */
+        .import-bar {
+            background: linear-gradient(135deg, #0b2b5c 0%, #1a3f7a 100%);
+            border-radius: var(--radius);
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 16px rgba(11,43,92,0.18);
+        }
+        .import-bar .import-label {
+            color: rgba(255,255,255,0.85);
+            font-size: 13px;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+        .import-bar .import-label strong {
+            color: #fff;
+            font-size: 15px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .import-drop-zone {
+            flex: 1;
+            min-width: 220px;
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: var(--radius-sm);
+            padding: 12px 20px;
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .import-drop-zone:hover, .import-drop-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(230,126,34,0.12);
+            color: #fff;
+        }
+        .import-drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .import-status {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            flex-shrink: 0;
+            min-width: 160px;
+            text-align: right;
+        }
+        .import-status.ok { color: #69f0ae; }
+        .import-status.err { color: #ff6b6b; }
+
+        /* 模块描述 */
+        .module-desc {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 移动端遮罩 ===== -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ===== Excel 导入栏（全局顶部，独立于侧边栏之外） ===== -->
+    <!-- 注：此栏插入在 sidebar 之前，通过绝对定位覆盖在主内容顶部 -->
+
+    <!-- ===== 侧边栏 ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="logo-icon">🧯</div>
+            <h1>消防维保<small>综合管理平台</small></h1>
+        </div>
+        <nav class="sidebar-nav" id="navContainer">
+            <div class="nav-label">核心模块</div>
+            <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span> 仪表板</div>
+            <div class="nav-item" data-page="duty"><span class="icon">📋</span> 值班记录</div>
+            <div class="nav-item" data-page="fault"><span class="icon">⚠️</span> 故障巡查</div>
+            <div class="nav-item" data-page="analysis"><span class="icon">📈</span> 月度分析</div>
+
+            <div class="nav-label">设施管理</div>
+            <div class="nav-item" data-page="facility"><span class="icon">🏗️</span> 设施基准</div>
+            <div class="nav-item" data-page="fire"><span class="icon">🔥</span> 防火基准</div>
+
+            <div class="nav-label">维保计划</div>
+            <div class="nav-item" data-page="maintain-plan"><span class="icon">📅</span> 保养计划</div>
+            <div class="nav-item" data-page="maintain-record"><span class="icon">📝</span> 保养记录</div>
+            <div class="nav-item" data-page="test-plan"><span class="icon">🧪</span> 测试计划</div>
+            <div class="nav-item" data-page="test-record"><span class="icon">📊</span> 测试记录</div>
+
+            <div class="nav-label">人员 & 会议</div>
+            <div class="nav-item" data-page="skill"><span class="icon">🎯</span> 技能提升</div>
+            <div class="nav-item" data-page="identify"><span class="icon">📄</span> 技能鉴定</div>
+            <div class="nav-item" data-page="training"><span class="icon">📚</span> 培训记录</div>
+            <div class="nav-item" data-page="meeting"><span class="icon">🗂️</span> 月度会议</div>
+            <div class="nav-item" data-page="assessment"><span class="icon">⭐</span> 月度考核</div>
+
+            <div class="nav-label">专项</div>
+            <div class="nav-item" data-page="heat"><span class="icon">🌡️</span> 电伴热管理</div>
+            <div class="nav-item" data-page="device-list"><span class="icon">📦</span> 设备清单</div>
+        </nav>
+        <div class="sidebar-footer">v2.6 · 北京基地</div>
+    </aside>
+
+    <!-- ===== 主内容 ===== -->
+    <main class="main" id="mainContent">
+
+        <!-- ===== 顶部栏 ===== -->
+        <div class="topbar">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <button class="mobile-toggle" id="menuToggle">☰</button>
+                <h2 id="pageTitle">仪表板 <small>消防维保总览</small></h2>
+            </div>
+            <div class="date-badge">📅 2026年7月15日 · 周二</div>
+        </div>
+
+        <!-- ===== Excel 导入栏（仅管理员可见） ===== -->
+        <div class="import-bar" id="importBar" style="display:none;">
+            <div class="import-label">
+                <strong>📂 每周数据更新</strong>
+                从飞书导出 Excel → 拖入此处 → 所有页面自动刷新
+            </div>
+            <div class="import-drop-zone" id="dropZone">
+                📥 拖入 Excel 文件，或点击选择
+                <input type="file" id="excelFileInput" accept=".xlsx,.xls">
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+                <div class="import-status" id="importStatus">尚未导入 · 显示示例数据</div>
+                <span id="adminLogout" style="font-size:11px;color:rgba(255,255,255,0.45);cursor:pointer;text-decoration:underline;" onclick="adminLogout()">退出管理模式</span>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：仪表板 -->
+        <!-- ============================================================ -->
+        <div class="page active" id="page-dashboard">
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card"><div class="label">设备总数</div><div class="value">6,155 <span class="unit">台</span></div><div class="change">✓ 在线率 97.2%</div></div>
+                <div class="stat-card"><div class="label">本月故障</div><div class="value">21 <span class="unit">次</span></div><div class="change warn">较上月 +3</div></div>
+                <div class="stat-card"><div class="label">待整改</div><div class="value">4 <span class="unit">项</span></div><div class="change danger">需关注</div></div>
+                <div class="stat-card"><div class="label">整改率</div><div class="value">94.7<span class="unit">%</span></div><div class="change">✓ 达标</div></div>
+                <div class="stat-card"><div class="label">本月火警</div><div class="value">6 <span class="unit">起</span></div><div class="change warn">均为误报</div></div>
+                <div class="stat-card"><div class="label">保养计划</div><div class="value">12 <span class="unit">项</span></div><div class="change">✓ 进行中</div></div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-box"><h4>📊 月度故障趋势 (1-5月)</h4><canvas id="trendChart"></canvas></div>
+                <div class="chart-box"><h4>🧩 故障类型分布</h4><canvas id="pieChart"></canvas></div>
+            </div>
+
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-header"><h3>📌 近期火警</h3><span class="sub">最近5条</span></div>
+                    <div class="table-wrap fixed-height" style="max-height:220px;">
+                        <table>
+                            <thead><tr><th>时间</th><th>部门</th><th>设备</th><th>状态</th></tr></thead>
+                            <tbody id="recentAlarm"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>⏳ 待整改项</h3><span class="sub">需跟进</span></div>
+                    <div class="table-wrap fixed-height" style="max-height:220px;">
+                        <table>
+                            <thead><tr><th>部门</th><th>设备</th><th>原因</th><th>状态</th></tr></thead>
+                            <tbody id="pendingList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3>📋 月度异常统计</h3><span class="sub">2026年1-5月</span></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>月份</th><th>火警</th><th>故障</th><th>反馈</th><th>预警</th><th>屏蔽</th><th>报备</th><th>合计</th></tr></thead>
+                        <tbody id="monthlyStatsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：值班记录 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-duty">
+            <div class="module-desc">📋 消防值班信息记录表 · 实时监控主机报警与处置跟踪</div>
+            <div class="card">
+                <div class="card-header"><h3>🧑‍🚒 值班记录</h3><span class="sub">共 84 条 (1月)</span></div>
+                <div class="table-wrap fixed-height" style="max-height:450px;">
+                    <table>
+                        <thead><tr><th>序号</th><th>时间</th><th>部门</th><th>主机信息</th><th>系统类别</th><th>设备</th><th>状态</th><th>原因</th><th>处理</th></tr></thead>
+                        <tbody id="dutyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：故障巡查 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-fault">
+            <div class="module-desc">⚠️ 测试及防火巡查隐患追踪表 · 闭环管理</div>
+            <div class="card">
+                <div class="card-header"><h3>🔍 故障 & 巡查记录</h3><span class="sub">共 76 项</span></div>
+                <div class="table-wrap fixed-height" style="max-height:460px;">
+                    <table>
+                        <thead><tr><th>序号</th><th>检查主题</th><th>时间</th><th>隐患类型</th><th>位置</th><th>设备</th><th>描述</th><th>状态</th></tr></thead>
+                        <tbody id="faultTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：月度分析 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-analysis">
+            <div class="module-desc">📈 月度数据分析 · 关键指标看板</div>
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-header"><h3>📊 各区域火警分布</h3></div>
+                    <div style="height:200px;"><canvas id="areaChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>📊 故障维修分类</h3></div>
+                    <div style="height:200px;"><canvas id="repairChart"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>📋 月度指标汇总</h3></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>指标</th><th>1月</th><th>2月</th><th>3月</th><th>4月</th><th>5月</th></tr></thead>
+                        <tbody>
+                            <tr><td>值机故障</td><td>16</td><td>16</td><td>8</td><td>21</td><td>—</td></tr>
+                            <tr><td>防火巡查故障</td><td>9</td><td>2</td><td>1</td><td>3</td><td>—</td></tr>
+                            <tr><td>测试故障</td><td>5</td><td>7</td><td>2</td><td>2</td><td>—</td></tr>
+                            <tr><td>实际故障率</td><td>0.49%</td><td>0.41%</td><td>0.18%</td><td>0.42%</td><td>—</td></tr>
+                            <tr><td>目标故障率</td><td>2%</td><td>2%</td><td>2%</td><td>2%</td><td>2%</td></tr>
+                            <tr><td>整改率</td><td>86.7%</td><td>88%</td><td>81.8%</td><td>92.3%</td><td>—</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：设施基准 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-facility">
+            <div class="module-desc">🏗️ 消防设备设施巡查基准 · 各区域巡查项目与频次</div>
+            <div class="card">
+                <div class="card-header"><h3>📋 巡查基准一览</h3><span class="sub">共 49 项</span></div>
+                <div class="table-wrap fixed-height" style="max-height:460px;">
+                    <table>
+                        <thead><tr><th>序号</th><th>巡查项目</th><th>巡查内容</th><th>消控室</th><th>冲焊</th><th>涂装</th><th>总装</th><th>综合站房</th><th>餐厅</th><th>办公楼</th></tr></thead>
+                        <tbody id="facilityTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：防火基准 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-fire">
+            <div class="module-desc">🔥 防火巡查基准 · 电气、可燃物、疏散、水源、值班等七大维度</div>
+            <div class="card">
+                <div class="card-header"><h3>📋 防火检查项目</h3><span class="sub">共 117 项</span></div>
+                <div class="table-wrap fixed-height" style="max-height:460px;">
+                    <table>
+                        <thead><tr><th>序号</th><th>检查项目</th><th>检查内容</th><th>检查细项</th><th>状态</th></tr></thead>
+                        <tbody id="fireTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：保养计划 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-maintain-plan">
+            <div class="module-desc">📅 消防维保月度保养计划 · 年度周期滚动</div>
+            <div class="card">
+                <div class="card-header"><h3>🗓️ 保养计划表</h3><span class="sub">共 40 项</span></div>
+                <div class="table-wrap" style="max-height:480px;overflow-y:auto;">
+                    <table>
+                        <thead><tr><th>序号</th><th>系统</th><th>保养内容</th><th>周期</th><th>1月</th><th>2月</th><th>3月</th><th>4月</th><th>5月</th><th>6月</th><th>7月</th><th>8月</th><th>9月</th><th>10月</th><th>11月</th><th>12月</th></tr></thead>
+                        <tbody id="planTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：保养记录 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-maintain-record">
+            <div class="module-desc">📝 月度保养记录 · 执行详情与测试结果</div>
+            <div class="card">
+                <div class="card-header"><h3>🔧 保养执行记录</h3><span class="sub">共 234 条</span></div>
+                <div class="table-wrap fixed-height" style="max-height:460px;">
+                    <table>
+                        <thead><tr><th>序号</th><th>保养日期</th><th>保养项目</th><th>区域</th><th>数量</th><th>详细内容</th></tr></thead>
+                        <tbody id="recordTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：测试计划 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-test-plan">
+            <div class="module-desc">🧪 建筑消防设施测试计划 · 月度/季度/半年/全年全覆盖</div>
+            <div class="card">
+                <div class="card-header"><h3>📋 测试计划表</h3><span class="sub">共 170 项</span></div>
+                <div class="table-wrap" style="max-height:460px;overflow-y:auto;">
+                    <table>
+                        <thead><tr><th>序号</th><th>系统类型</th><th>设施设备</th><th>维护保养内容</th><th>周期</th><th>1月</th><th>2月</th><th>3月</th><th>4月</th><th>5月</th><th>6月</th></tr></thead>
+                        <tbody id="testPlanTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：测试记录 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-test-record">
+            <div class="module-desc">📊 北京基地消防测试记录表 · 月度执行汇总</div>
+            <div class="card">
+                <div class="card-header"><h3>📈 测试记录汇总</h3></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>序号</th><th>月份</th><th>测试内容</th><th>总数量</th><th>季度</th><th>半年</th><th>测试问题</th><th>设备问题数</th></tr></thead>
+                        <tbody id="testRecordTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：技能提升 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-skill">
+            <div class="module-desc">🎯 京雄消防技能提升计划 · 资料库 / 培训 / 鉴定 / 评价</div>
+            <div class="card">
+                <div class="card-header"><h3>📚 技能提升计划</h3></div>
+                <div class="table-wrap fixed-height" style="max-height:400px;">
+                    <table>
+                        <thead><tr><th>序号</th><th>项目</th><th>内容</th><th>1月</th><th>2月</th><th>3月</th><th>4月</th><th>5月</th><th>6月</th><th>7月</th><th>8月</th><th>9月</th><th>10月</th><th>11月</th><th>12月</th></tr></thead>
+                        <tbody id="skillTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：技能鉴定 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-identify">
+            <div class="module-desc">📄 消防维保技能鉴定表 · 理论与实操考评</div>
+            <div class="card">
+                <div class="card-header"><h3>📋 鉴定标准</h3><span class="sub">共 43 项考评维度</span></div>
+                <div class="table-wrap fixed-height" style="max-height:460px;">
+                    <table class="skill-table">
+                        <thead><tr><th>序号</th><th>类型</th><th>项目</th><th>分值</th><th>考评内容</th></tr></thead>
+                        <tbody id="identifyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：培训记录 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-training">
+            <div class="module-desc">📚 技能培训鉴定记录 · 月度人员考核成绩</div>
+            <div class="card">
+                <div class="card-header"><h3>📊 培训考核记录</h3></div>
+                <div class="table-wrap fixed-height" style="max-height:400px;">
+                    <table>
+                        <thead><tr><th>月份</th><th>人员类别</th><th>姓名</th><th>理论</th><th>实操</th><th>姓名</th><th>理论</th><th>实操</th><th>姓名</th><th>理论</th><th>实操</th><th>合格率</th></tr></thead>
+                        <tbody id="trainingTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：月度会议 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-meeting">
+            <div class="module-desc">🗂️ 月度会议记录 · 交办事项跟踪</div>
+            <div class="card">
+                <div class="card-header"><h3>📌 会议纪要</h3></div>
+                <div id="meetingList"></div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：月度考核 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-assessment">
+            <div class="module-desc">⭐ 月度扣分记录表 · 服务质量考核</div>
+            <div class="card">
+                <div class="card-header"><h3>📋 考核记录</h3></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>序号</th><th>时间</th><th>内容</th><th>扣分条款</th><th>确认人</th><th>检查人</th></tr></thead>
+                        <tbody id="assessmentTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card" style="background:#fef9e7;border-color:#f9e79f;">
+                <div style="font-size:13px;color:#7d6608;">
+                    <strong>📌 火警处理测试通报</strong><br>
+                    测试背景：顺义区消防双随机抽查项 · 结论：合格，记录问题1项<br>
+                    报警地点：总装辅房二楼205会议室门口手报 · 跑点准确 · 值班人员响应及时<br>
+                    ⚠️ 应急手电无电（点检表增加周度充电项目）
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：电伴热管理 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-heat">
+            <div class="module-desc">🌡️ 消防电伴热周电检表 · 冬季防冻关键</div>
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-header"><h3>📍 电伴热位置统计</h3></div>
+                    <div id="heatLocationList" style="max-height:380px;overflow-y:auto;"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>📊 周检状态</h3></div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>区域</th><th>11月</th><th>12月</th><th>1月</th><th>2月</th><th>3月</th></tr></thead>
+                            <tbody>
+                                <tr><td>焊装BDC高架库</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+                                <tr><td>冲压废料间</td><td>✓</td><td>✓</td><td>▲</td><td>✓</td><td>✓</td></tr>
+                                <tr><td>总装东风机房</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+                                <tr><td>涂装供蜡间</td><td>✓</td><td>✓</td><td>✓</td><td>▲</td><td>✓</td></tr>
+                                <tr><td>办公楼3层</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top:12px;font-size:12px;color:var(--text-light);">✓ 正常  ▲ 异常  × 维修</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 页面：设备清单 -->
+        <!-- ============================================================ -->
+        <div class="page" id="page-device-list">
+            <div class="module-desc">📦 消防设备设施清单 · 地址码 / 备件 / 人员信息</div>
+            <div class="card">
+                <div class="card-header"><h3>📋 设备清单索引</h3></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:8px 0;">
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 泄漏电流报警排查专项</div>
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 北京基地消防切电、漏电统计</div>
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 消防设施地址码统计表</div>
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 北京基地消防备件</div>
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 消防异常信息记录表</div>
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 京雄消防维保人员信息统计表</div>
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 消防系统问题统计</div>
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 消防档案电子版</div>
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 消防维保工作报告</div>
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 应急处理联系名册</div>
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 外援引入全流程操作指南</div>
+                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 外援人员管理系统操作说明</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ===== 管理员解锁弹窗 ===== -->
+    <div class="admin-modal-overlay" id="adminModal">
+        <div class="admin-modal">
+            <div class="modal-icon">🔐</div>
+            <h3>管理员验证</h3>
+            <p>请输入密码以进入数据导入模式</p>
+            <input type="password" id="adminPwdInput" placeholder="请输入密码" maxlength="20"
+                onkeydown="if(event.key==='Enter')checkAdminPwd()">
+            <div class="modal-err" id="modalErr"></div>
+            <button class="modal-btn" onclick="checkAdminPwd()">确认登录</button>
+            <div class="modal-cancel" onclick="closeAdminModal()">取消</div>
+        </div>
+    </div>
+
+    <!-- ===== 隐藏的管理员入口（右下角小锁图标） ===== -->
+    <div class="admin-entry" id="adminEntry" title="管理员" onclick="openAdminModal()">🔑</div>
+
+    <script>
+        // ================================================================
+        // 数据
+        // ================================================================
+
+        // ----- 值班记录 (精选) -----
+        const dutyData = [
+            [1, '2026-01-01', '涂装', '332004-091排烟窗模块输入故障', '火灾自动报警', '排烟窗输入模块', '故障', '模块老化', '需更换'],
+            [2, '2026-01-01', '综合站房', '喷淋系统稳压泵', '自动喷水灭火', '喷淋系统稳压泵', '反馈', '24小时4次', '持续监测'],
+            [3, '2026-01-02', '综合站房', '喷淋系统稳压泵', '自动喷水灭火', '喷淋系统稳压泵', '反馈', '08:53~08:30 未启动', '持续监测'],
+            [4, '2026-01-03', '总装', '总装车间南配电室201014-201', '火灾自动报警', '切电模块', '故障', '模块老化', '更换后恢复正常'],
+            [5, '2026-01-04', '涂装', '漏电探测传感器坏042038', '电气火灾监控', '传感器', '故障', '传感器故障', '更换后恢复正常'],
+            [6, '2026-01-06', '4#厂房', '046119传感器', '电气火灾监控', '传感器', '预警', '超量程报765', '复位后正常'],
+            [7, '2026-01-08', '总装', '202018-125排烟阀输入输出模块故障', '火灾自动报警', '排烟阀输入输出模块', '故障', '排烟模块故障', '更换后恢复正常'],
+            [8, '2026-01-08', '餐厅', '1层厨房报警阀间感烟探测器', '火灾自动报警', '感烟探测器', '火警', '施工烟雾进入', '主机复位'],
+            [9, '2026-01-09', '综合站房', '喷淋系统稳压泵', '自动喷水灭火', '喷淋系统稳压泵', '反馈', '室外主管网泄漏', '持续监测'],
+            [10, '2026-01-10', '涂装', '3#厂房涂装1层化验室2感烟', '火灾自动报警', '感烟探测器', '火警', '实验燃烧烟气倒流', '复位正常'],
+            [11, '2026-01-11', '总装', '2#厂房总装车间B/5轴手报', '火灾自动报警', '手动报警按钮', '故障', '现场施工误触', '重新压接'],
+            [12, '2026-01-12', '4#厂房', '002031-100备用电源', '可燃气体探测', '可燃气体探测', '故障', '主机断电', '供电后恢复'],
+            [13, '2026-01-14', '涂装', '3#南辅房涂装二层IT机柜室', '火灾自动报警', '点型感烟', '报备', '施工烟尘报警', '复位正常'],
+            [14, '2026-01-14', '总装', '总装车间4AA8', '电气火灾监控', '漏电监测器', '预警', '超量程1200mA', '持续监测'],
+            [15, '2026-01-15', '餐厅', '1层厨房热厨间温感', '火灾自动报警', '点型烟感', '火警', '蒸箱热气', '复位正常'],
+        ];
+
+        // ----- 故障巡查 (精选) -----
+        const faultData = [
+            [1, '值班故障', '2026-01-01', '孙伟', '火灾自动报警', '器件故障', '涂装', '332004-091', '模块输入故障', '模块老化', '已整改'],
+            [2, '值班故障', '2026-01-03', '孙伟', '火灾自动报警', '器件故障', '总装', '201014-201', '模块输入故障', '模块老化反复故障', '已整改'],
+            [3, '设施巡查', '2026-01-03', '孙伟', '电气火灾监控', '器件故障', '涂装', '42038', '传感器', '传感器3、4故障', '整改中'],
+            [4, '设施巡查', '2026-01-04', '孙伟', '电气火灾监控', '器件故障', '涂装', '42038', '传感器', '传感器3、4故障', '整改中'],
+            [5, '值班故障', '2026-01-06', '孙伟', '火灾自动报警', '人为原因', '冲焊', '111009-068', '消火栓模块', '施工接线拆开按钮', '已整改'],
+            [6, '值班故障', '2026-01-08', '孙伟', '火灾自动报警', '器件故障', '总装', '202018-125', '排烟阀模块', '模块老化反复故障', '已整改'],
+            [7, '值班故障', '2026-01-11', '孙伟', '火灾自动报警', '人为原因', '总装', '201014-047', '手动报警按钮', '现场施工误触', '已整改'],
+            [8, '设施巡查', '2026-01-12', '孙伟', '可燃气体探测', '器件故障', '4#厂房', '100001-007', '燃气探头', '现场无泄露报5%', '已整改'],
+            [9, '设施测试', '2026-01-13', '孙伟', '防烟排烟', '器件故障', '餐厅', '/', '手动按钮盒', '电池没电', '已整改'],
+            [10, '设施巡查', '2026-01-14', '孙伟', '消防给水', '器件故障', '综合站房', '/', '供水单向阀', '阀门不能停止供水', '已整改'],
+        ];
+
+        // ----- 设施基准 (精选) -----
+        const facilityData = [
+            [1, '消防供配电设施', '消防电源控制器工作状态', '3台', '1台', '—', '1台', '—', '—', '—'],
+            [2, '消防供配电设施', '消防电源配电箱外观', '⭕', '3个', '8个', '3个', '⭕', '1个', '2个'],
+            [3, '火灾自动报警系统', '火灾报警探测器外观', '—', '⭕', '⭕', '⭕', '⭕', '⭕', '⭕'],
+            [4, '火灾自动报警系统', '手动报警按钮外观', '⭕', '⭕', '⭕', '⭕', '⭕', '⭕', '⭕'],
+            [5, '消防供水设施', '消防水池外观', '⭕', '—', '—', '—', '—', '—', '—'],
+            [6, '消防供水设施', '消防水泵工作状态', '⭕', '—', '—', '—', '—', '—', '—'],
+            [7, '消火栓灭火系统', '室内消火栓外观', '—', '⭕', '⭕', '⭕', '⭕', '⭕', '⭕'],
+            [8, '自动喷水灭火系统', '喷头外观', '—', '—', '⭕', '—', '—', '⭕', '⭕'],
+            [9, '防烟排烟系统', '排烟阀外观', '—', '⭕', '⭕', '⭕', '—', '⭕', '⭕'],
+            [10, '应急照明和疏散', '应急灯外观', '⭕', '⭕', '⭕', '⭕', '⭕', '⭕', '⭕'],
+        ];
+
+        // ----- 防火基准 (精选) -----
+        const fireData = [
+            [1, '电气防火', '电气线路设备状况', '开关安装在可燃材料上', '—'],
+            [2, '电气防火', '电气线路设备状况', '插座安装在可燃材料上', '—'],
+            [3, '电气防火', '电气防火管理情况', '私接电气线路', '—'],
+            [4, '可燃物管理', '可燃物、火源管理', '违章使用甲、乙类可燃液体', '—'],
+            [5, '可燃物管理', '可燃物、火源管理', '配电设备周围堆放可燃物', '—'],
+            [6, '防火分隔', '防火分隔设施状况', '防火门损坏或缺少', '—'],
+            [7, '防火分隔', '防火分隔设施状况', '防火卷帘下方0.5m堆放物品', '—'],
+            [8, '安全疏散', '安全疏散设施状况', '疏散指示标志损坏', '—'],
+            [9, '消防水源', '消防水源', '无水或水量不足', '—'],
+            [10, '消火栓系统', '消火栓系统', '消火栓被遮挡、挤占', '—'],
+        ];
+
+        // ----- 保养计划 (精选) -----
+        const planData = [
+            [1, '消防供电配电', '清洁双电源自动切换装置', '每年', '⚪', '', '', '', '', '', '', '', '', '', '', ''],
+            [2, '火灾自动报警', '清洁报警控制器及联动控制器', '每年', '', '⚪', '', '', '', '', '', '', '', '', '', ''],
+            [3, '火灾自动报警', '备用电源充放电试验', '每季度', '', '', '⚪', '', '', '⚪', '', '', '⚪', '', '', ''],
+            [4, '火灾自动报警', '清洁应急广播系统主机', '每半年', '', '⚪', '', '', '', '', '⚪', '', '', '', '', ''],
+            [5, '消防供水设施', '清洁稳压泵控制柜', '每年', '', '', '⚪', '', '', '', '', '', '', '', '', ''],
+            [6, '消防供水设施', '检查控制柜内电器元件', '每季度', '', '', '⚪', '', '', '⚪', '', '', '⚪', '', '', ''],
+            [7, '消火栓系统', '对管网主要阀门操作', '每月', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪'],
+            [8, '自动喷水灭火', '清洁报警阀及组件', '每半年', '', '', '', '', '⚪', '', '', '', '', '⚪', '', ''],
+            [9, '气体灭火系统', '清洁气体灭火控制器', '每年', '', '', '', '', '', '⚪', '', '', '', '', '', ''],
+            [10, '防烟排烟系统', '清洁排烟风机控制柜', '每年', '', '', '', '', '', '', '', '⚪', '', '', '', ''],
+        ];
+
+        // ----- 保养记录 (精选) -----
+        const recordData = [
+            [1, '2026-01-12', '消火栓测试', '4号厂房', 13, '测试消火栓箱内按钮，复位'],
+            [2, '2026-01-12', '手动报警按钮测试', '综合站', 31, '测试报警功能并复位'],
+            [3, '2026-01-13', '烟感测试', '餐厅楼一层', 48, '用烟枪进行火警测试'],
+            [4, '2026-01-13', '温感测试', '餐厅楼一层', 25, '用温枪进行火警测试'],
+            [5, '2026-01-13', '消火栓箱检查', '餐厅楼一层', 13, '检查卫生、水带及备件'],
+            [6, '2026-01-16', '消火栓按钮', '涂装车间1层', 55, '测试报警功能'],
+            [7, '2026-01-17', '声光报警器', '餐厅楼1、2层', 1, '远程启动测试'],
+            [8, '2026-01-17', '消防广播系统', '餐厅楼1、2层', 20, '远程启动测试音量'],
+            [9, '2026-01-20', '感烟探测器', '办公楼', 71, '用烟枪进行火警测试'],
+            [10, '2026-01-25', '消火栓水压测试', '餐厅楼', 2, '测试压力0.42MPA'],
+        ];
+
+        // ----- 测试计划 (精选) -----
+        const testPlanData = [
+            [1, '消防电源及供配电', '消防电源配电柜', '主备电源', '每月', '●', '●', '●', '●', '●', '●'],
+            [2, '消防电源及供配电', '末端配电切换装置', '切换功能', '每半年', '', '', '', '', '', '■'],
+            [3, '火灾自动报警', '火灾报警控制器', '主备电工作状态', '每月', '●', '●', '●', '●', '●', '●'],
+            [4, '火灾自动报警', '火灾报警探测器', '报警功能测试', '每月10%', '〇', '〇', '〇', '〇', '〇', '〇'],
+            [5, '消防应急照明', '集中控制型系统', '手动应急启动', '每月', '●', '●', '●', '●', '●', '●'],
+            [6, '消防给水系统', '消防水池（水箱）', '水位、补水措施', '每月', '●', '●', '●', '●', '●', '●'],
+            [7, '消火栓系统', '消火栓箱', '外观及配件', '每月10%', '〇', '〇', '〇', '〇', '〇', '〇'],
+            [8, '自动喷水灭火', '报警阀组', '外观及报警试验', '每月', '●', '●', '●', '●', '●', '●'],
+            [9, '防烟排烟系统', '排烟风机', '手动/自动启动', '每季度', '', '', '▲', '', '', '▲'],
+            [10, '防火分隔', '防火卷帘', '手动/自动升降', '每月10%', '〇', '〇', '〇', '〇', '〇', '〇'],
+        ];
+
+        // ----- 测试记录 (精选) -----
+        const testRecordData = [
+            [1, '1月', '消防电源及供配电', 22, '—', 11, '配电柜门破损', 1],
+            [2, '1月', '火灾自动报警系统', 6155, '', 2700, '', 0],
+            [3, '1月', '消防应急照明和疏散指示', 2752, '', 2753, '', 0],
+            [4, '1月', '消火栓系统', 786, '', 253, '', 0],
+            [5, '1月', '自动喷水灭火系统', 12, '', 12, '', 0],
+            [6, '1月', '防烟排烟系统', 50, '', 50, '', 0],
+            [7, '1月', '防火分隔设施', 50, '', 10, '', 0],
+            [8, '1月', '可燃气体报警', 500, '', 60, '', 0],
+        ];
+
+        // ----- 技能提升 (精选) -----
+        const skillData = [
+            [1, '资料库', '设备操作说明书', '●', '●', '●', '●', '●', '●', '●', '●', '●', '●', '●', '●'],
+            [2, '资料库', '编码表', '●', '●', '●', '●', '●', '●', '●', '●', '●', '●', '●', '●'],
+            [3, '人员培训', '设备原理', '', '', '●', '', '', '', '', '', '', '', '', ''],
+            [4, '人员培训', '设备操作规程', '', '', '●', '', '', '', '', '', '', '', '', ''],
+            [5, '人员培训', '设备巡视', '', '', '', '●', '', '', '', '', '', '', '', ''],
+            [6, '技能鉴定', '综合主机控制', '●', '', '', '', '', '', '', '', '', '', '', ''],
+            [7, '技能鉴定', '综合应急照明控制器', '', '●', '', '', '', '', '', '', '', '', '', ''],
+            [8, '评价', '月度评价/诊断', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪', '⚪'],
+        ];
+
+        // ----- 技能鉴定 (精选) -----
+        const identifyData = [
+            [1, '理论基本', '职业道德', 5, '消防中控室值班员职责'],
+            [2, '理论基本', '基础知识', 5, '燃烧和火灾基本知识'],
+            [3, '理论基本', '基础知识', 5, '建筑防火基本知识'],
+            [4, '理论要求', '设施监控', 5, '识别区域火灾报警控制器'],
+            [5, '理论要求', '设施监控', 10, '判断区域火灾报警控制器工作状态'],
+            [6, '技能要求', '设施监控', 50, '区分火警、监管、隔离和故障报警信号'],
+            [7, '技能要求', '设施操作', 4, '切换区域火灾报警控制器工作状态'],
+            [8, '技能要求', '设施操作', 4, '模拟测试点型感烟、感温探测器'],
+            [9, '技能要求', '设施保养', 1, '清洁维护区域火灾报警控制器外表'],
+            [10, '技能要求', '设施保养', 1, '更换区域火灾报警控制器的熔断器'],
+        ];
+
+        // ----- 培训记录 (精选) -----
+        const trainingData = [
+            ['1月份', '消防维保', '孙伟', 93, 98, '张温', 92, 95, '—', '', '', '100%'],
+            ['1月份', '消防值班', '李晓刚', 86, 90, '郭同立', 89, 92, '张金辉', 87, 89, '100%'],
+            ['2月份', '消防维保', '孙伟', 96, 98, '牛超', 86, 87, '—', '', '', '100%'],
+            ['2月份', '消防值班', '李晓刚', 88, 91, '郭同立', 93, 92, '张金辉', 82, 87, '100%'],
+            ['3月份', '消防维保', '孙伟', 94, 98, '牛超', 80, 82, '—', '', '', '100%'],
+            ['3月份', '消防值班', '李晓刚', 80, 87, '郭同立', 82, 89, '张金辉', 80, 80, '100%'],
+        ];
+
+        // ----- 月度考核 -----
+        const assessmentData = [
+            [1, '2026-01-15', '值班记录填写不规范', '扣1分', '张乔', '刘海兰'],
+            [2, '2026-02-03', '消防应急包手电无电', '扣0.5分', '张乔', '刘海兰'],
+            [3, '2026-03-10', '防火巡查漏项', '扣1分', '张乔', '刘海兰'],
+        ];
+
+        // ----- 电伴热位置 -----
+        const heatLocations = [
+            { loc: '焊装BDC高架库南侧', val: '左5.1Ω / 右5.5Ω', status: '✓' },
+            { loc: '焊装BDC高架库北侧', val: '左4.9Ω / 右5.1Ω', status: '✓' },
+            { loc: '焊涂连廊1层北', val: '左8.2Ω / 右3.3Ω', status: '✓' },
+            { loc: '焊涂连廊1层南', val: '左0.75Ω / 右4.3Ω', status: '✓' },
+            { loc: '冲压废料间', val: '68.51Ω', status: '▲' },
+            { loc: '总装东2层风机房', val: '15.5Ω', status: '✓' },
+            { loc: '总装1层西连廊', val: '左5.2Ω / 右12.7Ω', status: '✓' },
+            { loc: '涂装西南供蜡间', val: '左9.7Ω / 右24.4Ω', status: '✓' },
+            { loc: '涂装东北物流门', val: '25.4Ω', status: '✓' },
+            { loc: '办公楼3层中卷帘门', val: '已开启', status: '✓' },
+            { loc: '综合站房南配电间北', val: '798Ω', status: '✓' },
+            { loc: '综合站房南配电间南', val: '620Ω', status: '✓' },
+            { loc: '2#总装南供液间', val: '10.6Ω', status: '✓' },
+            { loc: '2#仓库北物流门', val: '14.5Ω', status: '✓' },
+            { loc: '焊装车间北零配件库', val: '—', status: '✓' },
+        ];
+
+        // ================================================================
+        // 渲染函数
+        // ================================================================
+
+        function renderDuty() {
+            const tbody = document.getElementById('dutyTableBody');
+            tbody.innerHTML = dutyData.map((r, i) =>
+                `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[3]}">${r[3]}</td>
+                    <td>${r[4]}</td>
+                    <td>${r[5]}</td>
+                    <td><span class="status-badge ${r[6]==='故障'?'danger':r[6]==='火警'?'warning':r[6]==='反馈'?'info':'secondary'}">${r[6]}</span></td>
+                    <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[7]}">${r[7]}</td>
+                    <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[8]}">${r[8]}</td>
+                </tr>`
+            ).join('');
+        }
+
+        function renderFault() {
+            const tbody = document.getElementById('faultTableBody');
+            tbody.innerHTML = faultData.map((r, i) =>
+                `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td>${r[3]}</td>
+                    <td>${r[5]}</td>
+                    <td>${r[7]}</td>
+                    <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[9]}">${r[9]}</td>
+                    <td><span class="status-badge ${r[10]==='已整改'?'success':'danger'}">${r[10]}</span></td>
+                </tr>`
+            ).join('');
+        }
+
+        function renderFacility() {
+            const tbody = document.getElementById('facilityTableBody');
+            tbody.innerHTML = facilityData.map((r, i) =>
+                `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td>${r[3]}</td>
+                    <td>${r[4]}</td>
+                    <td>${r[5]}</td>
+                    <td>${r[6]}</td>
+                    <td>${r[7]}</td>
+                    <td>${r[8]}</td>
+                    <td>${r[9]}</td>
+                </tr>`
+            ).join('');
+        }
+
+        function renderFire() {
+            const tbody = document.getElementById('fireTableBody');
+            tbody.innerHTML = fireData.map((r, i) =>
+                `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td style="max-width:180px;">${r[3]}</td>
+                    <td><span class="status-badge secondary">—</span></td>
+                </tr>`
+            ).join('');
+        }
+
+        function renderPlan() {
+            const tbody = document.getElementById('planTableBody');
+            const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+            tbody.innerHTML = planData.map((r, i) => {
+                const cells = r.slice(4, 16).map(v =>
+                    `<td style="text-align:center;">${v || ''}</td>`
+                ).join('');
+                return `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td style="max-width:160px;">${r[2]}</td>
+                    <td>${r[3]}</td>
+                    ${cells}
+                </tr>`;
+            }).join('');
+        }
+
+        function renderRecord() {
+            const tbody = document.getElementById('recordTableBody');
+            tbody.innerHTML = recordData.map((r, i) =>
+                `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td>${r[3]}</td>
+                    <td>${r[4]}</td>
+                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[5]}">${r[5]}</td>
+                </tr>`
+            ).join('');
+        }
+
+        function renderTestPlan() {
+            const tbody = document.getElementById('testPlanTableBody');
+            const months = ['1月', '2月', '3月', '4月', '5月', '6月'];
+            tbody.innerHTML = testPlanData.map((r, i) => {
+                const cells = r.slice(5, 11).map(v =>
+                    `<td style="text-align:center;">${v || ''}</td>`
+                ).join('');
+                return `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td style="max-width:140px;">${r[2]}</td>
+                    <td style="max-width:120px;">${r[3]}</td>
+                    <td>${r[4]}</td>
+                    ${cells}
+                </tr>`;
+            }).join('');
+        }
+
+        function renderTestRecord() {
+            const tbody = document.getElementById('testRecordTableBody');
+            tbody.innerHTML = testRecordData.map((r, i) =>
+                `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td>${r[3]}</td>
+                    <td>${r[4]}</td>
+                    <td>${r[5]}</td>
+                    <td style="max-width:120px;">${r[6] || '—'}</td>
+                    <td>${r[7]}</td>
+                </tr>`
+            ).join('');
+        }
+
+        function renderSkill() {
+            const tbody = document.getElementById('skillTableBody');
+            const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+            tbody.innerHTML = skillData.map((r, i) => {
+                const cells = r.slice(3, 15).map(v =>
+                    `<td style="text-align:center;">${v || ''}</td>`
+                ).join('');
+                return `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td style="max-width:140px;">${r[2]}</td>
+                    ${cells}
+                </tr>`;
+            }).join('');
+        }
+
+        function renderIdentify() {
+            const tbody = document.getElementById('identifyTableBody');
+            tbody.innerHTML = identifyData.map((r, i) =>
+                `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td>${r[3]}</td>
+                    <td style="max-width:200px;">${r[4]}</td>
+                </tr>`
+            ).join('');
+        }
+
+        function renderTraining() {
+            const tbody = document.getElementById('trainingTableBody');
+            tbody.innerHTML = trainingData.map((r, i) =>
+                `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td>${r[3]}</td>
+                    <td>${r[4]}</td>
+                    <td>${r[5]}</td>
+                    <td>${r[6]}</td>
+                    <td>${r[7]}</td>
+                    <td>${r[8]}</td>
+                    <td>${r[9]}</td>
+                    <td>${r[10]}</td>
+                    <td><span class="status-badge success">${r[11]}</span></td>
+                </tr>`
+            ).join('');
+        }
+
+        function renderAssessment() {
+            const tbody = document.getElementById('assessmentTableBody');
+            tbody.innerHTML = assessmentData.map((r, i) =>
+                `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td>${r[3]}</td>
+                    <td>${r[4]}</td>
+                    <td>${r[5]}</td>
+                </tr>`
+            ).join('');
+        }
+
+        function renderHeat() {
+            const container = document.getElementById('heatLocationList');
+            container.innerHTML = heatLocations.map(h =>
+                `<div class="heat-item">
+                    <div class="loc">📍 ${h.loc}</div>
+                    <div class="val">阻值: ${h.val} &nbsp;|&nbsp; 状态: <span style="font-weight:600;color:${h.status==='✓'?'#2e7d32':h.status==='▲'?'#e65100':'#c62828'}">${h.status}</span></div>
+                </div>`
+            ).join('');
+        }
+
+        // ----- 仪表板数据 -----
+        function renderDashboard() {
+            // 近期火警
+            const alarmTbody = document.getElementById('recentAlarm');
+            const alarms = dutyData.filter(r => r[6] === '火警' || r[6] === '预警').slice(0, 5);
+            alarmTbody.innerHTML = alarms.map(r =>
+                `<tr>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[3]}">${r[3]}</td>
+                    <td><span class="status-badge ${r[6]==='火警'?'warning':'info'}">${r[6]}</span></td>
+                </tr>`
+            ).join('');
+
+            // 待整改
+            const pendingTbody = document.getElementById('pendingList');
+            const pendings = faultData.filter(r => r[10] === '整改中').slice(0, 5);
+            pendingTbody.innerHTML = pendings.map(r =>
+                `<tr>
+                    <td>${r[5]}</td>
+                    <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[7]}">${r[7]}</td>
+                    <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[9]}">${r[9]}</td>
+                    <td><span class="status-badge danger">整改中</span></td>
+                </tr>`
+            ).join('');
+
+            // 月度统计
+            const statsTbody = document.getElementById('monthlyStatsTable');
+            const months = ['1月', '2月', '3月', '4月', '5月'];
+            const statsData = [
+                [6, 5, 5, 6, 0],
+                [16, 16, 8, 21, 0],
+                [49, 49, 27, 7, 0],
+                [6, 1, 0, 4, 0],
+                [0, 5, 5, 2, 0],
+                [4, 0, 0, 3, 0]
+            ];
+            const labels = ['火警', '故障', '反馈', '预警', '屏蔽', '报备'];
+            statsTbody.innerHTML = months.map((m, mi) => {
+                const row = statsData.map(d => d[mi]).join('</td><td>');
+                const total = statsData.reduce((s, d) => s + d[mi], 0);
+                return `<tr><td>${m}</td><td>${row}</td><td><strong>${total}</strong></td></tr>`;
+            }).join('');
+        }
+
+        // ================================================================
+        // 图表
+        // ================================================================
+        let charts = {};
+
+        function initCharts() {
+            // 趋势图
+            const ctx1 = document.getElementById('trendChart').getContext('2d');
+            charts.trend = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['1月', '2月', '3月', '4月', '5月'],
+                    datasets: [{
+                        label: '故障数',
+                        data: [16, 16, 8, 21, 0],
+                        borderColor: '#e67e22',
+                        backgroundColor: 'rgba(230,126,34,0.10)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 4,
+                    }, {
+                        label: '火警数',
+                        data: [6, 5, 5, 6, 0],
+                        borderColor: '#c0392b',
+                        backgroundColor: 'rgba(192,57,43,0.08)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 4,
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top',
+                            labels: { boxWidth: 12, padding: 12 } } } }
+            });
+
+            // 饼图
+            const ctx2 = document.getElementById('pieChart').getContext('2d');
+            charts.pie = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['器件故障', '人为原因', '环境因素', '其他'],
+                    datasets: [{
+                        data: [20, 8, 6, 4],
+                        backgroundColor: ['#e67e22', '#3498db', '#2ecc71', '#95a5a6'],
+                        borderWidth: 0,
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right',
+                            labels: { boxWidth: 12, padding: 10 } } }, cutout: '65%' }
+            });
+
+            // 区域火警
+            const ctx3 = document.getElementById('areaChart').getContext('2d');
+            charts.area = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: ['冲焊', '涂装', '总装', '办公楼', '综合站房', '餐厅'],
+                    datasets: [{
+                        label: '火警次数',
+                        data: [0, 1, 0, 1, 0, 4],
+                        backgroundColor: ['#3498db', '#e67e22', '#2ecc71', '#9b59b6', '#1abc9c', '#e74c3c'],
+                        borderRadius: 4,
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } },
+                    x: { grid: { display: false } } } }
+            });
+
+            // 故障维修分类
+            const ctx4 = document.getElementById('repairChart').getContext('2d');
+            charts.repair = new Chart(ctx4, {
+                type: 'bar',
+                data: {
+                    labels: ['消防器件', '模块损坏', '其他'],
+                    datasets: [{
+                        label: '数量',
+                        data: [20, 8, 8],
+                        backgroundColor: ['#e67e22', '#3498db', '#95a5a6'],
+                        borderRadius: 4,
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } },
+                    x: { grid: { display: false } } } }
+            });
+        }
+
+        // ================================================================
+        // 导航
+        // ================================================================
+
+        const pageTitles = {
+            dashboard: '仪表板',
+            duty: '值班记录',
+            fault: '故障巡查',
+            analysis: '月度分析',
+            facility: '设施基准',
+            fire: '防火基准',
+            'maintain-plan': '保养计划',
+            'maintain-record': '保养记录',
+            'test-plan': '测试计划',
+            'test-record': '测试记录',
+            skill: '技能提升',
+            identify: '技能鉴定',
+            training: '培训记录',
+            meeting: '月度会议',
+            assessment: '月度考核',
+            heat: '电伴热管理',
+            'device-list': '设备清单'
+        };
+
+        function navigate(pageId) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById('page-' + pageId);
+            if (target) target.classList.add('active');
+
+            // 更新导航高亮
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const navItem = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+            if (navItem) navItem.classList.add('active');
+
+            // 更新标题
+            const title = pageTitles[pageId] || pageId;
+            document.getElementById('pageTitle').innerHTML = `${title} <small>${pageId === 'dashboard' ? '消防维保总览' : ''}</small>`;
+
+            // 关闭移动端侧栏
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('active');
+
+            // 重绘图表（如果页面是仪表板或分析）
+            setTimeout(() => {
+                if (pageId === 'dashboard' || pageId === 'analysis') {
+                    Object.values(charts).forEach(c => { if (c && c.resize) c.resize(); });
+                }
+            }, 100);
+        }
+
+        // 导航点击
+        document.querySelectorAll('.nav-item').forEach(el => {
+            el.addEventListener('click', function() {
+                const page = this.dataset.page;
+                if (page) navigate(page);
+            });
+        });
+
+        // 移动端菜单
+        document.getElementById('menuToggle').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('active');
+        });
+        document.getElementById('overlay').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('open');
+            this.classList.remove('active');
+        });
+
+        // ================================================================
+        // 会议记录渲染
+        // ================================================================
+
+        function renderMeetings() {
+            const container = document.getElementById('meetingList');
+            const meetings = [{
+                date: '2026-01-07',
+                attend: '刘海兰、王海欣、张乔、闫鸿丙、夏婷停、张建才、孙瑞清',
+                items: [
+                    { task: 'BU施工遗留问题持续跟进，保证消防系统正常运行无影响及风险', by: '刘海兰', status: '进行中',
+                    due: '持续' },
+                    { task: '消防值班、维保人员技能月度培训，涵盖理想安全管理人员', by: '刘海兰', status: '进行中',
+                    due: '持续' }
+                ]
+            }, {
+                date: '2026-02-04',
+                attend: '刘海兰、张乔、闫鸿丙、夏婷停、张建才、孙瑞清',
+                items: [
+                    { task: '依斯倍2月对维保工作建立标准作业书，并实施培训技能操作', by: '刘海兰', status: '已完成',
+                    due: '2026-02-28' }
+                ]
+            }, {
+                date: '2026-04-01',
+                attend: '张乔、闫鸿丙、孙伟、夏婷婷、张建才、李洋',
+                items: [
+                    { task: '消防维保2人尽快考取电工证', by: '张乔', status: '进行中', due: '—' },
+                    { task: '餐厅消防玻璃规格统计及其他区域玻璃规格统计', by: '张乔', status: '进行中', due: '—' },
+                    { task: '消防应急照明控制柜线路故障联系BU处理', by: '张乔', status: '进行中', due: '—' }
+                ]
+            }];
+
+            container.innerHTML = meetings.map(m =>
+                `<div class="meeting-item">
+                    <div class="meta">
+                        <span><strong>📅 ${m.date}</strong></span>
+                        <span>👥 ${m.attend}</span>
+                    </div>
+                    ${m.items.map(item =>
+                        `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 4px 16px;border-left:2px solid #e67e22;margin:4px 0;background:#fafcfe;border-radius:4px;padding-left:14px;">
+                            <span style="font-size:14px;">${item.task}</span>
+                            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12px;">
+                                <span style="color:var(--text-light);">交办: ${item.by}</span>
+                                <span class="status-badge ${item.status==='已完成'?'success':item.status==='进行中'?'warning':'secondary'}">${item.status}</span>
+                                ${item.due !== '—' ? `<span style="color:var(--text-light);">📌 ${item.due}</span>` : ''}
+                            </div>
+                        </div>`
+                    ).join('')}
+                </div>`
+            ).join('');
+        }
+
+        // ================================================================
+        // 远程数据加载（优先读取 data.json，失败则用内置示例数据）
+        // ================================================================
+        async function loadRemoteData() {
+            const statusEl = document.getElementById('importStatus');
+            try {
+                const res = await fetch('data.json?t=' + Date.now());
+                if (!res.ok) throw new Error('文件不存在');
+                const json = await res.json();
+
+                // 如果是空数据（首次部署还没同步），跳过
+                if (json._source === 'default' || !json.duty || json.duty.length === 0) {
+                    console.log('ℹ️ data.json 暂无数据，使用内置示例');
+                    return;
+                }
+
+                // 用远程数据覆盖内置数据
+                if (json.duty       && json.duty.length)       { dutyData.length=0;       json.duty.forEach(r=>dutyData.push(r)); }
+                if (json.fault      && json.fault.length)      { faultData.length=0;      json.fault.forEach(r=>faultData.push(r)); }
+                if (json.record     && json.record.length)     { recordData.length=0;     json.record.forEach(r=>recordData.push(r)); }
+                if (json.testRecord && json.testRecord.length) { testRecordData.length=0; json.testRecord.forEach(r=>testRecordData.push(r)); }
+                if (json.training   && json.training.length)   { trainingData.length=0;   json.training.forEach(r=>trainingData.push(r)); }
+                if (json.assessment && json.assessment.length) { assessmentData.length=0; json.assessment.forEach(r=>assessmentData.push(r)); }
+
+                // 重新渲染所有页面
+                renderDuty(); renderFault(); renderRecord();
+                renderTestRecord(); renderTraining(); renderAssessment();
+                renderDashboard(); refreshCharts();
+
+                // 显示更新时间
+                if (json._updated) {
+                    const d = new Date(json._updated);
+                    const str = `${d.getMonth()+1}月${d.getDate()}日 ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+                    if (statusEl) {
+                        statusEl.textContent = `✅ 飞书自动同步 · ${str}`;
+                        statusEl.className = 'import-status ok';
+                    }
+                    // 顶部日期同步更新
+                    const dateBadge = document.querySelector('.date-badge');
+                    if (dateBadge) {
+                        const days = ['日','一','二','三','四','五','六'];
+                        dateBadge.textContent = `📅 ${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 · 周${days[d.getDay()]}`;
+                    }
+                }
+                console.log('✅ 飞书数据加载成功，更新时间:', json._updated);
+
+            } catch (e) {
+                // 加载失败无提示，静默使用内置示例数据
+                console.log('ℹ️ 未找到 data.json，使用内置示例数据');
+            }
+        }
+
+        // ================================================================
+        // 管理员密码验证模块
+        // ================================================================
+
+        // ⚠️ 修改此处密码（建议用字母+数字组合）
+        const ADMIN_PWD_HASH = 'zq2026fire';  // 你的密码，可自行修改
+        const ADMIN_KEY = 'fire_admin_unlocked';
+
+        function openAdminModal() {
+            // 如果已登录，直接切换导入栏显示/隐藏
+            if (localStorage.getItem(ADMIN_KEY) === '1') {
+                toggleImportBar(true);
+                return;
+            }
+            document.getElementById('adminModal').classList.add('show');
+            document.getElementById('adminPwdInput').value = '';
+            document.getElementById('modalErr').textContent = '';
+            setTimeout(() => document.getElementById('adminPwdInput').focus(), 100);
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.remove('show');
+        }
+
+        function checkAdminPwd() {
+            const input = document.getElementById('adminPwdInput');
+            const errEl = document.getElementById('modalErr');
+            if (input.value === ADMIN_PWD_HASH) {
+                // 密码正确 → 记录登录状态（sessionStorage：关闭浏览器后失效；换成 localStorage 则长期保存）
+                sessionStorage.setItem(ADMIN_KEY, '1');
+                closeAdminModal();
+                toggleImportBar(true);
+            } else {
+                errEl.textContent = '密码错误，请重试';
+                input.classList.add('shake');
+                input.value = '';
+                setTimeout(() => input.classList.remove('shake'), 400);
+            }
+        }
+
+        function toggleImportBar(show) {
+            const bar = document.getElementById('importBar');
+            bar.style.display = show ? 'flex' : 'none';
+        }
+
+        function adminLogout() {
+            sessionStorage.removeItem(ADMIN_KEY);
+            toggleImportBar(false);
+        }
+
+        // 页面加载时检查是否已登录
+        function checkAdminSession() {
+            if (sessionStorage.getItem(ADMIN_KEY) === '1') {
+                toggleImportBar(true);
+            }
+        }
+
+        // ================================================================
+        // Excel 导入模块
+        // ================================================================
+
+        // Sheet 名称映射（对应飞书/Excel 里的工作表名称，可按实际修改）
+        const SHEET_MAP = {
+            '值班记录':    'duty',
+            '故障巡查':    'fault',
+            '保养记录':    'record',
+            '测试记录':    'testRecord',
+            '培训记录':    'training',
+            '月度考核':    'assessment',
+        };
+
+        // 将 Sheet 的二维数组（含表头）转成对象数组
+        function sheetToArray(ws) {
+            const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+            if (!data || data.length < 2) return [];
+            // 去掉表头行，直接返回数组行（与原始硬编码格式兼容）
+            return data.slice(1).filter(row => row.some(cell => cell !== ''));
+        }
+
+        // 用导入数据覆盖对应的全局变量并重新渲染
+        function applyImportedData(sheetName, rows) {
+            const key = SHEET_MAP[sheetName];
+            if (!key) return false;
+            switch (key) {
+                case 'duty':
+                    dutyData.length = 0;
+                    rows.forEach(r => dutyData.push(r));
+                    renderDuty();
+                    renderDashboard();
+                    refreshCharts();
+                    break;
+                case 'fault':
+                    faultData.length = 0;
+                    rows.forEach(r => faultData.push(r));
+                    renderFault();
+                    renderDashboard();
+                    break;
+                case 'record':
+                    recordData.length = 0;
+                    rows.forEach(r => recordData.push(r));
+                    renderRecord();
+                    break;
+                case 'testRecord':
+                    testRecordData.length = 0;
+                    rows.forEach(r => testRecordData.push(r));
+                    renderTestRecord();
+                    break;
+                case 'training':
+                    trainingData.length = 0;
+                    rows.forEach(r => trainingData.push(r));
+                    renderTraining();
+                    break;
+                case 'assessment':
+                    assessmentData.length = 0;
+                    rows.forEach(r => assessmentData.push(r));
+                    renderAssessment();
+                    break;
+            }
+            return true;
+        }
+
+        // 刷新图表数据（根据最新 dutyData / faultData）
+        function refreshCharts() {
+            // 重新统计月度故障趋势
+            const monthFault = [0,0,0,0,0];
+            const monthAlarm = [0,0,0,0,0];
+            dutyData.forEach(r => {
+                const d = String(r[1] || '');
+                const m = parseInt(d.split('-')[1]) - 1;
+                if (m >= 0 && m < 5) {
+                    if (r[6] === '故障') monthFault[m]++;
+                    if (r[6] === '火警') monthAlarm[m]++;
+                }
+            });
+            if (charts.trend) {
+                charts.trend.data.datasets[0].data = monthFault;
+                charts.trend.data.datasets[1].data = monthAlarm;
+                charts.trend.update();
+            }
+            // 重新统计故障类型
+            const typeCnt = { '器件故障': 0, '人为原因': 0, '环境因素': 0, '其他': 0 };
+            faultData.forEach(r => {
+                const t = String(r[5] || '');
+                if (typeCnt[t] !== undefined) typeCnt[t]++;
+                else typeCnt['其他']++;
+            });
+            if (charts.pie) {
+                charts.pie.data.datasets[0].data = Object.values(typeCnt);
+                charts.pie.update();
+            }
+        }
+
+        // 读取 Excel 文件并处理
+        function handleExcelFile(file) {
+            const statusEl = document.getElementById('importStatus');
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls'].includes(ext)) {
+                statusEl.textContent = '❌ 请选择 .xlsx 或 .xls 文件';
+                statusEl.className = 'import-status err';
+                return;
+            }
+            statusEl.textContent = '⏳ 解析中...';
+            statusEl.className = 'import-status';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const workbook = XLSX.read(e.target.result, { type: 'array' });
+                    let updated = [];
+                    let skipped = [];
+                    workbook.SheetNames.forEach(name => {
+                        const ws = workbook.Sheets[name];
+                        const rows = sheetToArray(ws);
+                        const ok = applyImportedData(name, rows);
+                        if (ok) updated.push(name);
+                        else skipped.push(name);
+                    });
+                    const now = new Date();
+                    const timeStr = `${now.getMonth()+1}月${now.getDate()}日 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+                    if (updated.length > 0) {
+                        statusEl.innerHTML = `✅ ${timeStr} 已更新：${updated.join('、')}`;
+                        statusEl.className = 'import-status ok';
+                    } else {
+                        statusEl.innerHTML = `⚠️ 未匹配到工作表<br><span style="font-size:11px;opacity:0.7;">需命名为：${Object.keys(SHEET_MAP).join('、')}</span>`;
+                        statusEl.className = 'import-status err';
+                    }
+                } catch(err) {
+                    statusEl.textContent = '❌ 文件解析失败，请检查格式';
+                    statusEl.className = 'import-status err';
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 绑定文件选择和拖拽事件
+        function initImport() {
+            const input = document.getElementById('excelFileInput');
+            const dropZone = document.getElementById('dropZone');
+
+            input.addEventListener('change', e => {
+                handleExcelFile(e.target.files[0]);
+                input.value = ''; // 允许重复选同一文件
+            });
+
+            dropZone.addEventListener('dragover', e => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                handleExcelFile(file);
+            });
+        }
+
+        // ================================================================
+        // 初始化
+        // ================================================================
+
+        function init() {
+            renderDuty();
+            renderFault();
+            renderFacility();
+            renderFire();
+            renderPlan();
+            renderRecord();
+            renderTestPlan();
+            renderTestRecord();
+            renderSkill();
+            renderIdentify();
+            renderTraining();
+            renderAssessment();
+            renderHeat();
+            renderDashboard();
+            renderMeetings();
+            initCharts();
+            initImport();
+            checkAdminSession();
+            loadRemoteData(); // 优先加载飞书自动同步数据
+
+            // 默认显示仪表板
+            navigate('dashboard');
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</body>
+</html>
