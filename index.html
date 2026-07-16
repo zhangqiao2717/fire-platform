@@ -618,6 +618,165 @@
             padding: 20px 0;
         }
 
+        /* ===== 火警弹窗 ===== */
+        .fire-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .fire-modal-overlay.show { display: flex; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+        .fire-modal {
+            background: #fff;
+            border-radius: 16px;
+            width: 560px;
+            max-width: 95vw;
+            box-shadow: 0 24px 80px rgba(192,57,43,0.35);
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity:0; }
+            to   { transform: translateY(0);    opacity:1; }
+        }
+        .fire-modal-header {
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .fire-modal-header .fire-icon {
+            font-size: 32px;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%,100% { transform: scale(1); }
+            50%      { transform: scale(1.15); }
+        }
+        .fire-modal-header .fire-title {
+            flex: 1;
+        }
+        .fire-modal-header .fire-title h2 {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .fire-modal-header .fire-title p {
+            color: rgba(255,255,255,0.8);
+            font-size: 13px;
+            margin-top: 2px;
+        }
+        .fire-modal-header .fire-count {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 28px;
+            font-weight: 700;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fire-modal-body {
+            padding: 16px 24px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+        .fire-alarm-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .fire-alarm-item:last-child { border-bottom: none; }
+        .fire-alarm-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e74c3c;
+            margin-top: 5px;
+            flex-shrink: 0;
+            animation: pulse 1.2s infinite;
+        }
+        .fire-alarm-info { flex: 1; }
+        .fire-alarm-info .fire-loc {
+            font-weight: 600;
+            color: #c0392b;
+            font-size: 14px;
+        }
+        .fire-alarm-info .fire-meta {
+            font-size: 12px;
+            color: #888;
+            margin-top: 3px;
+        }
+        .fire-alarm-status {
+            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: #fce4ec;
+            color: #c62828;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .fire-modal-footer {
+            padding: 14px 24px 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            background: #fafafa;
+            border-top: 1px solid #f0f0f0;
+        }
+        .fire-btn-confirm {
+            background: #c0392b;
+            color: #fff;
+            border: none;
+            padding: 9px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .fire-btn-confirm:hover { background: #a93226; }
+        .fire-btn-close {
+            background: #f0f0f0;
+            color: #666;
+            border: none;
+            padding: 9px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .fire-btn-close:hover { background: #e0e0e0; }
+
+        /* 右下角火警提示角标 */
+        .fire-badge {
+            display: none;
+            position: fixed;
+            bottom: 64px;
+            right: 18px;
+            background: #e74c3c;
+            color: #fff;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 500;
+            box-shadow: 0 4px 16px rgba(231,76,60,0.4);
+            animation: pulse 2s infinite;
+        }
+        .fire-badge.show { display: flex; align-items: center; gap: 6px; }
+
         /* ===== 管理员解锁弹窗 ===== */
         .admin-modal-overlay {
             display: none;
@@ -1226,6 +1385,32 @@
         </div>
 
     </main>
+
+    <!-- ===== 火警弹窗 ===== -->
+    <div class="fire-modal-overlay" id="fireModal">
+        <div class="fire-modal">
+            <div class="fire-modal-header">
+                <div class="fire-icon">🔥</div>
+                <div class="fire-title">
+                    <h2>火警报警通知</h2>
+                    <p id="fireModalTime">检测时间：—</p>
+                </div>
+                <div class="fire-count" id="fireModalCount">0</div>
+            </div>
+            <div class="fire-modal-body" id="fireModalBody">
+                <p style="color:#aaa;text-align:center;padding:20px 0;">加载中...</p>
+            </div>
+            <div class="fire-modal-footer">
+                <button class="fire-btn-close" onclick="closeFireModal()">稍后查看</button>
+                <button class="fire-btn-confirm" onclick="confirmFireModal()">✅ 已知晓，立即处理</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 火警角标（关闭弹窗后显示） -->
+    <div class="fire-badge" id="fireBadge" onclick="openFireModal()">
+        🔥 <span id="fireBadgeText">火警</span>
+    </div>
 
     <!-- ===== 管理员解锁弹窗 ===== -->
     <div class="admin-modal-overlay" id="adminModal">
@@ -1887,6 +2072,72 @@
         }
 
         // ================================================================
+        // 火警弹窗模块
+        // ================================================================
+        let _currentAlarms = [];
+
+        function showFireModal(alarms) {
+            if (!alarms || alarms.length === 0) return;
+            _currentAlarms = alarms;
+
+            // 填充内容
+            const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+            document.getElementById('fireModalTime').textContent = `检测时间：${now}`;
+            document.getElementById('fireModalCount').textContent = alarms.length;
+
+            const body = document.getElementById('fireModalBody');
+            body.innerHTML = alarms.map(a => `
+                <div class="fire-alarm-item">
+                    <div class="fire-alarm-dot"></div>
+                    <div class="fire-alarm-info">
+                        <div class="fire-loc">📍 ${a.location || a.raw || '未知位置'}</div>
+                        <div class="fire-meta">⏰ ${a.time || '—'} &nbsp;|&nbsp; 类型: ${a.type || '火警'}</div>
+                    </div>
+                    <div class="fire-alarm-status">${a.status || '未处理'}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('fireModal').classList.add('show');
+            // 播放提示音（浏览器允许时）
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                [0, 300, 600].forEach(delay => {
+                    setTimeout(() => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.frequency.value = 880;
+                        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                        osc.start(ctx.currentTime);
+                        osc.stop(ctx.currentTime + 0.3);
+                    }, delay);
+                });
+            } catch(e) { /* 忽略音频错误 */ }
+        }
+
+        function closeFireModal() {
+            document.getElementById('fireModal').classList.remove('show');
+            // 显示角标提醒
+            const badge = document.getElementById('fireBadge');
+            const badgeText = document.getElementById('fireBadgeText');
+            badge.classList.add('show');
+            badgeText.textContent = `${_currentAlarms.length} 条火警未处理`;
+        }
+
+        function confirmFireModal() {
+            document.getElementById('fireModal').classList.remove('show');
+            document.getElementById('fireBadge').classList.remove('show');
+            // 跳转到值班记录页
+            navigate('duty');
+        }
+
+        function openFireModal() {
+            showFireModal(_currentAlarms);
+        }
+
+        // ================================================================
         // 远程数据加载（优先读取 data.json，失败则用内置示例数据）
         // ================================================================
         async function loadRemoteData() {
@@ -1931,6 +2182,15 @@
                     }
                 }
                 console.log('✅ 飞书数据加载成功，更新时间:', json._updated);
+
+                // 检查是否有天泽智联火警数据，有则弹窗
+                if (json.tianze_alarms && json.tianze_alarms.length > 0) {
+                    const newCount = json.tianze_new_count || 0;
+                    if (newCount > 0) {
+                        // 有新增火警，延迟1秒弹窗（等页面渲染完毕）
+                        setTimeout(() => showFireModal(json.tianze_alarms.slice(0, 10)), 1000);
+                    }
+                }
 
             } catch (e) {
                 // 加载失败无提示，静默使用内置示例数据
