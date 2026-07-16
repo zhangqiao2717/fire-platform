@@ -1,0 +1,50 @@
+name: 天泽智联火警监控（每30分钟）
+
+  on:
+    schedule:
+      - cron: '0,30 0-14 * * *'
+    workflow_dispatch:
+
+  jobs:
+    scrape-alarms:
+      runs-on: ubuntu-latest
+      steps:
+        - name: 📥 拉取代码
+          uses: actions/checkout@v4
+          with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: 🟢 设置 Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '20'
+
+        - name: 📦 安装依赖
+          run: |
+            cd scripts
+            npm init -y
+            npm install puppeteer
+
+        - name: 🔍 运行抓取脚本
+          env:
+            TIANZE_USERNAME:    ${{ secrets.TIANZE_USERNAME }}
+            TIANZE_PASSWORD:    ${{ secrets.TIANZE_PASSWORD }}
+            TIANZE_URL:         ${{ secrets.TIANZE_URL }}
+            FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          run: node scripts/scrape_tianze.js
+
+        - name: 📸 上传截图
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: alarm-screenshot
+            path: alarm_screenshot.png
+            retention-days: 3
+
+        - name: 📦 提交更新
+          run: |
+            git config --local user.email "action@github.com"
+            git config --local user.name "FireBot"
+            git add data.json
+            git diff --staged --quiet || git commit -m "🚨 火警数据更新 $(TZ='Asia/Shanghai' date '+%H:%M')"
+            git push
