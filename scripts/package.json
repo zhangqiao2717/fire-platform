@@ -1,0 +1,8 @@
+  {
+    "name": "scrape-tianze",
+    "version": "1.0.0",
+    "main": "scrape_tianze.js",
+    "dependencies": {
+      "puppeteer": "^22.0.0"
+    }
+  }
