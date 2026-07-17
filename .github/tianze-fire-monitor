@@ -1,0 +1,34 @@
+name: tianze-fire-monitor
+  on:
+    schedule:
+      - cron: "0,30 0-14 * * *"
+    workflow_dispatch:
+  jobs:
+    scrape-alarms:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+          with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+        - uses: actions/setup-node@v4
+          with:
+            node-version: "20"
+        - run: cd scripts && npm init -y && npm install puppeteer
+        - env:
+            TIANZE_USERNAME: ${{ secrets.TIANZE_USERNAME }}
+            TIANZE_PASSWORD: ${{ secrets.TIANZE_PASSWORD }}
+            TIANZE_URL: ${{ secrets.TIANZE_URL }}
+            FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          run: node scripts/scrape_tianze.js
+        - if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: alarm-screenshot
+            path: alarm_screenshot.png
+            retention-days: 3
+        - run: |
+            git config --local user.email "action@github.com"
+            git config --local user.name "FireBot"
+            git add data.json
+            git diff --staged --quiet || git commit -m "fire data update"
+            git push
