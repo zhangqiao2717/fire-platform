@@ -618,6 +618,209 @@
             padding: 20px 0;
         }
 
+        /* ===== 设备清单文档卡片 ===== */
+        .doc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px;
+            padding: 4px 0;
+        }
+        .doc-card {
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .doc-card:hover {
+            border-color: var(--accent);
+            background: #fff8f3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(230,126,34,0.12);
+        }
+        .doc-card .doc-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .doc-card .doc-meta {
+            font-size: 11px;
+            color: var(--text-light);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .doc-card .doc-tag {
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .doc-card .doc-tag.has-excel { background: #e8f5e9; color: #2e7d32; }
+        .doc-card .doc-tag.has-feishu { background: #e3f2fd; color: #0d47a1; }
+        .doc-card .doc-tag.empty { background: #f5f5f5; color: #9e9e9e; }
+        .doc-card .doc-actions {
+            display: none;
+            margin-top: 10px;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .doc-card .doc-actions.admin-visible { display: flex; }
+        .doc-card .doc-btn {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            color: var(--text-light);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .doc-card .doc-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .doc-card .doc-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .doc-card .doc-btn.primary:hover { background: var(--accent-light); }
+
+        /* ===== 文档查看弹窗 ===== */
+        .doc-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 2500;
+            align-items: center;
+            justify-content: center;
+        }
+        .doc-modal-overlay.show { display: flex; }
+        .doc-modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            width: 90vw;
+            max-width: 1100px;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+            animation: fadeUp 0.25s ease;
+            overflow: hidden;
+        }
+        .doc-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+            background: var(--bg);
+        }
+        .doc-modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary);
+            flex: 1;
+        }
+        .doc-modal-header .header-btns {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .doc-modal-header .header-btns a,
+        .doc-modal-header .header-btns button {
+            font-size: 13px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            color: var(--text);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .doc-modal-header .header-btns a:hover,
+        .doc-modal-header .header-btns button:hover {
+            background: var(--primary); color: #fff; border-color: var(--primary);
+        }
+        .doc-modal-header .header-btns .feishu-btn {
+            background: #1664ff; color: #fff; border-color: #1664ff;
+        }
+        .doc-modal-body {
+            flex: 1;
+            overflow: auto;
+            padding: 16px 24px;
+        }
+        .doc-modal-body table {
+            min-width: 100%;
+        }
+        .doc-modal-footer {
+            padding: 12px 24px;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+            flex-shrink: 0;
+            display: none;
+        }
+        .doc-modal-footer.admin-visible { display: block; }
+        .doc-modal-footer .footer-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .doc-modal-footer .footer-row:last-child { margin-bottom: 0; }
+        .doc-modal-footer label { font-size: 13px; color: var(--text-light); white-space: nowrap; }
+        .doc-modal-footer input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            outline: none;
+        }
+        .doc-modal-footer input[type="text"]:focus { border-color: var(--primary); }
+        .doc-modal-footer .footer-btn {
+            padding: 6px 16px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .doc-modal-footer .footer-btn.primary { background: var(--primary); color: #fff; }
+        .doc-modal-footer .footer-btn.primary:hover { background: var(--primary-light); }
+        .doc-modal-footer .footer-btn.accent { background: var(--accent); color: #fff; }
+        .doc-modal-footer .footer-btn.accent:hover { background: var(--accent-light); }
+        .doc-drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-sm);
+            padding: 10px 16px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            flex: 1;
+        }
+        .doc-drop-zone:hover, .doc-drop-zone.dragover {
+            border-color: var(--accent);
+            background: #fff8f3;
+            color: var(--accent);
+        }
+        .doc-drop-zone input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer;
+        }
+
         /* ===== 火警弹窗 ===== */
         .fire-modal-overlay {
             display: none;
@@ -1471,27 +1674,51 @@
         <!-- 页面：设备清单 -->
         <!-- ============================================================ -->
         <div class="page" id="page-device-list">
-            <div class="module-desc">📦 消防设备设施清单 · 地址码 / 备件 / 人员信息</div>
+            <div class="module-desc">📦 消防设备设施清单 · 地址码 / 备件 / 人员信息 · 点击卡片查看详情</div>
             <div class="card">
-                <div class="card-header"><h3>📋 设备清单索引</h3></div>
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:8px 0;">
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 泄漏电流报警排查专项</div>
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 北京基地消防切电、漏电统计</div>
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 消防设施地址码统计表</div>
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 北京基地消防备件</div>
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 消防异常信息记录表</div>
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 京雄消防维保人员信息统计表</div>
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 消防系统问题统计</div>
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 消防档案电子版</div>
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 消防维保工作报告</div>
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 应急处理联系名册</div>
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 外援引入全流程操作指南</div>
-                    <div style="background:var(--bg);padding:14px 18px;border-radius:var(--radius-sm);border-left:3px solid var(--accent);">📄 外援人员管理系统操作说明</div>
+                <div class="card-header">
+                    <h3>📋 设备清单索引</h3>
+                    <span class="sub" id="docAdminTip" style="display:none;color:var(--accent);">🔑 管理员模式 · 可导入文档</span>
                 </div>
+                <div class="doc-grid" id="docGrid"></div>
             </div>
         </div>
 
     </main>
+
+    <!-- ===== 文档查看弹窗 ===== -->
+    <div class="doc-modal-overlay" id="docModal">
+        <div class="doc-modal">
+            <div class="doc-modal-header">
+                <h3 id="docModalTitle">📄 文档名称</h3>
+                <div class="header-btns" id="docModalHeaderBtns">
+                    <a id="docFeishuBtn" href="#" target="_blank" class="feishu-btn" style="display:none;">🔗 在飞书中查看</a>
+                    <button onclick="closeDocModal()">✕ 关闭</button>
+                </div>
+            </div>
+            <div class="doc-modal-body" id="docModalBody">
+                <div style="text-align:center;padding:60px 0;color:var(--text-light);">
+                    <div style="font-size:40px;margin-bottom:12px;">📂</div>
+                    <div style="font-size:15px;">尚未导入文档内容</div>
+                    <div style="font-size:13px;margin-top:8px;">请管理员导入 Excel 文件或绑定飞书文档链接</div>
+                </div>
+            </div>
+            <div class="doc-modal-footer" id="docModalFooter">
+                <div class="footer-row">
+                    <label>📂 导入 Excel：</label>
+                    <div class="doc-drop-zone" id="docDropZone">
+                        拖入 .xlsx 文件或点击选择
+                        <input type="file" id="docFileInput" accept=".xlsx,.xls">
+                    </div>
+                </div>
+                <div class="footer-row">
+                    <label>🔗 飞书链接：</label>
+                    <input type="text" id="docFeishuInput" placeholder="粘贴飞书文档地址 https://...">
+                    <button class="footer-btn primary" onclick="saveDocFeishuUrl()">保存链接</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== 火警弹窗 ===== -->
     <div class="fire-modal-overlay" id="fireModal">
@@ -2179,6 +2406,222 @@
         }
 
         // ================================================================
+        // ================================================================
+        // 设备清单文档管理模块
+        // ================================================================
+
+        // 12 个文档版块名称
+        const DOC_NAMES = [
+            '泄漏电流报警排查专项',
+            '北京基地消防切电、漏电统计',
+            '消防设施地址码统计表',
+            '北京基地消防备件',
+            '消防异常信息记录表',
+            '京雄消防维保人员信息统计表',
+            '消防系统问题统计',
+            '消防档案电子版',
+            '消防维保工作报告',
+            '应急处理联系名册',
+            '外援引入全流程操作指南',
+            '外援人员管理系统操作说明',
+        ];
+
+        // 从 localStorage 读取文档数据
+        function loadDeviceDocs() {
+            try {
+                const raw = localStorage.getItem('fire_device_docs');
+                return raw ? JSON.parse(raw) : {};
+            } catch { return {}; }
+        }
+
+        // 保存文档数据到 localStorage
+        function saveDeviceDocs(docs) {
+            localStorage.setItem('fire_device_docs', JSON.stringify(docs));
+        }
+
+        let _deviceDocs = loadDeviceDocs();  // 内存中的文档数据
+        let _currentDocName = '';             // 当前打开的文档名
+
+        // 渲染文档卡片列表
+        function renderDeviceDocs() {
+            const grid = document.getElementById('docGrid');
+            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
+            // 显示/隐藏管理员提示
+            const tip = document.getElementById('docAdminTip');
+            if (tip) tip.style.display = isAdmin ? 'inline' : 'none';
+
+            grid.innerHTML = DOC_NAMES.map(name => {
+                const doc = _deviceDocs[name] || {};
+                const hasExcel = doc.excel_data && doc.excel_data.length > 0;
+                const hasFeishu = !!doc.feishu_url;
+                const updated = doc.updated || '';
+
+                let tags = '';
+                if (hasExcel) tags += `<span class="doc-tag has-excel">✓ Excel</span>`;
+                if (hasFeishu) tags += `<span class="doc-tag has-feishu">🔗 飞书</span>`;
+                if (!hasExcel && !hasFeishu) tags += `<span class="doc-tag empty">未导入</span>`;
+
+                return `<div class="doc-card" onclick="openDocModal('${name.replace(/'/g, "\\'")}')">
+                    <div class="doc-name">📄 ${name}</div>
+                    <div class="doc-meta">
+                        ${tags}
+                        ${updated ? `<span style="color:var(--text-light);font-size:10px;">更新: ${updated}</span>` : ''}
+                    </div>
+                    <div class="doc-actions ${isAdmin ? 'admin-visible' : ''}">
+                        <button class="doc-btn primary" onclick="event.stopPropagation();openDocModal('${name.replace(/'/g, "\\'")}')">📂 导入/查看</button>
+                        ${hasFeishu ? `<a class="doc-btn" href="${doc.feishu_url}" target="_blank" onclick="event.stopPropagation()">🔗 飞书</a>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // 打开文档查看弹窗
+        function openDocModal(name) {
+            _currentDocName = name;
+            const doc = _deviceDocs[name] || {};
+            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
+
+            // 标题
+            document.getElementById('docModalTitle').textContent = `📄 ${name}`;
+
+            // 飞书按钮
+            const feishuBtn = document.getElementById('docFeishuBtn');
+            if (doc.feishu_url) {
+                feishuBtn.href = doc.feishu_url;
+                feishuBtn.style.display = 'inline-block';
+            } else {
+                feishuBtn.style.display = 'none';
+            }
+
+            // 内容区
+            const body = document.getElementById('docModalBody');
+            if (doc.excel_data && doc.excel_data.length > 0) {
+                const rows = doc.excel_data;
+                const thead = rows[0].map(h => `<th>${h ?? ''}</th>`).join('');
+                const tbody = rows.slice(1).map(row =>
+                    `<tr>${row.map(cell => `<td>${cell ?? ''}</td>`).join('')}</tr>`
+                ).join('');
+                body.innerHTML = `
+                    <div style="margin-bottom:8px;font-size:12px;color:var(--text-light);">
+                        共 ${rows.length - 1} 行 × ${rows[0].length} 列
+                        ${doc.updated ? `· 更新于 ${doc.updated}` : ''}
+                    </div>
+                    <div class="table-wrap"><table>
+                        <thead><tr>${thead}</tr></thead>
+                        <tbody>${tbody}</tbody>
+                    </table></div>`;
+            } else {
+                body.innerHTML = `
+                    <div style="text-align:center;padding:60px 0;color:var(--text-light);">
+                        <div style="font-size:40px;margin-bottom:12px;">📂</div>
+                        <div style="font-size:15px;">尚未导入 Excel 内容</div>
+                        <div style="font-size:13px;margin-top:8px;">
+                            ${isAdmin ? '请使用下方操作区导入文件或绑定飞书链接' : '请联系管理员导入文档'}
+                        </div>
+                    </div>`;
+            }
+
+            // 管理员底部操作区
+            const footer = document.getElementById('docModalFooter');
+            footer.className = `doc-modal-footer ${isAdmin ? 'admin-visible' : ''}`;
+
+            // 填入已有飞书链接
+            const feishuInput = document.getElementById('docFeishuInput');
+            feishuInput.value = doc.feishu_url || '';
+
+            // 绑定文件拖拽
+            initDocDropZone();
+
+            document.getElementById('docModal').classList.add('show');
+        }
+
+        // 关闭文档弹窗
+        function closeDocModal() {
+            document.getElementById('docModal').classList.remove('show');
+            _currentDocName = '';
+        }
+
+        // 初始化文档弹窗内的拖拽区域
+        function initDocDropZone() {
+            const dropZone = document.getElementById('docDropZone');
+            const input = document.getElementById('docFileInput');
+
+            // 避免重复绑定
+            const newDrop = dropZone.cloneNode(true);
+            dropZone.parentNode.replaceChild(newDrop, dropZone);
+            const newInput = newDrop.querySelector('input[type="file"]');
+
+            newInput.addEventListener('change', e => {
+                if (e.target.files[0]) handleDocExcelUpload(e.target.files[0]);
+                newInput.value = '';
+            });
+            newDrop.addEventListener('dragover', e => { e.preventDefault(); newDrop.classList.add('dragover'); });
+            newDrop.addEventListener('dragleave', () => newDrop.classList.remove('dragover'));
+            newDrop.addEventListener('drop', e => {
+                e.preventDefault();
+                newDrop.classList.remove('dragover');
+                if (e.dataTransfer.files[0]) handleDocExcelUpload(e.dataTransfer.files[0]);
+            });
+        }
+
+        // 处理文档 Excel 上传
+        function handleDocExcelUpload(file) {
+            if (!_currentDocName) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls'].includes(ext)) {
+                alert('请选择 .xlsx 或 .xls 文件');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const wb = XLSX.read(e.target.result, { type: 'array' });
+                    const ws = wb.Sheets[wb.SheetNames[0]];
+                    const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+                    const filtered = data.filter(row => row.some(c => c !== ''));
+
+                    if (!_deviceDocs[_currentDocName]) _deviceDocs[_currentDocName] = {};
+                    _deviceDocs[_currentDocName].excel_data = filtered;
+                    _deviceDocs[_currentDocName].updated = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).slice(0, 16);
+                    saveDeviceDocs(_deviceDocs);
+
+                    // 刷新弹窗内容
+                    openDocModal(_currentDocName);
+                    // 刷新卡片列表
+                    renderDeviceDocs();
+                } catch(err) {
+                    alert('文件解析失败：' + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 保存飞书链接
+        function saveDocFeishuUrl() {
+            if (!_currentDocName) return;
+            const url = document.getElementById('docFeishuInput').value.trim();
+            if (!url) { alert('请填写飞书文档链接'); return; }
+            if (!url.startsWith('http')) { alert('链接格式不正确，请以 https:// 开头'); return; }
+
+            if (!_deviceDocs[_currentDocName]) _deviceDocs[_currentDocName] = {};
+            _deviceDocs[_currentDocName].feishu_url = url;
+            _deviceDocs[_currentDocName].updated = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).slice(0, 16);
+            saveDeviceDocs(_deviceDocs);
+
+            // 刷新弹窗和卡片
+            openDocModal(_currentDocName);
+            renderDeviceDocs();
+            alert('✅ 飞书链接已保存！');
+        }
+
+        // 点击遮罩关闭文档弹窗
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('docModal').addEventListener('click', function(e) {
+                if (e.target === this) closeDocModal();
+            });
+        });
+
+        // ================================================================
         // 火警记录渲染
         // ================================================================
         function renderAlarmHistory(history) {
@@ -2501,6 +2944,8 @@
         function toggleImportBar(show) {
             const bar = document.getElementById('importBar');
             bar.style.display = show ? 'flex' : 'none';
+            // 同步刷新设备清单卡片（显示/隐藏管理员操作按钮）
+            renderDeviceDocs();
         }
 
         function adminLogout() {
@@ -2703,6 +3148,7 @@
             checkAdminSession();
             loadRemoteData();
             initSplash(); // 开屏弹窗
+            renderDeviceDocs(); // 设备清单文档卡片
             handleFireConfirm(); // 处理飞书确认跳转
 
             // 默认显示仪表板
