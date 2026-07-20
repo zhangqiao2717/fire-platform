@@ -23,14 +23,16 @@ const CONFIG = {
     username: '19800312191',
     // 天泽智联密码
     password: 'Li@666888',
-    // 飞书机器人 Webhook
+    // 飞书机器人 Webhook（群通知）
     webhook:  'https://open.feishu.cn/open-apis/bot/v2/hook/486a84ae-3861-4652-b00d-cad5e2759cba',
+    // 飞书应用 App Secret（用于发送私信，填入你的飞书 App Secret）
+    appSecret: '',   // ← 填入飞书开放平台的 App Secret 后私信功能生效
     // 消防平台网址
     siteUrl:  'https://beijing-fire.netlify.app',
     // 文件路径
     dataFile:       path.join(__dirname, '..', 'data.json'),
     screenshotFile: path.join(__dirname, '..', 'screenshot.png'),
-    // Chrome 路径（Windows 默认路径，如不同请修改）
+    // Chrome 路径
     chromePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
 };
 
@@ -62,7 +64,147 @@ function request(url, options, body) {
 }
 
 // ============================================================
-// 工具：推送飞书通知
+// ⚙️ 区域负责人配置
+// ============================================================
+const AREA_CONTACTS = {
+    '冲焊':   { name: '张蕴龙', phone: '15040026850' },
+    '涂装':   { name: '郭书强', phone: '18658424252' },
+    '总装':   { name: '何迅达', phone: '13681070413' },
+    '餐厅':   { name: '王治纲', phone: '13810395510' },
+    '综合站房': { name: '于玥',   phone: '13889267822' },
+    '办公楼': { name: '王治纲', phone: '13810395510' },
+    '4#厂房': { name: '邓海南', phone: '15232971855' },
+};
+
+// ============================================================
+// 工具：通过手机号查询飞书 open_id（用于 @人）
+// ============================================================
+async function getOpenId(phone, appToken) {
+    try {
+        const res = await request(
+            `https://open.feishu.cn/open-apis/contact/v3/users/batch_get_id?user_id_type=open_id`,
+            {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${appToken}`,
+                    'Content-Type': 'application/json',
+                }
+            },
+            JSON.stringify({ mobiles: [phone] })
+        );
+        const data = JSON.parse(res);
+        const list = data?.data?.user_list || [];
+        const user = list.find(u => u.mobile === phone);
+        return user?.user_id || null;
+    } catch(e) {
+        console.warn(`⚠️  查询 ${phone} 的 open_id 失败:`, e.message);
+        return null;
+    }
+}
+
+// ============================================================
+// 工具：获取飞书 app_access_token（用于查询用户 open_id）
+// ============================================================
+async function getAppToken() {
+    try {
+        const res = await request(
+            'https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal',
+            { method: 'POST', headers: { 'Content-Type': 'application/json' } },
+            JSON.stringify({ app_id: 'cli_aadddd5e85f81bd1', app_secret: CONFIG.appSecret })
+        );
+        const data = JSON.parse(res);
+        return data?.app_access_token || null;
+    } catch(e) {
+        console.warn('⚠️  获取 app_access_token 失败:', e.message);
+        return null;
+    }
+}
+
+// ============================================================
+// 工具：发送飞书私信给指定 open_id
+// ============================================================
+async function sendPrivateMsg(openId, appToken, alarm, contact) {
+    const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+    const body = JSON.stringify({
+        msg_type: 'interactive',
+        card: JSON.stringify({
+            config: { wide_screen_mode: true },
+            header: {
+                title: { tag: 'plain_text', content: `🚨 【${alarm.location}】火警提醒` },
+                template: 'red'
+            },
+            elements: [
+                {
+                    tag: 'div',
+                    text: {
+                        tag: 'lark_md',
+                        content: `**${contact.name} 您好，您负责的区域发生火警，请立即处理！**\n\n📍 **区域：** ${alarm.location}\n🔥 **类型：** ${alarm.type || '火警'}\n⏰ **时间：** ${now}\n📊 **状态：** ${alarm.status || '待处理'}`
+                    }
+                },
+                { tag: 'hr' },
+                {
+                    tag: 'action',
+                    actions: [{
+                        tag: 'button',
+                        text: { tag: 'plain_text', content: '查看消防管理平台' },
+                        type: 'primary',
+                        url: CONFIG.siteUrl
+                    }]
+                }
+            ]
+        })
+    });
+
+    try {
+        await request(
+            'https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=open_id',
+            {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${appToken}`,
+                    'Content-Type': 'application/json',
+                    'receive_id_type': 'open_id'
+                }
+            },
+            JSON.stringify({
+                receive_id: openId,
+                msg_type: 'interactive',
+                content: JSON.stringify({
+                    config: { wide_screen_mode: true },
+                    header: {
+                        title: { tag: 'plain_text', content: `🚨 【${alarm.location}】火警提醒` },
+                        template: 'red'
+                    },
+                    elements: [
+                        {
+                            tag: 'div',
+                            text: {
+                                tag: 'lark_md',
+                                content: `**${contact.name} 您好，您负责的区域发生火警，请立即处理！**\n\n📍 **区域：** ${alarm.location}\n🔥 **类型：** ${alarm.type || '火警'}\n⏰ **时间：** ${now}\n📊 **状态：** ${alarm.status || '待处理'}`
+                            }
+                        },
+                        { tag: 'hr' },
+                        {
+                            tag: 'action',
+                            actions: [{
+                                tag: 'button',
+                                text: { tag: 'plain_text', content: '查看消防管理平台' },
+                                type: 'primary',
+                                url: CONFIG.siteUrl
+                            }]
+                        }
+                    ]
+                })
+            })
+        );
+        console.log(`✅ 已私信 ${contact.name}（${alarm.location}）`);
+    } catch(e) {
+        console.warn(`⚠️  私信 ${contact.name} 失败:`, e.message);
+    }
+}
+
+// ============================================================
+// 工具：推送飞书通知（群通知 + 精准 @负责人 + 私信）
 // ============================================================
 async function sendFeishu(alarms) {
     if (!CONFIG.webhook || CONFIG.webhook === 'YOUR_FEISHU_WEBHOOK_URL') {
@@ -70,24 +212,69 @@ async function sendFeishu(alarms) {
         return;
     }
     const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-    const list = alarms.slice(0, 10).map((a, i) =>
-        `**${i+1}.** 📍 ${a.location || '未知位置'} | 🔥 ${a.type || '火警'} | ⏰ ${a.time || '—'}`
-    ).join('\n');
 
-    const body = JSON.stringify({
+    // 按区域分组，匹配负责人
+    const areaGroups = {};
+    const unmatchedAlarms = [];
+    alarms.forEach(a => {
+        const loc = a.location || a.raw || '';
+        let matched = false;
+        for (const [area, contact] of Object.entries(AREA_CONTACTS)) {
+            if (loc.includes(area)) {
+                if (!areaGroups[area]) areaGroups[area] = { contact, alarms: [] };
+                areaGroups[area].alarms.push(a);
+                matched = true;
+                break;
+            }
+        }
+        if (!matched) unmatchedAlarms.push(a);
+    });
+
+    // 构建群通知内容（含区域和负责人信息）
+    let listContent = '';
+    for (const [area, group] of Object.entries(areaGroups)) {
+        listContent += `**【${area}】** 负责人：${group.contact.name} 📞 ${group.contact.phone}\n`;
+        group.alarms.forEach((a, i) => {
+            listContent += `　${i+1}. 🔥 ${a.type || '火警'} | ⏰ ${a.time || now} | ${a.status || '待处理'}\n`;
+        });
+        listContent += '\n';
+    }
+    if (unmatchedAlarms.length > 0) {
+        listContent += `**【其他区域】** 负责人：张乔\n`;
+        unmatchedAlarms.forEach((a, i) => {
+            listContent += `　${i+1}. 📍 ${a.location || '未知'} | 🔥 ${a.type || '火警'}\n`;
+        });
+    }
+
+    // 发送群通知
+    const groupBody = JSON.stringify({
         msg_type: 'interactive',
         card: {
             config: { wide_screen_mode: true },
             header: {
-                title: { tag: 'plain_text', content: `🚨 火警通知 · ${alarms.length} 条新报警` },
+                title: { tag: 'plain_text', content: `🚨 火警通知 · ${alarms.length} 条报警 · 已通知各区域负责人` },
                 template: 'red'
             },
             elements: [
-                { tag: 'div', text: { tag: 'lark_md', content: `**检测时间：** ${now}\n**报警数量：** ${alarms.length} 条` } },
+                {
+                    tag: 'div',
+                    text: {
+                        tag: 'lark_md',
+                        content: `**检测时间：** ${now}\n**报警数量：** ${alarms.length} 条\n**已通知：** ${Object.values(areaGroups).map(g => g.contact.name).join('、') || '—'}`
+                    }
+                },
                 { tag: 'hr' },
-                { tag: 'div', text: { tag: 'lark_md', content: list || '请查看平台详情' } },
+                { tag: 'div', text: { tag: 'lark_md', content: listContent || '请查看平台详情' } },
                 { tag: 'hr' },
-                { tag: 'action', actions: [{ tag: 'button', text: { tag: 'plain_text', content: '查看消防管理平台' }, type: 'primary', url: CONFIG.siteUrl }] }
+                {
+                    tag: 'action',
+                    actions: [{
+                        tag: 'button',
+                        text: { tag: 'plain_text', content: '查看消防管理平台' },
+                        type: 'primary',
+                        url: CONFIG.siteUrl
+                    }]
+                }
             ]
         }
     });
@@ -95,11 +282,30 @@ async function sendFeishu(alarms) {
     try {
         await request(CONFIG.webhook, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
-        }, body);
-        console.log('✅ 飞书通知发送成功');
+            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(groupBody) }
+        }, groupBody);
+        console.log('✅ 群通知发送成功');
     } catch(e) {
-        console.error('❌ 飞书通知失败:', e.message);
+        console.error('❌ 群通知失败:', e.message);
+    }
+
+    // 发送私信给各区域负责人
+    if (CONFIG.appSecret) {
+        const appToken = await getAppToken();
+        if (appToken) {
+            for (const [area, group] of Object.entries(areaGroups)) {
+                const openId = await getOpenId(group.contact.phone, appToken);
+                if (openId) {
+                    for (const alarm of group.alarms) {
+                        await sendPrivateMsg(openId, appToken, { ...alarm, location: area }, group.contact);
+                    }
+                } else {
+                    console.warn(`⚠️  未找到 ${group.contact.name} 的飞书账号，跳过私信`);
+                }
+            }
+        }
+    } else {
+        console.log('ℹ️  未配置 appSecret，跳过私信功能（群通知已发送）');
     }
 }
 
@@ -111,7 +317,7 @@ function pushToGithub() {
         const dir = path.join(__dirname, '..');
         execSync('git add data.json', { cwd: dir });
         execSync('git diff --staged --quiet || git commit -m "fire data update"', { cwd: dir, shell: true });
-        execSync('git push', { cwd: dir });
+        execSync('git push --set-upstream origin main', { cwd: dir });
         console.log('✅ 已推送到 GitHub，网页将自动更新');
     } catch(e) {
         console.log('⚠️  GitHub 推送失败（可能无变化）:', e.message.split('\n')[0]);
