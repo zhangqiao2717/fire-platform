@@ -25,8 +25,6 @@ const CONFIG = {
     password: 'Li@666888',
     // 飞书机器人 Webhook（群通知）
     webhook:  'https://open.feishu.cn/open-apis/bot/v2/hook/486a84ae-3861-4652-b00d-cad5e2759cba',
-    // 飞书应用 App Secret（用于发送私信，填入你的飞书 App Secret）
-    appSecret: '',   // ← 填入飞书开放平台的 App Secret 后私信功能生效
     // 消防平台网址
     siteUrl:  'https://beijing-fire.netlify.app',
     // 文件路径
@@ -293,7 +291,7 @@ async function sendFeishu(alarms) {
                     tag: 'note',
                     elements: [{
                         tag: 'plain_text',
-                        content: '⚠️ 各区域负责人同时已收到私信，请务必现场确认后点击对应按钮'
+                        content: '⚠️ 请各区域负责人务必现场核实后点击对应按钮确认'
                     }]
                 }
             ]
@@ -308,25 +306,6 @@ async function sendFeishu(alarms) {
         console.log('✅ 群通知发送成功');
     } catch(e) {
         console.error('❌ 群通知失败:', e.message);
-    }
-
-    // 发送私信给各区域负责人
-    if (CONFIG.appSecret) {
-        const appToken = await getAppToken();
-        if (appToken) {
-            for (const [area, group] of Object.entries(areaGroups)) {
-                const openId = await getOpenId(group.contact.phone, appToken);
-                if (openId) {
-                    for (const alarm of group.alarms) {
-                        await sendPrivateMsg(openId, appToken, { ...alarm, location: area }, group.contact);
-                    }
-                } else {
-                    console.warn(`⚠️  未找到 ${group.contact.name} 的飞书账号，跳过私信`);
-                }
-            }
-        }
-    } else {
-        console.log('ℹ️  未配置 appSecret，跳过私信功能（群通知已发送）');
     }
 }
 
