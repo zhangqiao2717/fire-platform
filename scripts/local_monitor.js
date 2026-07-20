@@ -121,39 +121,63 @@ async function getAppToken() {
 }
 
 // ============================================================
-// 工具：发送飞书私信给指定 open_id
+// 工具：发送飞书私信给指定 open_id（含确认按钮）
 // ============================================================
 async function sendPrivateMsg(openId, appToken, alarm, contact) {
     const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-    const body = JSON.stringify({
-        msg_type: 'interactive',
-        card: JSON.stringify({
-            config: { wide_screen_mode: true },
-            header: {
-                title: { tag: 'plain_text', content: `🚨 【${alarm.location}】火警提醒` },
-                template: 'red'
-            },
-            elements: [
-                {
-                    tag: 'div',
-                    text: {
-                        tag: 'lark_md',
-                        content: `**${contact.name} 您好，您负责的区域发生火警，请立即处理！**\n\n📍 **区域：** ${alarm.location}\n🔥 **类型：** ${alarm.type || '火警'}\n⏰ **时间：** ${now}\n📊 **状态：** ${alarm.status || '待处理'}`
-                    }
-                },
-                { tag: 'hr' },
-                {
-                    tag: 'action',
-                    actions: [{
-                        tag: 'button',
-                        text: { tag: 'plain_text', content: '查看消防管理平台' },
-                        type: 'primary',
-                        url: CONFIG.siteUrl
-                    }]
+    // 确认链接：跳转到消防平台并带上参数，记录确认状态
+    const confirmUrl1 = `${CONFIG.siteUrl}?confirm=safe&area=${encodeURIComponent(alarm.location)}&name=${encodeURIComponent(contact.name)}&time=${encodeURIComponent(now)}`;
+    const confirmUrl2 = `${CONFIG.siteUrl}?confirm=emergency&area=${encodeURIComponent(alarm.location)}&name=${encodeURIComponent(contact.name)}&time=${encodeURIComponent(now)}`;
+
+    const card = {
+        config: { wide_screen_mode: true },
+        header: {
+            title: { tag: 'plain_text', content: `🚨 【${alarm.location}】火警确认` },
+            template: 'red'
+        },
+        elements: [
+            {
+                tag: 'div',
+                text: {
+                    tag: 'lark_md',
+                    content: `**${contact.name} 您好，您负责的区域发生火警，请现场核实后确认处置情况！**\n\n📍 **区域：** ${alarm.location}\n🔥 **类型：** ${alarm.type || '火警'}\n⏰ **时间：** ${now}\n📊 **状态：** 待确认`
                 }
-            ]
-        })
-    });
+            },
+            { tag: 'hr' },
+            {
+                tag: 'div',
+                text: {
+                    tag: 'lark_md',
+                    content: '**请现场核实后，点击下方按钮确认：**'
+                }
+            },
+            {
+                tag: 'action',
+                actions: [
+                    {
+                        tag: 'button',
+                        text: { tag: 'plain_text', content: '✅ 1. 已现场确认，无火情' },
+                        type: 'primary',
+                        url: confirmUrl1
+                    },
+                    {
+                        tag: 'button',
+                        text: { tag: 'plain_text', content: '🚒 2. 现场发生火情，立即启动应急预案' },
+                        type: 'danger',
+                        url: confirmUrl2
+                    }
+                ]
+            },
+            { tag: 'hr' },
+            {
+                tag: 'note',
+                elements: [{
+                    tag: 'plain_text',
+                    content: '⚠️ 请务必现场核实后再确认，确认结果将同步至消防管理平台'
+                }]
+            }
+        ]
+    };
 
     try {
         await request(
@@ -163,41 +187,15 @@ async function sendPrivateMsg(openId, appToken, alarm, contact) {
                 headers: {
                     'Authorization': `Bearer ${appToken}`,
                     'Content-Type': 'application/json',
-                    'receive_id_type': 'open_id'
                 }
             },
             JSON.stringify({
                 receive_id: openId,
                 msg_type: 'interactive',
-                content: JSON.stringify({
-                    config: { wide_screen_mode: true },
-                    header: {
-                        title: { tag: 'plain_text', content: `🚨 【${alarm.location}】火警提醒` },
-                        template: 'red'
-                    },
-                    elements: [
-                        {
-                            tag: 'div',
-                            text: {
-                                tag: 'lark_md',
-                                content: `**${contact.name} 您好，您负责的区域发生火警，请立即处理！**\n\n📍 **区域：** ${alarm.location}\n🔥 **类型：** ${alarm.type || '火警'}\n⏰ **时间：** ${now}\n📊 **状态：** ${alarm.status || '待处理'}`
-                            }
-                        },
-                        { tag: 'hr' },
-                        {
-                            tag: 'action',
-                            actions: [{
-                                tag: 'button',
-                                text: { tag: 'plain_text', content: '查看消防管理平台' },
-                                type: 'primary',
-                                url: CONFIG.siteUrl
-                            }]
-                        }
-                    ]
-                })
+                content: JSON.stringify(card)
             })
         );
-        console.log(`✅ 已私信 ${contact.name}（${alarm.location}）`);
+        console.log(`✅ 已私信 ${contact.name}（${alarm.location}）含确认按钮`);
     } catch(e) {
         console.warn(`⚠️  私信 ${contact.name} 失败:`, e.message);
     }
@@ -247,12 +245,15 @@ async function sendFeishu(alarms) {
     }
 
     // 发送群通知
+    const confirmUrl1 = `${CONFIG.siteUrl}?confirm=safe&area=all&name=all&time=${encodeURIComponent(now)}`;
+    const confirmUrl2 = `${CONFIG.siteUrl}?confirm=emergency&area=all&name=all&time=${encodeURIComponent(now)}`;
+
     const groupBody = JSON.stringify({
         msg_type: 'interactive',
         card: {
             config: { wide_screen_mode: true },
             header: {
-                title: { tag: 'plain_text', content: `🚨 火警通知 · ${alarms.length} 条报警 · 已通知各区域负责人` },
+                title: { tag: 'plain_text', content: `🚨 火警通知 · ${alarms.length} 条报警 · 请各区域负责人确认` },
                 template: 'red'
             },
             elements: [
@@ -260,19 +261,39 @@ async function sendFeishu(alarms) {
                     tag: 'div',
                     text: {
                         tag: 'lark_md',
-                        content: `**检测时间：** ${now}\n**报警数量：** ${alarms.length} 条\n**已通知：** ${Object.values(areaGroups).map(g => g.contact.name).join('、') || '—'}`
+                        content: `**检测时间：** ${now}\n**报警数量：** ${alarms.length} 条\n**待确认负责人：** ${Object.values(areaGroups).map(g => g.contact.name).join('、') || '—'}`
                     }
                 },
                 { tag: 'hr' },
                 { tag: 'div', text: { tag: 'lark_md', content: listContent || '请查看平台详情' } },
                 { tag: 'hr' },
                 {
+                    tag: 'div',
+                    text: { tag: 'lark_md', content: '**各区域负责人请现场核实后点击确认：**' }
+                },
+                {
                     tag: 'action',
-                    actions: [{
-                        tag: 'button',
-                        text: { tag: 'plain_text', content: '查看消防管理平台' },
-                        type: 'primary',
-                        url: CONFIG.siteUrl
+                    actions: [
+                        {
+                            tag: 'button',
+                            text: { tag: 'plain_text', content: '✅ 1. 已现场确认，无火情' },
+                            type: 'primary',
+                            url: confirmUrl1
+                        },
+                        {
+                            tag: 'button',
+                            text: { tag: 'plain_text', content: '🚒 2. 现场发生火情，立即启动应急预案' },
+                            type: 'danger',
+                            url: confirmUrl2
+                        }
+                    ]
+                },
+                { tag: 'hr' },
+                {
+                    tag: 'note',
+                    elements: [{
+                        tag: 'plain_text',
+                        content: '⚠️ 各区域负责人同时已收到私信，请务必现场确认后点击对应按钮'
                     }]
                 }
             ]

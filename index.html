@@ -2152,6 +2152,86 @@
         }
 
         // ================================================================
+        // 火警确认处理（负责人点击飞书按钮后跳转到此页面）
+        // ================================================================
+        function handleFireConfirm() {
+            const params = new URLSearchParams(window.location.search);
+            const confirm = params.get('confirm');
+            const area    = params.get('area');
+            const name    = params.get('name');
+            const time    = params.get('time');
+            if (!confirm) return;
+
+            // 清除 URL 参数（避免刷新重复弹出）
+            window.history.replaceState({}, '', window.location.pathname);
+
+            const isSafe      = confirm === 'safe';
+            const isEmergency = confirm === 'emergency';
+            if (!isSafe && !isEmergency) return;
+
+            // 构建确认弹窗
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position:fixed;inset:0;background:rgba(0,0,0,0.7);
+                z-index:9998;display:flex;align-items:center;justify-content:center;
+            `;
+            const box = document.createElement('div');
+            box.style.cssText = `
+                background:#fff;border-radius:16px;padding:36px 40px;
+                width:460px;max-width:95vw;text-align:center;
+                box-shadow:0 20px 60px rgba(0,0,0,0.3);
+                animation:slideUp 0.3s ease;
+            `;
+            const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+
+            if (isSafe) {
+                box.innerHTML = `
+                    <div style="font-size:52px;margin-bottom:16px;">✅</div>
+                    <h2 style="color:#2e7d32;font-size:22px;margin-bottom:10px;">已确认：无火情</h2>
+                    <p style="color:#666;font-size:14px;margin-bottom:20px;">
+                        <strong>${name}</strong> 已于 ${now} 现场确认<br>
+                        区域：<strong>${area}</strong> &nbsp;|&nbsp; 原报警时间：${time}
+                    </p>
+                    <div style="background:#e8f5e9;padding:12px 16px;border-radius:8px;font-size:13px;color:#2e7d32;margin-bottom:24px;">
+                        ✓ 确认结果已记录，感谢您的及时核查
+                    </div>
+                    <button onclick="this.closest('.confirm-overlay').remove()" style="
+                        background:#2e7d32;color:#fff;border:none;padding:10px 32px;
+                        border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;
+                    ">关闭</button>
+                `;
+            } else {
+                box.innerHTML = `
+                    <div style="font-size:52px;margin-bottom:16px;">🚒</div>
+                    <h2 style="color:#c62828;font-size:22px;margin-bottom:10px;">⚠️ 火情确认！立即启动应急预案</h2>
+                    <p style="color:#666;font-size:14px;margin-bottom:20px;">
+                        <strong>${name}</strong> 已于 ${now} 确认发生火情<br>
+                        区域：<strong>${area}</strong> &nbsp;|&nbsp; 原报警时间：${time}
+                    </p>
+                    <div style="background:#fce4ec;padding:12px 16px;border-radius:8px;font-size:13px;color:#c62828;margin-bottom:16px;text-align:left;">
+                        <strong>应急预案步骤：</strong><br>
+                        1. 立即拨打消防电话 <strong>119</strong><br>
+                        2. 通知消防控制室：张乔 <strong>19800312191</strong><br>
+                        3. 组织人员疏散，切勿乘坐电梯<br>
+                        4. 使用就近灭火器进行初期扑救<br>
+                        5. 等待消防人员到达，保持通道畅通
+                    </div>
+                    <button onclick="this.closest('.confirm-overlay').remove()" style="
+                        background:#c62828;color:#fff;border:none;padding:10px 32px;
+                        border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;
+                    ">我已知晓，立即行动</button>
+                `;
+            }
+
+            overlay.classList.add('confirm-overlay');
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', e => {
+                if (e.target === overlay) overlay.remove();
+            });
+        }
+
+        // ================================================================
         // 开屏欢迎弹窗（3秒后自动消失）
         // ================================================================
         function initSplash() {
@@ -2557,6 +2637,7 @@
             checkAdminSession();
             loadRemoteData();
             initSplash(); // 开屏弹窗
+            handleFireConfirm(); // 处理飞书确认跳转
 
             // 默认显示仪表板
             navigate('dashboard');
