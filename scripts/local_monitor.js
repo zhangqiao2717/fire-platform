@@ -1,41 +1,51 @@
 /**
  * 天泽智联火警本地监控脚本
- * 在你的电脑上运行，每30分钟自动检查一次
- * 发现新火警时：写入 data.json + 推送飞书通知 + 上传 GitHub
- *
- * 配置区：修改下方的配置后运行
+ * 每30分钟自动检查 · 发现新火警 → 写入 data.json + @负责人推送飞书 + 上传 GitHub
  */
 
 const puppeteer = require('puppeteer-core');
 const https = require('https');
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
+const http  = require('http');
+const fs    = require('fs');
+const path  = require('path');
 const { execSync } = require('child_process');
 
 // ============================================================
-// ⚙️ 配置区 — 按实际情况修改
+// ⚙️ 配置区
 // ============================================================
 const CONFIG = {
-    // 天泽智联内网地址
     url:      'http://10.231.136.231:9832/bw-fck-bjdx-web/#/login',
-    // 天泽智联账号
     username: '19800312191',
-    // 天泽智联密码
     password: 'Li@666888',
-    // 飞书机器人 Webhook（群通知）
-    webhook:  'https://open.feishu.cn/open-apis/bot/v2/hook/486a84ae-3861-4652-b00d-cad5e2759cba',
-    // 消防平台网址
-    siteUrl:  'https://beijing-fire.netlify.app',
-    // 文件路径
+    // 飞书应用凭证（用于查询 open_id 实现 @ 和按钮权限）
+    appId:     'cli_aadddd5e85f81bd1',
+    appSecret: '',   // ← 填入飞书 App Secret 后 @ 功能生效
+    // 多群推送
+    webhooks: [
+        'https://open.feishu.cn/open-apis/bot/v2/hook/486a84ae-3861-4652-b00d-cad5e2759cba', // 原群
+        'https://open.feishu.cn/open-apis/bot/v2/hook/7c826fde-ab70-456d-ad8e-32cb6298f084', // 安全管理室群
+    ],
+    siteUrl:        'https://beijing-fire.netlify.app',
     dataFile:       path.join(__dirname, '..', 'data.json'),
     screenshotFile: path.join(__dirname, '..', 'screenshot.png'),
-    // Chrome 路径
-    chromePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    chromePath:     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
 };
 
 // ============================================================
-// 工具：发送 HTTP/HTTPS 请求
+// ⚙️ 区域负责人配置
+// ============================================================
+const AREA_CONTACTS = {
+    '冲焊':     { name: '张蕴龙', phone: '15040026850' },
+    '涂装':     { name: '郭书强', phone: '18658424252' },
+    '总装':     { name: '何迅达', phone: '13681070413' },
+    '餐厅':     { name: '王治纲', phone: '13810395510' },
+    '综合站房': { name: '于玥',   phone: '13889267822' },
+    '办公楼':   { name: '王治纲', phone: '13810395510' },
+    '4#厂房':   { name: '邓海南', phone: '15232971855' },
+};
+
+// ============================================================
+// 工具：HTTP/HTTPS 请求
 // ============================================================
 function request(url, options, body) {
     return new Promise((resolve, reject) => {
@@ -44,11 +54,11 @@ function request(url, options, body) {
         const urlObj = new URL(url);
         const opts = {
             hostname: urlObj.hostname,
-            port: urlObj.port || (isHttps ? 443 : 80),
-            path: urlObj.pathname + urlObj.search,
-            method: options.method || 'GET',
-            headers: options.headers || {},
-            ...options
+            port:     urlObj.port || (isHttps ? 443 : 80),
+            path:     urlObj.pathname + urlObj.search,
+            method:   options.method || 'GET',
+            headers:  options.headers || {},
+            ...options,
         };
         const req = lib.request(opts, res => {
             let data = '';
@@ -62,56 +72,17 @@ function request(url, options, body) {
 }
 
 // ============================================================
-// ⚙️ 区域负责人配置
-// ============================================================
-const AREA_CONTACTS = {
-    '冲焊':   { name: '张蕴龙', phone: '15040026850' },
-    '涂装':   { name: '郭书强', phone: '18658424252' },
-    '总装':   { name: '何迅达', phone: '13681070413' },
-    '餐厅':   { name: '王治纲', phone: '13810395510' },
-    '综合站房': { name: '于玥',   phone: '13889267822' },
-    '办公楼': { name: '王治纲', phone: '13810395510' },
-    '4#厂房': { name: '邓海南', phone: '15232971855' },
-};
-
-// ============================================================
-// 工具：通过手机号查询飞书 open_id（用于 @人）
-// ============================================================
-async function getOpenId(phone, appToken) {
-    try {
-        const res = await request(
-            `https://open.feishu.cn/open-apis/contact/v3/users/batch_get_id?user_id_type=open_id`,
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${appToken}`,
-                    'Content-Type': 'application/json',
-                }
-            },
-            JSON.stringify({ mobiles: [phone] })
-        );
-        const data = JSON.parse(res);
-        const list = data?.data?.user_list || [];
-        const user = list.find(u => u.mobile === phone);
-        return user?.user_id || null;
-    } catch(e) {
-        console.warn(`⚠️  查询 ${phone} 的 open_id 失败:`, e.message);
-        return null;
-    }
-}
-
-// ============================================================
-// 工具：获取飞书 app_access_token（用于查询用户 open_id）
+// 工具：获取飞书 app_access_token
 // ============================================================
 async function getAppToken() {
+    if (!CONFIG.appSecret) return null;
     try {
         const res = await request(
             'https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal',
             { method: 'POST', headers: { 'Content-Type': 'application/json' } },
-            JSON.stringify({ app_id: 'cli_aadddd5e85f81bd1', app_secret: CONFIG.appSecret })
+            JSON.stringify({ app_id: CONFIG.appId, app_secret: CONFIG.appSecret })
         );
-        const data = JSON.parse(res);
-        return data?.app_access_token || null;
+        return JSON.parse(res)?.app_access_token || null;
     } catch(e) {
         console.warn('⚠️  获取 app_access_token 失败:', e.message);
         return null;
@@ -119,194 +90,161 @@ async function getAppToken() {
 }
 
 // ============================================================
-// 工具：发送飞书私信给指定 open_id（含确认按钮）
+// 工具：通过手机号查询 open_id
 // ============================================================
-async function sendPrivateMsg(openId, appToken, alarm, contact) {
+async function getOpenId(phone, appToken) {
+    if (!appToken) return null;
+    try {
+        const res = await request(
+            'https://open.feishu.cn/open-apis/contact/v3/users/batch_get_id?user_id_type=open_id',
+            { method: 'POST', headers: { 'Authorization': `Bearer ${appToken}`, 'Content-Type': 'application/json' } },
+            JSON.stringify({ mobiles: [phone] })
+        );
+        const list = JSON.parse(res)?.data?.user_list || [];
+        return list.find(u => u.mobile === phone)?.user_id || null;
+    } catch(e) {
+        console.warn(`⚠️  查询 ${phone} open_id 失败:`, e.message);
+        return null;
+    }
+}
+
+// ============================================================
+// 工具：推送飞书群通知（@负责人 + 按钮仅负责人可点）
+// ============================================================
+async function sendFeishu(alarms) {
+    if (!CONFIG.webhooks?.length) {
+        console.log('⚠️  未配置 Webhook，跳过推送');
+        return;
+    }
     const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-    // 确认链接：跳转到消防平台并带上参数，记录确认状态
-    const confirmUrl1 = `${CONFIG.siteUrl}?confirm=safe&area=${encodeURIComponent(alarm.location)}&name=${encodeURIComponent(contact.name)}&time=${encodeURIComponent(now)}`;
-    const confirmUrl2 = `${CONFIG.siteUrl}?confirm=emergency&area=${encodeURIComponent(alarm.location)}&name=${encodeURIComponent(contact.name)}&time=${encodeURIComponent(now)}`;
+
+    // 按区域分组匹配负责人
+    const areaGroups = {};
+    const unmatched  = [];
+    alarms.forEach(a => {
+        const loc = a.location || a.raw || '';
+        let hit = false;
+        for (const [area, contact] of Object.entries(AREA_CONTACTS)) {
+            if (loc.includes(area)) {
+                if (!areaGroups[area]) areaGroups[area] = { contact, alarms: [] };
+                areaGroups[area].alarms.push(a);
+                hit = true; break;
+            }
+        }
+        if (!hit) unmatched.push(a);
+    });
+
+    // 尝试获取 open_id（用于 @ 和按钮权限）
+    const appToken = await getAppToken();
+    const openIds  = {};   // { phone: open_id }
+    if (appToken) {
+        const phones = [...new Set(Object.values(areaGroups).map(g => g.contact.phone))];
+        for (const phone of phones) {
+            const oid = await getOpenId(phone, appToken);
+            if (oid) { openIds[phone] = oid; console.log(`✅ open_id: ${phone} → ${oid}`); }
+        }
+    }
+
+    // 构建 @ 文本
+    const atText = (contact) => {
+        const oid = openIds[contact.phone];
+        return oid ? `<at id="${oid}"></at>` : `@${contact.name}`;
+    };
+
+    // 构建报警列表内容
+    let listContent = '';
+    for (const [area, group] of Object.entries(areaGroups)) {
+        listContent += `**【${area}】** 负责人：${atText(group.contact)} ${group.contact.name} 📞 ${group.contact.phone}\n`;
+        group.alarms.forEach((a, i) => {
+            listContent += `　${i+1}. 🔥 ${a.type || '火警'} | ⏰ ${a.time || now} | ${a.status || '待处理'}\n`;
+        });
+        listContent += '\n';
+    }
+    if (unmatched.length > 0) {
+        listContent += `**【其他区域】** 负责人：@张乔\n`;
+        unmatched.forEach((a, i) => {
+            listContent += `　${i+1}. 📍 ${a.location || '未知'} | 🔥 ${a.type || '火警'}\n`;
+        });
+    }
+
+    // 所有负责人 open_id 列表（用于按钮权限）
+    const allOpenIds = Object.values(openIds);
+
+    // 确认链接
+    const allIds      = alarms.map(a => a.id).join(',');
+    const confirmUrl1 = `${CONFIG.siteUrl}?confirm=safe&ids=${encodeURIComponent(allIds)}&area=all&time=${encodeURIComponent(now)}`;
+    const confirmUrl2 = `${CONFIG.siteUrl}?confirm=emergency&ids=${encodeURIComponent(allIds)}&area=all&time=${encodeURIComponent(now)}`;
+
+    // @ 汇总行
+    const atSummary = Object.values(areaGroups).map(g => atText(g.contact)).join(' ');
+
+    // 按钮（有 open_id 则限制只有负责人可点）
+    const mkBtn = (label, type, url) => ({
+        tag: 'button',
+        text: { tag: 'plain_text', content: label },
+        type,
+        url,
+        ...(allOpenIds.length > 0 ? { confirm_users: allOpenIds } : {}),
+    });
 
     const card = {
         config: { wide_screen_mode: true },
         header: {
-            title: { tag: 'plain_text', content: `🚨 【${alarm.location}】火警确认` },
-            template: 'red'
+            title: { tag: 'plain_text', content: `🚨 火警通知 · ${alarms.length} 条报警 · 请各区域负责人确认` },
+            template: 'red',
         },
         elements: [
             {
                 tag: 'div',
                 text: {
                     tag: 'lark_md',
-                    content: `**${contact.name} 您好，您负责的区域发生火警，请现场核实后确认处置情况！**\n\n📍 **区域：** ${alarm.location}\n🔥 **类型：** ${alarm.type || '火警'}\n⏰ **时间：** ${now}\n📊 **状态：** 待确认`
-                }
+                    content: `**检测时间：** ${now}\n**报警数量：** ${alarms.length} 条\n**通知负责人：** ${atSummary}`,
+                },
             },
+            { tag: 'hr' },
+            { tag: 'div', text: { tag: 'lark_md', content: listContent || '请查看平台详情' } },
             { tag: 'hr' },
             {
                 tag: 'div',
                 text: {
                     tag: 'lark_md',
-                    content: '**请现场核实后，点击下方按钮确认：**'
-                }
+                    content: allOpenIds.length > 0
+                        ? `**${atSummary} 请现场核实后点击确认（仅负责人可操作）：**`
+                        : '**各区域负责人请现场核实后点击确认：**',
+                },
             },
             {
                 tag: 'action',
                 actions: [
-                    {
-                        tag: 'button',
-                        text: { tag: 'plain_text', content: '✅ 1. 已现场确认，无火情' },
-                        type: 'primary',
-                        url: confirmUrl1
-                    },
-                    {
-                        tag: 'button',
-                        text: { tag: 'plain_text', content: '🚒 2. 现场发生火情，立即启动应急预案' },
-                        type: 'danger',
-                        url: confirmUrl2
-                    }
-                ]
+                    mkBtn('✅ 1. 已现场确认，无火情',           'primary', confirmUrl1),
+                    mkBtn('🚒 2. 现场发生火情，立即启动应急预案', 'danger',  confirmUrl2),
+                ],
             },
             { tag: 'hr' },
             {
                 tag: 'note',
                 elements: [{
                     tag: 'plain_text',
-                    content: '⚠️ 请务必现场核实后再确认，确认结果将同步至消防管理平台'
-                }]
-            }
-        ]
+                    content: allOpenIds.length > 0
+                        ? '⚠️ 确认按钮仅限对应区域负责人操作，其他人无法点击'
+                        : '⚠️ 请各区域负责人务必现场核实后点击对应按钮确认',
+                }],
+            },
+        ],
     };
 
-    try {
-        await request(
-            'https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=open_id',
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${appToken}`,
-                    'Content-Type': 'application/json',
-                }
-            },
-            JSON.stringify({
-                receive_id: openId,
-                msg_type: 'interactive',
-                content: JSON.stringify(card)
-            })
-        );
-        console.log(`✅ 已私信 ${contact.name}（${alarm.location}）含确认按钮`);
-    } catch(e) {
-        console.warn(`⚠️  私信 ${contact.name} 失败:`, e.message);
-    }
-}
+    const groupBody = JSON.stringify({ msg_type: 'interactive', card });
 
-// ============================================================
-// 工具：推送飞书通知（群通知 + 精准 @负责人 + 私信）
-// ============================================================
-async function sendFeishu(alarms) {
-    if (!CONFIG.webhook || CONFIG.webhook === 'YOUR_FEISHU_WEBHOOK_URL') {
-        console.log('⚠️  未配置飞书 Webhook，跳过推送');
-        return;
-    }
-    const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-
-    // 按区域分组，匹配负责人
-    const areaGroups = {};
-    const unmatchedAlarms = [];
-    alarms.forEach(a => {
-        const loc = a.location || a.raw || '';
-        let matched = false;
-        for (const [area, contact] of Object.entries(AREA_CONTACTS)) {
-            if (loc.includes(area)) {
-                if (!areaGroups[area]) areaGroups[area] = { contact, alarms: [] };
-                areaGroups[area].alarms.push(a);
-                matched = true;
-                break;
-            }
+    for (const webhook of CONFIG.webhooks) {
+        try {
+            await request(webhook, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(groupBody) },
+            }, groupBody);
+            console.log(`✅ 群通知发送成功: ...${webhook.slice(-8)}`);
+        } catch(e) {
+            console.error(`❌ 群通知失败 (...${webhook.slice(-8)}):`, e.message);
         }
-        if (!matched) unmatchedAlarms.push(a);
-    });
-
-    // 构建群通知内容（含区域和负责人信息）
-    let listContent = '';
-    for (const [area, group] of Object.entries(areaGroups)) {
-        listContent += `**【${area}】** 负责人：${group.contact.name} 📞 ${group.contact.phone}\n`;
-        group.alarms.forEach((a, i) => {
-            listContent += `　${i+1}. 🔥 ${a.type || '火警'} | ⏰ ${a.time || now} | ${a.status || '待处理'}\n`;
-        });
-        listContent += '\n';
-    }
-    if (unmatchedAlarms.length > 0) {
-        listContent += `**【其他区域】** 负责人：张乔\n`;
-        unmatchedAlarms.forEach((a, i) => {
-            listContent += `　${i+1}. 📍 ${a.location || '未知'} | 🔥 ${a.type || '火警'}\n`;
-        });
-    }
-
-    // 发送群通知
-    const allIds = alarms.map(a => a.id).join(',');
-    const confirmUrl1 = `${CONFIG.siteUrl}?confirm=safe&ids=${encodeURIComponent(allIds)}&area=all&time=${encodeURIComponent(now)}`;
-    const confirmUrl2 = `${CONFIG.siteUrl}?confirm=emergency&ids=${encodeURIComponent(allIds)}&area=all&time=${encodeURIComponent(now)}`;
-
-    const groupBody = JSON.stringify({
-        msg_type: 'interactive',
-        card: {
-            config: { wide_screen_mode: true },
-            header: {
-                title: { tag: 'plain_text', content: `🚨 火警通知 · ${alarms.length} 条报警 · 请各区域负责人确认` },
-                template: 'red'
-            },
-            elements: [
-                {
-                    tag: 'div',
-                    text: {
-                        tag: 'lark_md',
-                        content: `**检测时间：** ${now}\n**报警数量：** ${alarms.length} 条\n**待确认负责人：** ${Object.values(areaGroups).map(g => g.contact.name).join('、') || '—'}`
-                    }
-                },
-                { tag: 'hr' },
-                { tag: 'div', text: { tag: 'lark_md', content: listContent || '请查看平台详情' } },
-                { tag: 'hr' },
-                {
-                    tag: 'div',
-                    text: { tag: 'lark_md', content: '**各区域负责人请现场核实后点击确认：**' }
-                },
-                {
-                    tag: 'action',
-                    actions: [
-                        {
-                            tag: 'button',
-                            text: { tag: 'plain_text', content: '✅ 1. 已现场确认，无火情' },
-                            type: 'primary',
-                            url: confirmUrl1
-                        },
-                        {
-                            tag: 'button',
-                            text: { tag: 'plain_text', content: '🚒 2. 现场发生火情，立即启动应急预案' },
-                            type: 'danger',
-                            url: confirmUrl2
-                        }
-                    ]
-                },
-                { tag: 'hr' },
-                {
-                    tag: 'note',
-                    elements: [{
-                        tag: 'plain_text',
-                        content: '⚠️ 请各区域负责人务必现场核实后点击对应按钮确认'
-                    }]
-                }
-            ]
-        }
-    });
-
-    try {
-        await request(CONFIG.webhook, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(groupBody) }
-        }, groupBody);
-        console.log('✅ 群通知发送成功');
-    } catch(e) {
-        console.error('❌ 群通知失败:', e.message);
     }
 }
 
@@ -331,7 +269,6 @@ function pushToGithub() {
 async function main() {
     console.log(`\n🕐 ${new Date().toLocaleString('zh-CN')} 开始检查天泽智联...`);
 
-    // 检查 Chrome 是否存在
     const chromePaths = [
         CONFIG.chromePath,
         'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
@@ -341,15 +278,12 @@ async function main() {
     for (const p of chromePaths) {
         if (fs.existsSync(p)) { executablePath = p; break; }
     }
-    if (!executablePath) {
-        console.error('❌ 找不到 Chrome/Edge，请安装 Chrome 浏览器');
-        process.exit(1);
-    }
+    if (!executablePath) { console.error('❌ 找不到 Chrome/Edge'); process.exit(1); }
     console.log(`🌐 使用浏览器: ${executablePath}`);
 
     const browser = await puppeteer.launch({
         executablePath,
-        headless: false, // 设为 true 可隐藏浏览器窗口
+        headless: false,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
@@ -357,13 +291,11 @@ async function main() {
         const page = await browser.newPage();
         await page.setViewport({ width: 1440, height: 900 });
 
-        // 1. 打开登录页
         console.log(`🌐 访问: ${CONFIG.url}`);
         await page.goto(CONFIG.url, { waitUntil: 'networkidle2', timeout: 30000 });
         await page.screenshot({ path: CONFIG.screenshotFile });
-        console.log('📸 截图已保存: screenshot.png');
+        console.log('📸 截图已保存');
 
-        // 2. 登录
         await new Promise(r => setTimeout(r, 2000));
         const inputs = await page.$$('input');
         console.log(`🔍 找到 ${inputs.length} 个输入框`);
@@ -375,7 +307,6 @@ async function main() {
             await inputs[1].type(CONFIG.password, { delay: 50 });
             console.log('✅ 已填写账号密码');
 
-            // 点击登录按钮
             const btns = await page.$$('button');
             for (const btn of btns) {
                 const text = await btn.evaluate(el => el.textContent);
@@ -389,103 +320,79 @@ async function main() {
             await page.screenshot({ path: CONFIG.screenshotFile });
         }
 
-        // 3. 提取页面上的火警信息
         const alarms = await page.evaluate(() => {
             const results = [];
-            // 查找所有包含"火警"文字的元素
-            const allElements = document.querySelectorAll('*');
-            allElements.forEach(el => {
+            document.querySelectorAll('*').forEach(el => {
                 const text = el.textContent || '';
                 if ((text.includes('火警') || text.includes('报警')) &&
                     el.children.length === 0 && text.trim().length < 100) {
                     const parent = el.closest('[class]');
-                    const parentText = parent ? parent.textContent.trim().replace(/\s+/g, ' ').substring(0, 150) : text.trim();
+                    const parentText = parent
+                        ? parent.textContent.trim().replace(/\s+/g, ' ').substring(0, 150)
+                        : text.trim();
                     if (parentText && !results.some(r => r.raw === parentText)) {
                         results.push({
-                            time: new Date().toLocaleString('zh-CN'),
+                            time:     new Date().toLocaleString('zh-CN'),
                             location: text.trim(),
-                            type: text.includes('火警') ? '火警' : '报警',
-                            status: '待处理',
-                            raw: parentText
+                            type:     text.includes('火警') ? '火警' : '报警',
+                            status:   '待处理',
+                            raw:      parentText,
                         });
                     }
                 }
             });
-            // 也查找弹窗
-            const modals = document.querySelectorAll('[class*="modal"], [class*="dialog"], [class*="popup"], [class*="alert"]');
-            modals.forEach(modal => {
-                const text = modal.textContent.trim().replace(/\s+/g, ' ').substring(0, 200);
-                if (text.includes('火警') || text.includes('报警')) {
-                    results.push({
-                        time: new Date().toLocaleString('zh-CN'),
-                        location: '弹窗报警',
-                        type: '火警',
-                        status: '待处理',
-                        raw: text
-                    });
-                }
-            });
+            document.querySelectorAll('[class*="modal"],[class*="dialog"],[class*="popup"],[class*="alert"]')
+                .forEach(modal => {
+                    const text = modal.textContent.trim().replace(/\s+/g, ' ').substring(0, 200);
+                    if (text.includes('火警') || text.includes('报警')) {
+                        results.push({ time: new Date().toLocaleString('zh-CN'), location: '弹窗报警', type: '火警', status: '待处理', raw: text });
+                    }
+                });
             return results.slice(0, 20);
         });
 
         console.log(`📊 检测到 ${alarms.length} 条火警信息`);
 
-        // 4. 读取旧数据对比
         let oldData = {};
         try { oldData = JSON.parse(fs.readFileSync(CONFIG.dataFile, 'utf-8')); } catch {}
-        const oldAlarms = oldData.tianze_alarms || [];
-        const alarmHistory = oldData.alarm_history || []; // 历史记录（含确认状态）
-        const oldIds = new Set(oldAlarms.map(a => a.raw));
+        const oldIds      = new Set((oldData.tianze_alarms || []).map(a => a.raw));
+        const alarmHistory = oldData.alarm_history || [];
 
-        // 给新火警生成唯一 ID 和初始确认状态
         const newAlarms = alarms
             .filter(a => !oldIds.has(a.raw))
             .map(a => ({
                 ...a,
-                id: `alarm_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-                confirm_status: 'pending',   // pending / safe / emergency
+                id:             `alarm_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+                confirm_status: 'pending',
                 confirm_person: '',
-                confirm_time: '',
-                responsible: '',
+                confirm_time:   '',
             }));
 
-        // 匹配区域负责人写入记录
         newAlarms.forEach(a => {
             const loc = a.location || a.raw || '';
             for (const [area, contact] of Object.entries(AREA_CONTACTS)) {
                 if (loc.includes(area)) {
-                    a.area = area;
-                    a.responsible = contact.name;
-                    a.responsible_phone = contact.phone;
-                    break;
+                    a.area = area; a.responsible = contact.name; a.responsible_phone = contact.phone;
+                    return;
                 }
             }
-            if (!a.area) {
-                a.area = '其他区域';
-                a.responsible = '张乔';
-                a.responsible_phone = '19800312191';
-            }
+            a.area = '其他区域'; a.responsible = '张乔'; a.responsible_phone = '19800312191';
         });
 
         console.log(`🆕 新增火警: ${newAlarms.length} 条`);
 
-        // 合并到历史记录（最多保留 500 条）
-        const updatedHistory = [...newAlarms, ...alarmHistory].slice(0, 500);
-
-        // 5. 写入 data.json
         const newData = {
             ...oldData,
-            _updated: new Date().toISOString(),
-            _source: 'local_scrape',
-            tianze_alarms: alarms,
+            _updated:          new Date().toISOString(),
+            _source:           'local_scrape',
+            tianze_alarms:     alarms,
             tianze_last_check: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
-            tianze_new_count: newAlarms.length,
-            alarm_history: updatedHistory,
+            tianze_new_count:  newAlarms.length,
+            alarm_history:     [...newAlarms, ...alarmHistory].slice(0, 500),
         };
         fs.writeFileSync(CONFIG.dataFile, JSON.stringify(newData, null, 2));
         console.log('✅ data.json 已更新');
 
-        // 6. 有新火警则推送飞书并上传 GitHub
         if (newAlarms.length > 0) {
             console.log('🔔 发现新火警，推送飞书通知...');
             await sendFeishu(newAlarms);
