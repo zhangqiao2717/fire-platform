@@ -1172,6 +1172,33 @@
         <!-- ============================================================ -->
         <div class="page" id="page-duty">
             <div class="module-desc">📋 消防值班信息记录表 · 实时监控主机报警与处置跟踪</div>
+
+            <!-- 火警专栏 -->
+            <div class="card" id="alarmHistoryCard" style="border-left:4px solid #e74c3c;">
+                <div class="card-header">
+                    <h3>🔥 天泽智联火警记录</h3>
+                    <span class="sub" id="alarmHistoryCount">共 0 条</span>
+                </div>
+                <div class="table-wrap fixed-height" style="max-height:360px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>报警时间</th>
+                                <th>区域</th>
+                                <th>报警类型</th>
+                                <th>负责人</th>
+                                <th>联系电话</th>
+                                <th>确认状态</th>
+                                <th>确认人</th>
+                                <th>确认时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alarmHistoryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header"><h3>🧑‍🚒 值班记录</h3><span class="sub">共 84 条 (1月)</span></div>
                 <div class="table-wrap fixed-height" style="max-height:450px;">
@@ -2152,12 +2179,46 @@
         }
 
         // ================================================================
+        // 火警记录渲染
+        // ================================================================
+        function renderAlarmHistory(history) {
+            const tbody = document.getElementById('alarmHistoryBody');
+            const countEl = document.getElementById('alarmHistoryCount');
+            if (!history || history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:20px;">暂无火警记录</td></tr>`;
+                countEl.textContent = '共 0 条';
+                return;
+            }
+            countEl.textContent = `共 ${history.length} 条`;
+            tbody.innerHTML = history.map((a, i) => {
+                const statusMap = {
+                    pending:   { label: '待确认', cls: 'warning' },
+                    safe:      { label: '✅ 无火情', cls: 'success' },
+                    emergency: { label: '🚒 已启动预案', cls: 'danger' },
+                };
+                const s = statusMap[a.confirm_status] || statusMap.pending;
+                return `<tr>
+                    <td>${i + 1}</td>
+                    <td style="white-space:nowrap">${a.time || '—'}</td>
+                    <td><strong>${a.area || a.location || '—'}</strong></td>
+                    <td><span class="status-badge danger">${a.type || '火警'}</span></td>
+                    <td>${a.responsible || '—'}</td>
+                    <td>${a.responsible_phone || '—'}</td>
+                    <td><span class="status-badge ${s.cls}">${s.label}</span></td>
+                    <td>${a.confirm_person || '—'}</td>
+                    <td style="white-space:nowrap">${a.confirm_time || '—'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ================================================================
         // 火警确认处理（负责人点击飞书按钮后跳转到此页面）
         // ================================================================
         function handleFireConfirm() {
             const params = new URLSearchParams(window.location.search);
             const confirm = params.get('confirm');
             const area    = params.get('area');
+            const ids     = params.get('ids');   // 火警 ID 列表
             const name    = params.get('name');
             const time    = params.get('time');
             if (!confirm) return;
@@ -2376,6 +2437,11 @@
                     }
                 }
                 console.log('✅ 飞书数据加载成功，更新时间:', json._updated);
+
+                // 渲染火警历史记录
+                if (json.alarm_history) {
+                    renderAlarmHistory(json.alarm_history);
+                }
 
                 // 检查是否有天泽智联火警数据，有则弹窗
                 if (json.tianze_alarms && json.tianze_alarms.length > 0) {

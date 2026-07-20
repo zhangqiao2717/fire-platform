@@ -243,8 +243,9 @@ async function sendFeishu(alarms) {
     }
 
     // 发送群通知
-    const confirmUrl1 = `${CONFIG.siteUrl}?confirm=safe&area=all&name=all&time=${encodeURIComponent(now)}`;
-    const confirmUrl2 = `${CONFIG.siteUrl}?confirm=emergency&area=all&name=all&time=${encodeURIComponent(now)}`;
+    const allIds = alarms.map(a => a.id).join(',');
+    const confirmUrl1 = `${CONFIG.siteUrl}?confirm=safe&ids=${encodeURIComponent(allIds)}&area=all&time=${encodeURIComponent(now)}`;
+    const confirmUrl2 = `${CONFIG.siteUrl}?confirm=emergency&ids=${encodeURIComponent(allIds)}&area=all&time=${encodeURIComponent(now)}`;
 
     const groupBody = JSON.stringify({
         msg_type: 'interactive',
@@ -433,9 +434,43 @@ async function main() {
         let oldData = {};
         try { oldData = JSON.parse(fs.readFileSync(CONFIG.dataFile, 'utf-8')); } catch {}
         const oldAlarms = oldData.tianze_alarms || [];
+        const alarmHistory = oldData.alarm_history || []; // 历史记录（含确认状态）
         const oldIds = new Set(oldAlarms.map(a => a.raw));
-        const newAlarms = alarms.filter(a => !oldIds.has(a.raw));
+
+        // 给新火警生成唯一 ID 和初始确认状态
+        const newAlarms = alarms
+            .filter(a => !oldIds.has(a.raw))
+            .map(a => ({
+                ...a,
+                id: `alarm_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+                confirm_status: 'pending',   // pending / safe / emergency
+                confirm_person: '',
+                confirm_time: '',
+                responsible: '',
+            }));
+
+        // 匹配区域负责人写入记录
+        newAlarms.forEach(a => {
+            const loc = a.location || a.raw || '';
+            for (const [area, contact] of Object.entries(AREA_CONTACTS)) {
+                if (loc.includes(area)) {
+                    a.area = area;
+                    a.responsible = contact.name;
+                    a.responsible_phone = contact.phone;
+                    break;
+                }
+            }
+            if (!a.area) {
+                a.area = '其他区域';
+                a.responsible = '张乔';
+                a.responsible_phone = '19800312191';
+            }
+        });
+
         console.log(`🆕 新增火警: ${newAlarms.length} 条`);
+
+        // 合并到历史记录（最多保留 500 条）
+        const updatedHistory = [...newAlarms, ...alarmHistory].slice(0, 500);
 
         // 5. 写入 data.json
         const newData = {
@@ -445,6 +480,7 @@ async function main() {
             tianze_alarms: alarms,
             tianze_last_check: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
             tianze_new_count: newAlarms.length,
+            alarm_history: updatedHistory,
         };
         fs.writeFileSync(CONFIG.dataFile, JSON.stringify(newData, null, 2));
         console.log('✅ data.json 已更新');
