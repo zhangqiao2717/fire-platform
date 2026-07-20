@@ -777,7 +777,74 @@
         }
         .fire-badge.show { display: flex; align-items: center; gap: 6px; }
 
-        /* ===== 管理员解锁弹窗 ===== */
+        /* ===== 开屏欢迎弹窗 ===== */
+        .splash-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #071d3d 0%, #0b2b5c 50%, #1a3f7a 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s ease;
+        }
+        .splash-overlay.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .splash-content {
+            text-align: center;
+            animation: splashIn 0.6s ease;
+        }
+        @keyframes splashIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .splash-logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: splashPulse 1.5s ease infinite;
+        }
+        @keyframes splashPulse {
+            0%,100% { transform: scale(1); }
+            50%      { transform: scale(1.08); }
+        }
+        .splash-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .splash-subtitle {
+            font-size: 16px;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: 4px;
+            margin-bottom: 40px;
+        }
+        .splash-bar-wrap {
+            width: 260px;
+            height: 3px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 0 auto 16px;
+        }
+        .splash-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+            border-radius: 3px;
+            transition: width 3s linear;
+        }
+        .splash-tip {
+            font-size: 12px;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 1px;
+        }
+
+        /* ===== 开屏欢迎弹窗 ===== */
         .admin-modal-overlay {
             display: none;
             position: fixed;
@@ -965,6 +1032,19 @@
     </style>
 </head>
 <body>
+
+    <!-- ===== 开屏欢迎弹窗 ===== -->
+    <div class="splash-overlay" id="splashOverlay">
+        <div class="splash-content">
+            <div class="splash-logo">🧯</div>
+            <div class="splash-title">消防维保综合管理系统</div>
+            <div class="splash-subtitle">FIRE SAFETY MANAGEMENT PLATFORM</div>
+            <div class="splash-bar-wrap">
+                <div class="splash-bar" id="splashBar"></div>
+            </div>
+            <div class="splash-tip">北京基地 · 系统加载中...</div>
+        </div>
+    </div>
 
     <!-- ===== 移动端遮罩 ===== -->
     <div class="overlay" id="overlay"></div>
@@ -2072,6 +2152,21 @@
         }
 
         // ================================================================
+        // 开屏欢迎弹窗（3秒后自动消失）
+        // ================================================================
+        function initSplash() {
+            const overlay = document.getElementById('splashOverlay');
+            const bar = document.getElementById('splashBar');
+            // 启动进度条
+            setTimeout(() => { bar.style.width = '100%'; }, 50);
+            // 3秒后淡出
+            setTimeout(() => {
+                overlay.classList.add('hide');
+                setTimeout(() => { overlay.style.display = 'none'; }, 600);
+            }, 3000);
+        }
+
+        // ================================================================
         // 实时时钟
         // ================================================================
         function updateClock() {
@@ -2460,7 +2555,8 @@
             initCharts();
             initImport();
             checkAdminSession();
-            loadRemoteData(); // 优先加载飞书自动同步数据
+            loadRemoteData();
+            initSplash(); // 开屏弹窗
 
             // 默认显示仪表板
             navigate('dashboard');
