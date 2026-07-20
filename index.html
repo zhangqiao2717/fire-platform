@@ -1018,7 +1018,7 @@
                 <button class="mobile-toggle" id="menuToggle">☰</button>
                 <h2 id="pageTitle">仪表板 <small>消防维保总览</small></h2>
             </div>
-            <div class="date-badge">📅 2026年7月15日 · 周二</div>
+            <div class="date-badge" id="realTimeClock">📅 加载中...</div>
         </div>
 
         <!-- ===== Excel 导入栏（仅管理员可见） ===== -->
@@ -2070,6 +2070,25 @@
                 </div>`
             ).join('');
         }
+
+        // ================================================================
+        // 实时时钟
+        // ================================================================
+        function updateClock() {
+            const now = new Date();
+            const days = ['日','一','二','三','四','五','六'];
+            const y = now.getFullYear();
+            const m = now.getMonth() + 1;
+            const d = now.getDate();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const ss = String(now.getSeconds()).padStart(2, '0');
+            const dow = days[now.getDay()];
+            document.getElementById('realTimeClock').textContent =
+                `📅 ${y}年${m}月${d}日 · 周${dow} ${hh}:${mm}:${ss}`;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
 
         // ================================================================
         // 火警弹窗模块
