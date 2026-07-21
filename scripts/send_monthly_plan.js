@@ -166,7 +166,11 @@ async function main() {
     const nameText = MAINTAINERS.map(m => m.name).join('、');
 
     // 确认按钮链接
-    const confirmUrl = `${CONFIG.siteUrl}?page=maintain-plan`;
+    // 回报链接（携带月份和任务ID，点击后跳转网页并弹出回报弹窗）
+    const taskIdStr = thisMonthTasks.map(t => t.id).join(',');
+    const dispatchId = `plan_${Date.now()}`;
+    const reportUrl  = `${CONFIG.siteUrl}?action=report&month=${month}&taskIds=${taskIdStr}&dispatchId=${dispatchId}`;
+    const confirmUrl = reportUrl;
 
     // 6. 群通知卡片
     const groupCard = {
