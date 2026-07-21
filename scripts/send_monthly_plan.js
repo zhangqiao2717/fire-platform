@@ -22,7 +22,7 @@ const CONFIG = {
     appSecret: 'HcRDNeBimwNvg9N1DLQOVhsiOG5L3okI',
     // 应用机器人群 chat_id（无需每群建 Webhook）
     chatIds: [
-        'oc_b362688580f805857fddc1a2d9df0ff9', // 消防维保群
+        // 'oc_b362688580f805857fddc1a2d9df0ff9', // 消防维保群（已取消）
         'oc_5cedb65c30a3cf0887b1870b4cd08e82', // 北京基地消防工作群
     ],
     siteUrl:  'https://beijing-fire.netlify.app',
