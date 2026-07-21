@@ -38,5 +38,18 @@
     }
   ],
   "tianze_last_check": "2026/7/20 17:05:52",
-  "tianze_new_count": 0
+  "tianze_new_count": 0,
+  "plan_dispatch_log": [
+    {
+      "id": "plan_1784613293199",
+      "month": "2026年7月",
+      "task_count": 2,
+      "receivers": "孙伟、牛超",
+      "dispatch_time": "2026/7/21 13:54:51",
+      "tasks": [
+        "火灾自动报警·清洁应急广播系统主机",
+        "消火栓系统·对管网主要阀门操作"
+      ]
+    }
+  ]
 }
