@@ -264,12 +264,6 @@ async function main() {
                 : `❌ 群通知失败 (...${chatId.slice(-8)}): ${result.msg}`);
         }
 
-        // 9. 向孙伟、牛超各发私信
-        for (const person of MAINTAINERS) {
-            const ok = await sendDM(person.openId, buildDMCard(person), appToken);
-            console.log(ok ? `✅ 私信 ${person.name} 成功` : `❌ 私信 ${person.name} 失败`);
-        }
-
         // 10. 写入下发记录到 data.json
         let dataJson = {};
         try { dataJson = JSON.parse(fs.readFileSync(CONFIG.dataFile, 'utf-8')); } catch {}
