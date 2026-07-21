@@ -20,9 +20,10 @@ const { execSync } = require('child_process');
 const CONFIG = {
     appId:     'cli_aadddd5e85f81bd1',
     appSecret: 'HcRDNeBimwNvg9N1DLQOVhsiOG5L3okI',
-    webhooks: [
-        'https://open.feishu.cn/open-apis/bot/v2/hook/486a84ae-3861-4652-b00d-cad5e2759cba',
-        'https://open.feishu.cn/open-apis/bot/v2/hook/7c826fde-ab70-456d-ad8e-32cb6298f084',
+    // 应用机器人群 chat_id（无需每群建 Webhook）
+    chatIds: [
+        'oc_b362688580f805857fddc1a2d9df0ff9', // 消防维保群
+        'oc_5cedb65c30a3cf0887b1870b4cd08e82', // 北京基地消防工作群
     ],
     siteUrl:  'https://beijing-fire.netlify.app',
     dataFile: path.join(__dirname, '..', 'data.json'),
@@ -245,10 +246,22 @@ async function main() {
     });
 
     if (!isTest) {
-        // 8. 向两个群发送通知
-        for (const webhook of CONFIG.webhooks) {
-            const ok = await sendWebhook(webhook, groupCard);
-            console.log(ok ? `✅ 群通知发送成功: ...${webhook.slice(-8)}` : `❌ 群通知失败: ...${webhook.slice(-8)}`);
+        // 8. 向群发送通知（应用机器人 API，无需每群建 Webhook）
+        for (const chatId of CONFIG.chatIds) {
+            const body = JSON.stringify({
+                receive_id: chatId,
+                msg_type:   'interactive',
+                content:    JSON.stringify(groupCard),
+            });
+            const res = await request(
+                'https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=chat_id',
+                { method: 'POST', headers: { 'Authorization': `Bearer ${appToken}`, 'Content-Type': 'application/json' } },
+                body
+            );
+            const result = JSON.parse(res);
+            console.log(result.code === 0
+                ? `✅ 群通知发送成功: ...${chatId.slice(-8)}`
+                : `❌ 群通知失败 (...${chatId.slice(-8)}): ${result.msg}`);
         }
 
         // 9. 向孙伟、牛超各发私信

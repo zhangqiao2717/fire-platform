@@ -17,13 +17,18 @@ const CONFIG = {
     url:      'http://10.231.136.231:9832/bw-fck-bjdx-web/#/login',
     username: '19800312191',
     password: 'Li@666888',
-    // 飞书应用凭证（用于查询 open_id 实现 @ 和按钮权限）
+    // 飞书应用凭证
     appId:     'cli_aadddd5e85f81bd1',
-    appSecret: '',   // ← 填入飞书 App Secret 后 @ 功能生效
-    // 多群推送
+    appSecret: 'HcRDNeBimwNvg9N1DLQOVhsiOG5L3okI',
+    // 群推送 chat_id（应用机器人方式，无需每群建 Webhook）
+    chatIds: [
+        'oc_b362688580f805857fddc1a2d9df0ff9', // 消防维保群
+        'oc_5cedb65c30a3cf0887b1870b4cd08e82', // 北京基地消防工作群
+    ],
+    // 旧 Webhook 保留备用（若 API 失败自动降级）
     webhooks: [
-        'https://open.feishu.cn/open-apis/bot/v2/hook/486a84ae-3861-4652-b00d-cad5e2759cba', // 原群
-        'https://open.feishu.cn/open-apis/bot/v2/hook/7c826fde-ab70-456d-ad8e-32cb6298f084', // 安全管理室群
+        'https://open.feishu.cn/open-apis/bot/v2/hook/486a84ae-3861-4652-b00d-cad5e2759cba',
+        'https://open.feishu.cn/open-apis/bot/v2/hook/7c826fde-ab70-456d-ad8e-32cb6298f084',
     ],
     siteUrl:        'https://beijing-fire.netlify.app',
     dataFile:       path.join(__dirname, '..', 'data.json'),
@@ -32,16 +37,16 @@ const CONFIG = {
 };
 
 // ============================================================
-// ⚙️ 区域负责人配置
+// ⚙️ 区域负责人配置（含飞书 open_id，用于 @ 和按钮权限）
 // ============================================================
 const AREA_CONTACTS = {
-    '冲焊':     { name: '张蕴龙', phone: '15040026850' },
-    '涂装':     { name: '郭书强', phone: '18658424252' },
-    '总装':     { name: '何迅达', phone: '13681070413' },
-    '餐厅':     { name: '王治纲', phone: '13810395510' },
-    '综合站房': { name: '于玥',   phone: '13889267822' },
-    '办公楼':   { name: '王治纲', phone: '13810395510' },
-    '4#厂房':   { name: '邓海南', phone: '15232971855' },
+    '冲焊':     { name: '张蕴龙', phone: '15040026850', openId: 'ou_ecd6d6b9aa8d437691a3b4489e9e376b' },
+    '涂装':     { name: '郭书强', phone: '18658424252', openId: 'ou_88ac30a887281c8b02e462cc4c481c2a' },
+    '总装':     { name: '何迅达', phone: '13681070413', openId: 'ou_a9b6893a0f6e535aef03f67d89e63448' },
+    '餐厅':     { name: '王治纲', phone: '13810395510', openId: 'ou_b801942e5304b3061efccc4a222d7d49' },
+    '综合站房': { name: '于玥',   phone: '13889267822', openId: 'ou_c1895b641825bad7ad236860d7477582' },
+    '办公楼':   { name: '王治纲', phone: '13810395510', openId: 'ou_b801942e5304b3061efccc4a222d7d49' },
+    '4#厂房':   { name: '邓海南', phone: '15232971855', openId: 'ou_8ca8239ea7a33c7cc1cece73a453c71d' },
 };
 
 // ============================================================
@@ -134,16 +139,11 @@ async function sendFeishu(alarms) {
         if (!hit) unmatched.push(a);
     });
 
-    // 尝试获取 open_id（用于 @ 和按钮权限）
-    const appToken = await getAppToken();
-    const openIds  = {};   // { phone: open_id }
-    if (appToken) {
-        const phones = [...new Set(Object.values(areaGroups).map(g => g.contact.phone))];
-        for (const phone of phones) {
-            const oid = await getOpenId(phone, appToken);
-            if (oid) { openIds[phone] = oid; console.log(`✅ open_id: ${phone} → ${oid}`); }
-        }
-    }
+    // 直接使用配置里的 open_id（已预先查询好）
+    const openIds = {};
+    Object.values(areaGroups).forEach(g => {
+        if (g.contact.openId) openIds[g.contact.phone] = g.contact.openId;
+    });
 
     // 构建 @ 文本
     const atText = (contact) => {
@@ -233,18 +233,57 @@ async function sendFeishu(alarms) {
         ],
     };
 
-    const groupBody = JSON.stringify({ msg_type: 'interactive', card });
+    // 获取 app token（用于应用机器人发群消息）
+    const appToken = await getAppToken();
 
-    for (const webhook of CONFIG.webhooks) {
-        try {
-            await request(webhook, {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(groupBody) },
-            }, groupBody);
-            console.log(`✅ 群通知发送成功: ...${webhook.slice(-8)}`);
-        } catch(e) {
-            console.error(`❌ 群通知失败 (...${webhook.slice(-8)}):`, e.message);
+    // 优先用应用机器人 API 发群消息（支持真正 @，无需每群建 Webhook）
+    if (appToken && CONFIG.chatIds?.length) {
+        for (const chatId of CONFIG.chatIds) {
+            await sendGroupMsg(chatId, card, appToken);
         }
+    } else {
+        // 降级到 Webhook 方式
+        const groupBody = JSON.stringify({ msg_type: 'interactive', card });
+        for (const webhook of CONFIG.webhooks) {
+            try {
+                await request(webhook, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(groupBody) },
+                }, groupBody);
+                console.log(`✅ Webhook 发送成功: ...${webhook.slice(-8)}`);
+            } catch(e) {
+                console.error(`❌ Webhook 失败 (...${webhook.slice(-8)}):`, e.message);
+            }
+        }
+    }
+}
+
+// ============================================================
+// 工具：应用机器人发群消息（chat_id 方式，支持多群）
+// ============================================================
+async function sendGroupMsg(chatId, card, appToken) {
+    const body = JSON.stringify({
+        receive_id: chatId,
+        msg_type:   'interactive',
+        content:    JSON.stringify(card),
+    });
+    try {
+        const res = await request(
+            'https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=chat_id',
+            { method: 'POST', headers: { 'Authorization': `Bearer ${appToken}`, 'Content-Type': 'application/json' } },
+            body
+        );
+        const result = JSON.parse(res);
+        if (result.code === 0) {
+            console.log(`✅ 群消息发送成功: ...${chatId.slice(-8)}`);
+            return true;
+        } else {
+            console.warn(`⚠️  群消息失败 (...${chatId.slice(-8)}): ${result.msg}`);
+            return false;
+        }
+    } catch(e) {
+        console.error(`❌ 群消息异常 (...${chatId.slice(-8)}):`, e.message);
+        return false;
     }
 }
 
