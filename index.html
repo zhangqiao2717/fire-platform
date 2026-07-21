@@ -1498,7 +1498,25 @@
         <!-- 页面：保养计划 -->
         <!-- ============================================================ -->
         <div class="page" id="page-maintain-plan">
-            <div class="module-desc">📅 消防维保月度保养计划 · 年度周期滚动</div>
+            <div class="module-desc">📅 消防维保月度保养计划 · 年度周期滚动 · 每月1日自动下发任务给孙伟/牛超</div>
+
+            <!-- 任务下发记录 -->
+            <div class="card" style="border-left:4px solid #1664ff;">
+                <div class="card-header">
+                    <h3>📨 任务下发记录</h3>
+                    <span class="sub" id="planDispatchSub">加载中...</span>
+                    <div class="actions">
+                        <button id="planDispatchBtn" style="display:none;" onclick="triggerMonthlyPlan()">🔧 立即下发本月任务</button>
+                    </div>
+                </div>
+                <div class="table-wrap" style="max-height:220px;overflow-y:auto;">
+                    <table>
+                        <thead><tr><th>月份</th><th>下发时间</th><th>任务数</th><th>接收人员</th><th>任务摘要</th></tr></thead>
+                        <tbody id="planDispatchLog"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header"><h3>🗓️ 保养计划表</h3><span class="sub">共 40 项</span></div>
                 <div class="table-wrap" style="max-height:480px;overflow-y:auto;">
@@ -2407,6 +2425,40 @@
 
         // ================================================================
         // ================================================================
+        // 月度保养任务下发记录
+        // ================================================================
+        function renderPlanDispatchLog(log) {
+            const tbody  = document.getElementById('planDispatchLog');
+            const subEl  = document.getElementById('planDispatchSub');
+            const btnEl  = document.getElementById('planDispatchBtn');
+            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
+
+            // 管理员可见「立即下发」按钮
+            if (btnEl) btnEl.style.display = isAdmin ? 'inline-block' : 'none';
+
+            if (!log || log.length === 0) {
+                if (subEl) subEl.textContent = '暂无下发记录';
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:16px;">暂无下发记录</td></tr>`;
+                return;
+            }
+            if (subEl) subEl.textContent = `共 ${log.length} 条`;
+            tbody.innerHTML = log.map((r, i) => {
+                const taskSummary = (r.tasks || []).slice(0, 3).join('、') + (r.tasks?.length > 3 ? `…等${r.tasks.length}项` : '');
+                return `<tr>
+                    <td><strong>${r.month || '—'}</strong></td>
+                    <td style="white-space:nowrap">${r.dispatch_time || '—'}</td>
+                    <td><span class="status-badge info">${r.task_count} 项</span></td>
+                    <td>${r.receivers || '—'}</td>
+                    <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${(r.tasks||[]).join('、')}">${taskSummary || '—'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function triggerMonthlyPlan() {
+            alert('请在电脑终端运行以下命令手动触发本月任务下发：\n\nnode C:\\Users\\zhangqiao1\\fire-platform\\scripts\\send_monthly_plan.js\n\n或在 GitHub Actions 页面点击「Run workflow」手动触发。');
+        }
+
+        // ================================================================
         // 设备清单文档管理模块
         // ================================================================
 
@@ -2886,6 +2938,11 @@
                     renderAlarmHistory(json.alarm_history);
                 }
 
+                // 渲染保养任务下发记录
+                if (json.plan_dispatch_log) {
+                    renderPlanDispatchLog(json.plan_dispatch_log);
+                }
+
                 // 检查是否有天泽智联火警数据，有则弹窗
                 if (json.tianze_alarms && json.tianze_alarms.length > 0) {
                     const newCount = json.tianze_new_count || 0;
@@ -2946,6 +3003,9 @@
             bar.style.display = show ? 'flex' : 'none';
             // 同步刷新设备清单卡片（显示/隐藏管理员操作按钮）
             renderDeviceDocs();
+            // 同步刷新保养下发按钮
+            const planBtn = document.getElementById('planDispatchBtn');
+            if (planBtn) planBtn.style.display = show ? 'inline-block' : 'none';
         }
 
         function adminLogout() {

@@ -1,0 +1,12 @@
+[
+  {"id":1,  "system":"消防供电配电",  "content":"清洁双电源自动切换装置",        "cycle":"每年",   "months":[1]},
+  {"id":2,  "system":"火灾自动报警",  "content":"清洁报警控制器及联动控制器",    "cycle":"每年",   "months":[2]},
+  {"id":3,  "system":"火灾自动报警",  "content":"备用电源充放电试验",            "cycle":"每季度", "months":[3,6,9]},
+  {"id":4,  "system":"火灾自动报警",  "content":"清洁应急广播系统主机",          "cycle":"每半年", "months":[2,7]},
+  {"id":5,  "system":"消防供水设施",  "content":"清洁稳压泵控制柜",              "cycle":"每年",   "months":[3]},
+  {"id":6,  "system":"消防供水设施",  "content":"检查控制柜内电器元件",          "cycle":"每季度", "months":[3,6,9]},
+  {"id":7,  "system":"消火栓系统",    "content":"对管网主要阀门操作",            "cycle":"每月",   "months":[1,2,3,4,5,6,7,8,9,10,11,12]},
+  {"id":8,  "system":"自动喷水灭火",  "content":"清洁报警阀及组件",              "cycle":"每半年", "months":[5,10]},
+  {"id":9,  "system":"气体灭火系统",  "content":"清洁气体灭火控制器",            "cycle":"每年",   "months":[6]},
+  {"id":10, "system":"防烟排烟系统",  "content":"清洁排烟风机控制柜",            "cycle":"每年",   "months":[8]}
+]
