@@ -618,6 +618,133 @@
             padding: 20px 0;
         }
 
+        /* ===== 实操考试弹窗 ===== */
+        .exam-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            z-index: 2700;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 24px 0;
+            overflow-y: auto;
+        }
+        .exam-modal-overlay.show { display: flex; }
+        .exam-modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            width: 720px;
+            max-width: 96vw;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+            animation: fadeUp 0.25s ease;
+            overflow: hidden;
+        }
+        .exam-modal-header {
+            background: linear-gradient(135deg, #e67e22, #f39c12);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .exam-modal-header h3 { color:#fff; font-size:15px; flex:1; }
+        .exam-modal-header .exam-close {
+            color:rgba(255,255,255,0.8); background:none; border:none;
+            font-size:20px; cursor:pointer; line-height:1;
+        }
+        .exam-modal-body { padding: 20px 24px; }
+        .exam-img-wrap {
+            width: 100%;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-bottom: 16px;
+            background: var(--bg);
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 2px dashed var(--border);
+        }
+        .exam-img-wrap img {
+            width: 100%;
+            max-height: 320px;
+            object-fit: contain;
+            display: block;
+        }
+        .exam-img-placeholder {
+            text-align: center;
+            color: var(--text-light);
+            padding: 32px;
+            font-size: 13px;
+        }
+        .exam-img-upload {
+            position: absolute;
+            bottom: 8px; right: 8px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+        }
+        .exam-img-upload.admin-visible { display: inline-block; }
+        .exam-img-input { display: none; }
+        .exam-steps h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .exam-steps ol {
+            padding-left: 20px;
+            font-size: 14px;
+            line-height: 2;
+            color: var(--text);
+        }
+        .exam-steps-edit {
+            display: none;
+            margin-top: 12px;
+        }
+        .exam-steps-edit.admin-visible { display: block; }
+        .exam-steps-edit textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-family: var(--font);
+            resize: vertical;
+            outline: none;
+        }
+        .exam-steps-edit textarea:focus { border-color: var(--primary); }
+        .exam-footer {
+            padding: 14px 24px 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+            flex-wrap: wrap;
+        }
+        .exam-btn {
+            padding: 8px 20px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .exam-btn.primary { background: #4caf50; color: #fff; }
+        .exam-btn.primary:hover { background: #43a047; }
+        .exam-btn.secondary { background: var(--bg); color: var(--text-light); border: 1px solid var(--border); }
+        .exam-btn.accent { background: var(--accent); color: #fff; }
+        .exam-btn.accent:hover { background: var(--accent-light); }
+
         /* ===== 保养任务回报弹窗 ===== */
         .report-modal-overlay {
             display: none;
@@ -1826,12 +1953,32 @@
         <!-- 页面：技能鉴定 -->
         <!-- ============================================================ -->
         <div class="page" id="page-identify">
-            <div class="module-desc">📄 消防维保技能鉴定表 · 理论与实操考评</div>
+            <div class="module-desc">📄 消防设施操作员技能鉴定 · 理论考评 + 实操考试图文指引</div>
+
+            <!-- 实操学习进度卡片 -->
+            <div class="card" style="border-left:4px solid var(--accent);">
+                <div class="card-header">
+                    <h3>🎯 实操学习进度</h3>
+                    <span class="sub" id="identifyProgressText">0 / 0 项已学习</span>
+                </div>
+                <div style="background:var(--bg);border-radius:var(--radius-sm);height:10px;overflow:hidden;margin-bottom:12px;">
+                    <div id="identifyProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-light));border-radius:var(--radius-sm);transition:width 0.4s ease;"></div>
+                </div>
+                <div style="font-size:12px;color:var(--text-light);">点击实操考题行可查看设备图片和操作步骤，学习后点击「标记已学习」记录进度</div>
+            </div>
+
+            <!-- 鉴定标准表格 -->
             <div class="card">
-                <div class="card-header"><h3>📋 鉴定标准</h3><span class="sub">共 43 项考评维度</span></div>
+                <div class="card-header">
+                    <h3>📋 鉴定标准</h3>
+                    <span class="sub">共 43 项考评维度</span>
+                    <div class="actions" id="identifyAdminActions" style="display:none;">
+                        <button onclick="resetIdentifyProgress()">重置进度</button>
+                    </div>
+                </div>
                 <div class="table-wrap fixed-height" style="max-height:460px;">
                     <table class="skill-table">
-                        <thead><tr><th>序号</th><th>类型</th><th>项目</th><th>分值</th><th>考评内容</th></tr></thead>
+                        <thead><tr><th>序号</th><th>类型</th><th>项目</th><th>分值</th><th>考评内容</th><th>学习状态</th></tr></thead>
                         <tbody id="identifyTableBody"></tbody>
                     </table>
                 </div>
@@ -1933,6 +2080,46 @@
         </div>
 
     </main>
+
+    <!-- ===== 实操考试弹窗 ===== -->
+    <div class="exam-modal-overlay" id="examModal">
+        <div class="exam-modal">
+            <div class="exam-modal-header">
+                <h3 id="examModalTitle">🔧 实操考试指引</h3>
+                <button class="exam-close" onclick="closeExamModal()">✕</button>
+            </div>
+            <div class="exam-modal-body">
+                <!-- 设备图片区 -->
+                <div class="exam-img-wrap" id="examImgWrap">
+                    <div class="exam-img-placeholder" id="examImgPlaceholder">
+                        <div style="font-size:36px;margin-bottom:8px;">📷</div>
+                        <div>暂未上传设备图片</div>
+                        <div style="font-size:11px;margin-top:4px;">管理员可点击右下角按钮上传</div>
+                    </div>
+                    <img id="examImg" src="" alt="设备图片" style="display:none;" onclick="openLightbox(this.src)">
+                    <button class="exam-img-upload" id="examImgUploadBtn" onclick="document.getElementById('examImgInput').click()">📷 上传图片</button>
+                    <input type="file" id="examImgInput" class="exam-img-input" accept="image/*" onchange="handleExamImgUpload(this.files[0])">
+                </div>
+                <!-- 操作步骤区 -->
+                <div class="exam-steps">
+                    <h4>📋 操作步骤</h4>
+                    <ol id="examStepsList"><li style="color:var(--text-light);">暂无操作步骤，管理员可在下方编辑</li></ol>
+                </div>
+                <!-- 管理员编辑步骤 -->
+                <div class="exam-steps-edit" id="examStepsEdit">
+                    <div style="font-size:12px;color:var(--text-light);margin-bottom:6px;">✏️ 每行一个步骤（管理员编辑后点保存）</div>
+                    <textarea id="examStepsTextarea" placeholder="第一步：&#10;第二步：&#10;第三步："></textarea>
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        <button class="exam-btn accent" onclick="saveExamSteps()">💾 保存步骤</button>
+                    </div>
+                </div>
+            </div>
+            <div class="exam-footer">
+                <button class="exam-btn secondary" onclick="closeExamModal()">关闭</button>
+                <button class="exam-btn primary" id="examLearnBtn" onclick="markExamLearned()">✅ 标记已学习</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== 保养任务回报弹窗 ===== -->
     <div class="report-modal-overlay" id="reportModal">
@@ -2672,6 +2859,217 @@
 
         // ================================================================
         // ================================================================
+        // ================================================================
+        // 实操考试模块
+        // ================================================================
+
+        // 实操考题数据（只含技能要求项）
+        const EXAM_ITEMS = [
+            { id: 'e01', type: '技能要求', project: '设施监控', score: 50, content: '区分火警、监管、隔离和故障报警信号' },
+            { id: 'e02', type: '技能要求', project: '设施操作', score: 4,  content: '切换区域火灾报警控制器工作状态' },
+            { id: 'e03', type: '技能要求', project: '设施操作', score: 4,  content: '模拟测试点型感烟、感温探测器' },
+            { id: 'e04', type: '技能要求', project: '设施保养', score: 1,  content: '清洁维护区域火灾报警控制器外表' },
+            { id: 'e05', type: '技能要求', project: '设施保养', score: 1,  content: '更换区域火灾报警控制器的熔断器' },
+        ];
+
+        let _currentExamId = '';
+
+        // 读取实操数据（图片 + 步骤 + 学习进度）
+        function loadExamData() {
+            try { return JSON.parse(localStorage.getItem('fire_exam_data') || '{}'); } catch { return {}; }
+        }
+        function saveExamData(data) {
+            localStorage.setItem('fire_exam_data', JSON.stringify(data));
+        }
+
+        // 更新进度条
+        function updateIdentifyProgress() {
+            const data = loadExamData();
+            const total = EXAM_ITEMS.length;
+            const done  = EXAM_ITEMS.filter(e => data[e.id]?.learned).length;
+            const pct   = total > 0 ? Math.round(done / total * 100) : 0;
+            const bar   = document.getElementById('identifyProgressBar');
+            const text  = document.getElementById('identifyProgressText');
+            if (bar)  bar.style.width  = pct + '%';
+            if (text) text.textContent = `${done} / ${total} 项已学习（${pct}%）`;
+        }
+
+        // 渲染鉴定表（含实操行可点击）
+        function renderIdentify() {
+            const tbody = document.getElementById('identifyTableBody');
+            const data  = loadExamData();
+            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
+
+            // 显示管理员操作按钮
+            const adminActions = document.getElementById('identifyAdminActions');
+            if (adminActions) adminActions.style.display = isAdmin ? 'flex' : 'none';
+
+            tbody.innerHTML = identifyData.map((r, i) => {
+                const isExam = r[0] >= 6; // 技能要求项（序号6以上）
+                const examItem = EXAM_ITEMS.find(e => e.content === r[4]);
+                const learned  = examItem && data[examItem.id]?.learned;
+                const hasContent = examItem && (data[examItem.id]?.img || data[examItem.id]?.steps);
+
+                const learnCell = isExam
+                    ? `<td>
+                        ${learned
+                            ? `<span class="status-badge success">✅ 已学习</span>`
+                            : `<span class="status-badge secondary">未学习</span>`}
+                        ${hasContent ? `<span style="margin-left:6px;font-size:11px;color:var(--accent);">📷 有图文</span>` : ''}
+                       </td>`
+                    : `<td><span class="status-badge secondary" style="color:#bbb;">—</span></td>`;
+
+                const rowStyle = isExam
+                    ? `style="cursor:pointer;" onclick="openExamModal('${examItem?.id || ''}')" title="点击查看实操指引"`
+                    : '';
+                const rowHighlight = isExam && !learned ? 'style="background:#fffbf5;"' : '';
+
+                return `<tr ${rowStyle}>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td>${r[3]}</td>
+                    <td style="max-width:200px;">${r[4]}${isExam ? ' <span style="font-size:10px;color:var(--accent);">🔍</span>' : ''}</td>
+                    ${learnCell}
+                </tr>`;
+            }).join('');
+
+            updateIdentifyProgress();
+        }
+
+        // 打开实操弹窗
+        function openExamModal(examId) {
+            if (!examId) return;
+            const item  = EXAM_ITEMS.find(e => e.id === examId);
+            if (!item) return;
+            _currentExamId = examId;
+            const data  = loadExamData();
+            const saved = data[examId] || {};
+            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
+
+            // 标题
+            document.getElementById('examModalTitle').textContent =
+                `🔧 实操考题：${item.project} · ${item.content}（${item.score}分）`;
+
+            // 图片
+            const imgEl   = document.getElementById('examImg');
+            const phEl    = document.getElementById('examImgPlaceholder');
+            const upBtn   = document.getElementById('examImgUploadBtn');
+            if (saved.img) {
+                imgEl.src = saved.img;
+                imgEl.style.display = 'block';
+                phEl.style.display  = 'none';
+            } else {
+                imgEl.style.display = 'none';
+                phEl.style.display  = 'block';
+            }
+            upBtn.className = 'exam-img-upload' + (isAdmin ? ' admin-visible' : '');
+
+            // 步骤
+            const steps   = saved.steps || [];
+            const listEl  = document.getElementById('examStepsList');
+            listEl.innerHTML = steps.length
+                ? steps.map(s => `<li>${s}</li>`).join('')
+                : '<li style="color:var(--text-light);">暂无操作步骤，管理员可在下方编辑</li>';
+
+            // 管理员编辑区
+            const editEl  = document.getElementById('examStepsEdit');
+            editEl.className = 'exam-steps-edit' + (isAdmin ? ' admin-visible' : '');
+            document.getElementById('examStepsTextarea').value = steps.join('\n');
+
+            // 已学习按钮
+            const learnBtn = document.getElementById('examLearnBtn');
+            if (saved.learned) {
+                learnBtn.textContent = '✅ 已标记学习';
+                learnBtn.style.background = '#9e9e9e';
+            } else {
+                learnBtn.textContent = '✅ 标记已学习';
+                learnBtn.style.background = '#4caf50';
+            }
+
+            document.getElementById('examModal').classList.add('show');
+        }
+
+        function closeExamModal() {
+            document.getElementById('examModal').classList.remove('show');
+            _currentExamId = '';
+        }
+
+        // 上传设备图片
+        function handleExamImgUpload(file) {
+            if (!file || !_currentExamId) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const data = loadExamData();
+                if (!data[_currentExamId]) data[_currentExamId] = {};
+                data[_currentExamId].img = e.target.result;
+                saveExamData(data);
+                // 更新弹窗图片
+                const imgEl = document.getElementById('examImg');
+                const phEl  = document.getElementById('examImgPlaceholder');
+                imgEl.src   = e.target.result;
+                imgEl.style.display = 'block';
+                phEl.style.display  = 'none';
+                // 刷新表格标记
+                renderIdentify();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 保存操作步骤
+        function saveExamSteps() {
+            if (!_currentExamId) return;
+            const text  = document.getElementById('examStepsTextarea').value;
+            const steps = text.split('\n').map(s => s.trim()).filter(s => s);
+            const data  = loadExamData();
+            if (!data[_currentExamId]) data[_currentExamId] = {};
+            data[_currentExamId].steps = steps;
+            saveExamData(data);
+            // 更新步骤列表
+            document.getElementById('examStepsList').innerHTML =
+                steps.length
+                    ? steps.map(s => `<li>${s}</li>`).join('')
+                    : '<li style="color:var(--text-light);">暂无步骤</li>';
+            alert('✅ 操作步骤已保存！');
+            renderIdentify();
+        }
+
+        // 标记已学习
+        function markExamLearned() {
+            if (!_currentExamId) return;
+            const data = loadExamData();
+            if (!data[_currentExamId]) data[_currentExamId] = {};
+            const isLearned = !data[_currentExamId].learned;
+            data[_currentExamId].learned = isLearned;
+            saveExamData(data);
+            const btn = document.getElementById('examLearnBtn');
+            if (isLearned) {
+                btn.textContent = '✅ 已标记学习';
+                btn.style.background = '#9e9e9e';
+            } else {
+                btn.textContent = '✅ 标记已学习';
+                btn.style.background = '#4caf50';
+            }
+            renderIdentify();
+        }
+
+        // 重置所有学习进度（管理员）
+        function resetIdentifyProgress() {
+            if (!confirm('确定要重置所有实操学习进度吗？')) return;
+            const data = loadExamData();
+            EXAM_ITEMS.forEach(e => { if (data[e.id]) data[e.id].learned = false; });
+            saveExamData(data);
+            renderIdentify();
+            alert('✅ 学习进度已重置');
+        }
+
+        // 点击遮罩关闭
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('examModal')?.addEventListener('click', function(e) {
+                if (e.target === this) closeExamModal();
+            });
+        });
+
         // ================================================================
         // 保养任务执行回报系统
         // ================================================================
@@ -3533,6 +3931,8 @@
             // 同步刷新保养下发按钮
             const planBtn = document.getElementById('planDispatchBtn');
             if (planBtn) planBtn.style.display = show ? 'inline-block' : 'none';
+            // 同步刷新技能鉴定管理员按钮
+            renderIdentify();
         }
 
         function adminLogout() {
