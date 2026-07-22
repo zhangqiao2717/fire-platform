@@ -1967,6 +1967,27 @@
                 <div style="font-size:12px;color:var(--text-light);">点击实操考题行可查看设备图片和操作步骤，学习后点击「标记已学习」记录进度</div>
             </div>
 
+            <!-- 实操考核题库（独立版块） -->
+            <div class="card" style="border-left:4px solid #e74c3c;">
+                <div class="card-header">
+                    <h3>🔥 实操考核题库</h3>
+                    <span class="sub">共 47 题 · 消防设施操作员必考</span>
+                    <div class="actions">
+                        <button onclick="filterExamBank('all')" id="filterAll" style="background:var(--primary);color:#fff;border-color:var(--primary);">全部</button>
+                        <button onclick="filterExamBank('alarm')">报警系统</button>
+                        <button onclick="filterExamBank('water')">供水灭火</button>
+                        <button onclick="filterExamBank('smoke')">防排烟</button>
+                        <button onclick="filterExamBank('other')">其他设施</button>
+                    </div>
+                </div>
+                <div class="table-wrap fixed-height" style="max-height:480px;">
+                    <table id="examBankTable">
+                        <thead><tr><th style="width:50px">题号</th><th style="width:80px">分类</th><th>考题名称</th><th style="width:60px">难度</th><th style="width:80px">学习状态</th></tr></thead>
+                        <tbody id="examBankBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- 鉴定标准表格 -->
             <div class="card">
                 <div class="card-header">
@@ -2860,6 +2881,159 @@
         // ================================================================
         // ================================================================
         // ================================================================
+        // 实操考核题库（47题完整版）
+        // ================================================================
+        const EXAM_BANK = [
+          // 报警系统（二楼）
+          {id:'b01', cat:'alarm', catName:'报警系统', name:'火灾报警控制器手动自动状态切换', level:'★★', steps:['确定控制器当前的控制方式（手动/自动）状态','按要求切换控制器当前控制方式']},
+          {id:'b02', cat:'alarm', catName:'报警系统', name:'现场消防设备工作状态判别', level:'★★', steps:['查看火灾报警控制器连接的现场设备总数','查看某一现场消防设备的回路号、地址号','查看某一现场消防设备的工作状态']},
+          {id:'b03', cat:'alarm', catName:'报警系统', name:'总线盘手动自动操作', level:'★★★', steps:['设置火灾报警控制器为"手动允许"状态','按下对应设备按键，启动灯常亮表示向设备发出启动信号','10秒内启动灯、反馈灯常亮表示设备启动成功；10秒后闪烁表示未启动','按下对应设备按键，启动灯、反馈灯熄灭表示设备停止成功']},
+          {id:'b04', cat:'alarm', catName:'报警系统', name:'直接手动控制单元操作（多线盘）', level:'★★★', steps:['将手动锁切换为"手动允许"状态','按下对应设备按键，启动灯常亮表示向设备发出启动信号','10秒内启动灯和反馈灯常亮表示设备启动成功','按下停止按钮，启动灯、反馈灯熄灭表示现场设备停止成功','故障灯点亮表示设备故障或线路故障','把手动锁切换回"手动禁止"状态']},
+          {id:'b05', cat:'alarm', catName:'报警系统', name:'火灾报警系统联动功能测试', level:'★★★', steps:['设置火灾报警控制器为"自动"状态','触发同一防火分区内两只独立报警器，联动启动相关消防设备','查看联动设备的启动和信号反馈情况','对相关联动设备进行手动停止、复位操作（送风机、排烟风机、声光报警、应急广播、防火卷帘等）']},
+          {id:'b06', cat:'alarm', catName:'报警系统', name:'消防应急广播操作', level:'★★', steps:['查看应急广播控制盘手动/自动状态，查看功率放大器电源状态','使用SD卡或话筒录制疏散指令音频文件','使用应急广播或总线盘向指定分区播放疏散指令音频文件','使用话筒向指定分区播放紧急事项']},
+          {id:'b07', cat:'alarm', catName:'报警系统', name:'消防电话检查操作', level:'★★', steps:['按下"自检"按钮，测试消防电话总机自检功能','使用消防电话总机呼叫分机，测试通话录音功能','发出报警声信号，按下静音键，检查是否消除报警声','断开总机与分机连接线，检查总机显示屏是否显示故障信息','消除故障后，按下"复位"按钮测试复位功能']},
+          {id:'b08', cat:'alarm', catName:'报警系统', name:'消防应急照明和疏散指示系统功能测试', level:'★★★', steps:['操作手动锁启动应急照明和疏散指示系统，查看应急灯具点亮情况','使用照度计测量应急照明灯具的照度（疏散楼梯间不低于10Lx）','设置火灾报警控制器、应急照明控制器为"自动"状态','触发同一防火分区内两只独立报警器（手报+烟感）','使用秒表测试转换时间（不应大于5秒）']},
+          {id:'b09', cat:'alarm', catName:'报警系统', name:'消防应急广播系统联动控制功能测试', level:'★★', steps:['检查广播系统组件数量、规格、型号和安装位置','手动按下应急广播键并选择广播分区进行播放','设置火灾报警控制器、广播控制盘为"自动"状态','触发同一防火分区内两只独立报警器，检查广播系统启动情况']},
+          // 供水灭火（负一楼）
+          {id:'b10', cat:'water', catName:'供水灭火', name:'自动喷水灭火系统电气控制柜操作', level:'★★★', steps:['识别消防水泵控制柜所处状态（手动/自动）','切换消防水泵控制柜"手动—自动"状态','消防水泵控制柜"主泵—备泵"手动切换','切断主电源开关，自动转换备电运行；合闸主电源开关，自动转换主电运行','将喷淋泵/稳压泵控制柜切换为"手动状态"，启动水泵，观察运行情况，停止后复位为"自动"状态']},
+          {id:'b11', cat:'water', catName:'供水灭火', name:'模拟主泵故障主备泵自动切换', level:'★★★', steps:['消防水泵控制柜设置为"自动状态"','打开试水阀，压力开关动作，5分钟内自动启动消防主泵','检查水泵运行情况，切断主泵电源，2分钟内自动切换备泵运行','消防水泵控制柜切换为手动状态，停止消防水泵','复位试水阀、复位消防主机，复位主泵电源，水泵控制柜复位为自动状态']},
+          {id:'b12', cat:'water', catName:'供水灭火', name:'末端试水阀连锁功能测试', level:'★★★', steps:['消防水泵控制柜设置为"自动状态"','打开试水阀，压力表出水压力不应低于0.05MPa','水流指示器、报警阀阀瓣、压力开关应有动作，5分钟内自动启动消防水泵','检查消防水泵启动和信号反馈情况','消防水泵控制柜切换为手动状态，停止消防水泵','复位试水阀、复位消防主机，水泵控制柜复位为自动状态']},
+          {id:'b13', cat:'water', catName:'供水灭火', name:'消防供水设施的检查和功能测试', level:'★★', steps:['检查稳压泵电源工作状态','检查稳压泵自动启停功能是否正常','检查稳压泵手动启停功能是否正常','测量最不利点处静水压力是否符合设计要求','检查消防水箱管路各阀门是否处于正常启闭状态','查看液位计，检查当前有效储水量']},
+          {id:'b14', cat:'water', catName:'供水灭火', name:'消火栓系统检查和功能测试', level:'★★★', steps:['将消防联动控制器设置为"自动允许"状态，消防水泵控制柜设置为"自动"状态','按下消火栓按钮，检查火灾自动报警系统显示的相关信息','触发消火栓按钮所在报警区域内的两只独立报警器发出火灾报警信号','检查消防水泵启动、反馈信号','将消防水泵控制柜切换"手动"状态，停止消防水泵','复位消火栓按钮、手报、消防主机，将消防水泵控制柜复位"自动"状态']},
+          {id:'b15', cat:'water', catName:'供水灭火', name:'湿式干式自动喷水灭火系统工作压力和流量测试', level:'★★★', steps:['确认喷淋泵控制柜处于"自动"状态','关闭系统侧管网控制阀，打开专用测试管路控制阀，按下秒表计时','记录水力警铃报警、消防水泵启动时间','检查测试管路压力表和流量计读数变化','将消防水泵控制柜切换"手动"状态，停止消防水泵','关闭专用测试管路控制阀，打开系统侧管网控制阀','复位火灾报警控制器，复位喷淋泵控制柜为"自动"状态']},
+          {id:'b16', cat:'water', catName:'供水灭火', name:'湿式干式系统联锁联动控制功能测试', level:'★★★', steps:['联锁测试：确认喷淋泵控制柜处于"自动"状态，缓慢打开末端试水装置，检查压力开关连锁启动喷淋泵组情况','联动测试：设置水泵控制柜和火灾报警控制器为"自动"状态，断开压力开关与消防水泵控制柜的连线','触发防护区域内任一手动报警按钮，开启警铃实验阀','检查消防水泵的启动和反馈信号','将消防水泵控制柜切换"手动"状态，停止消防水泵','关闭警铃试验阀，恢复压力开关与控制柜的连线，水泵控制柜恢复到"自动"状态']},
+          // 防排烟（三楼）
+          {id:'b17', cat:'smoke', catName:'防排烟', name:'防烟系统连锁控制功能测试', level:'★★★', steps:['将送风机控制柜和火灾报警控制器设置为"自动"状态','通过手动执行机构开启送风口，连锁启动送风机','检查送风机启动和信号反馈情况','风机控制柜切换手动状态，停止风机','复位送风口，复位火灾报警控制器，复位送风机控制柜为"自动"状态']},
+          {id:'b18', cat:'smoke', catName:'防排烟', name:'防烟系统联动控制功能测试', level:'★★★', steps:['将送风机控制柜、火灾报警控制器设置为"自动"状态','触发同一防烟分区内两只独立报警器，联动启动送风机','检查风机启动和信号反馈情况','使用微压计测量前室和楼梯间的余压值','风机控制柜切换手动状态，停止风机','复位送风口，复位火灾报警控制器，复位风机控制柜为自动状态']},
+          {id:'b19', cat:'smoke', catName:'防排烟', name:'排烟系统连锁控制功能测试', level:'★★★', steps:['将排烟风机控制柜、火灾报警控制器设置为"自动"状态','现场手动开启排烟口、自动排烟窗、挡烟垂壁，连锁启动排烟风机','检查排烟风机启动和信号反馈情况','风机控制柜切换手动状态，停止风机','复位排烟口、复位自动排烟窗、复位挡烟垂壁、复位火灾报警控制器']},
+          {id:'b20', cat:'smoke', catName:'防排烟', name:'排烟系统联动控制功能测试', level:'★★★', steps:['将排烟风机控制柜、火灾报警控制器设置为"自动"状态','触发同一防烟分区内两只独立报警器，联动启动排烟风机','检查排烟风机启动和信号反馈情况','手动关闭排烟防火阀，检查排烟风机停止情况','风机控制柜切换手动状态，复位排烟防火阀，复位消防主机']},
+          {id:'b21', cat:'smoke', catName:'防排烟', name:'现场手动开启并复位自动排烟窗排烟口', level:'★★', steps:['通过手动按钮盒开启自动排烟窗，通过手动按钮盒复位自动排烟窗','通过远程执行机构开启排烟口，通过六角扳手复位排烟口（复位顺序先1后2）']},
+          {id:'b22', cat:'smoke', catName:'防排烟', name:'测量加压送风部位余压值', level:'★★★', steps:['将送风机控制柜、火灾报警控制器设置为"自动"状态','选取着火层和相邻上下层前室，触发两只独立报警器，联动启动风机和送风口','使用微压计分别测量前室和楼梯间的余压值，记录测试情况','手动停止风机，复位送风口，复位主机，复位送风机控制柜为自动状态']},
+          {id:'b23', cat:'smoke', catName:'防排烟', name:'测量排风口处风速', level:'★★', steps:['将排烟风机控制柜、火灾报警控制器设置为"自动状态"','触发同一防烟分区内两只独立报警器，联动启动风机和排烟口','使用风速仪测量排烟口处风速值并记录（送风口不宜大于7m/s，排烟口不宜大于10m/s）','测试完毕，手动停止风机','复位排烟口，复位主机，复位排风机控制柜为自动状态']},
+          // 其他设施
+          {id:'b24', cat:'other', catName:'其他设施', name:'消防设备末端配电装置主备电源切换', level:'★★', steps:['自动切换：将双电源自动转换开关设置为"自动"状态，断开主电电源查看备用电源指示灯，合闸主电电源查看主电指示灯','手动切换：将双电源自动转换开关设置为"手动"状态，使用六角扳手手动切换备用电源，恢复为"自动"状态']},
+          {id:'b25', cat:'other', catName:'其他设施', name:'防火门手动联动控制功能测试', level:'★★', steps:['通过防火门监控器启动或现场操作防火门释放器按钮关闭防火门','检查防火门关闭情况、防火门监控器指示变化','将火灾报警控制器设置为"自动允许"状态，防火门监控器设置为自动状态','触发防火分区内两只独立报警器，检查防火门关闭情况','复位报警器，复位常开式防火门、防火门监控器、火灾报警控制器']},
+          {id:'b26', cat:'other', catName:'其他设施', name:'防火卷帘手动联动控制功能测试', level:'★★★', steps:['通过现场手动按钮盒、手动拉链、手动速放装置操作防火卷帘下降','检查防火卷帘下降情况、防火卷帘控制器指示变化','将火灾报警控制器设置为"自动允许"状态','触发防火分区内两只独立报警器，检查防火卷帘下降情况']},
+          {id:'b27', cat:'other', catName:'其他设施', name:'消防电梯检查和功能测试', level:'★★★', steps:['打开保护罩，按下紧急迫降按钮','检查消防电梯迫降至首层、开门待用，查看信号反馈情况','在轿厢内操作消防电梯到指定楼层，检查开门关门情况','使用轿厢内专用消防对讲电话与消防电话主机进行通话测试','测试消防电梯运行到顶层时间不应大于60秒（载重不小于800KG）','复位紧急迫降按钮，复位火灾报警控制器']},
+          {id:'b28', cat:'other', catName:'其他设施', name:'查询历史信息', level:'★', steps:['通过集中火灾报警控制器查询历史信息：按2.查询键—2.记录信息查询—根据要求查询','通过图形显示装置查询历史信息：鼠标点击系统操作—日志查询—选类型、输入起止时间—查找—读总数']},
+          {id:'b29', cat:'other', catName:'其他设施', name:'线型火灾探测器火警和故障报警功能测试', level:'★★★', steps:['火警测试：选择减光值10.0dB滤光片，置于光路中靠近接收器，30S内应发出火警信号','故障测试：选择减光值11.5dB滤光片，60S内应发出火警或故障信号','线型感温探测器测试：使用温度不低于54℃的热水对感温电缆加热，30s内发出火灾报警信号','感温故障测试：拆除信号处理单元与终端盒之间任一端的感温电缆，查看故障报警信号','测试完毕，将探测器恢复原状，复位火灾报警控制器']},
+          {id:'b30', cat:'other', catName:'其他设施', name:'火灾显示盘功能测试', level:'★★', steps:['自检功能：按自检键（输密码），测试火灾显示盘自检','消音功能：按消音键，消音指示灯点亮，报警声消失','火灾报警功能：按下同一防火分区手动报警按钮，火警灯点亮','故障报警功能：拆卸同一防火分区探测器，火灾显示盘报故障','复位功能：先复位触发装置，再按主机"复位"键复位']},
+          {id:'b31', cat:'water', catName:'供水灭火', name:'区分湿式干式自动喷水灭火系统', level:'★★', steps:['识别湿式报警阀、水流指示器','识别干式报警阀组、充气设备和气压维持装置','识别洒水喷头：按安装方式分（直立Z、下垂X、边墙B、通用P）','按结构型式分（开式、闭式）；按热敏元件分（玻璃球、易熔金属元件）','按动作温度分（橙57℃、红68℃、黄79℃、绿93℃、蓝141℃）']},
+          {id:'b32', cat:'water', catName:'供水灭火', name:'增稳压泵组电气控制柜操作', level:'★★', steps:['判断增（稳）压泵组电气控制柜的控制状态','将稳压泵控制柜设置"手动状态"，按下启动按钮，启动稳压泵','运行平稳后，按下停止按钮停止稳压泵','将控制柜恢复为"自动状态"']},
+          {id:'b33', cat:'alarm', catName:'报警系统', name:'消防电话操作', level:'★', steps:['总机呼叫分机：摘下总机话筒，输入密码，按下对应分机号并按接通键，通话完毕挂好话筒','分机呼叫总机：现场摘下电话分机，总机响铃，摘下总机话筒，通话完毕挂好话筒','电话插孔呼叫总机：使用手柄电话插入电话插孔，总机响铃，摘下总机话筒，通话完毕挂好话筒']},
+          {id:'b34', cat:'other', catName:'其他设施', name:'防火卷帘现场手动操作', level:'★★', steps:['使用专用钥匙解锁手动按钮盒，操作上升、下降、停止按钮','操作手动拉链，防火卷帘上升和下降','操作手动速放装置，防火卷帘依靠自重恒速下降']},
+          {id:'b35', cat:'other', catName:'其他设施', name:'防火门操作', level:'★★', steps:['主备电源切换：断开主电开关，自动切换到备电工作；复位主电开关，自动恢复主电工作','切换手/自动状态：按"3.用户设置"键—输密码—"3.启动设置"—选择自动禁止/自动允许','自检、消音及复位：点击自检键、消音键、复位键','现场手动关闭常开式防火门：按下电动闭门器按钮关门']},
+          {id:'b36', cat:'alarm', catName:'报警系统', name:'应急照明控制器操作', level:'★★', steps:['自检操作：鼠标点击"命令操作"，选系统月自检/年自检，点开始','切换手/自动状态：鼠标点击"系统操作"—系统设置—自动','模拟火警：鼠标点击"系统操作"—模拟火警','手动应急启动：鼠标点击"启动应急"或转动"强制启动"钥匙','系统复位：鼠标点击"复位"']},
+          {id:'b37', cat:'other', catName:'其他设施', name:'操作紧急迫降按钮迫降电梯', level:'★★', steps:['打开消防电梯紧急迫降按钮保护罩','启动紧急迫降功能，使消防电梯进入消防工作模式','消防电梯从任意一层回到首层或电梯转换层保持开门待用','查看消防控制室反馈信号','进行紧急迫降按钮复位和消防控制室的复位操作']},
+          {id:'b38', cat:'other', catName:'其他设施', name:'消防控制室相关设备保养', level:'★★', steps:['切断设备主/备电源','用干抹布对柜壳外表面指示灯及显示屏清洁，用小毛刷、吸尘器等对柜内设备灰尘清洁','检查线路接线端有无松动、氧化、锈蚀并处理','设备送电、自检观察2分钟，运行正常后锁闭箱门，填写保养记录表']},
+          {id:'b39', cat:'alarm', catName:'报警系统', name:'火灾报警系统组件更换', level:'★★★', steps:['通过火灾报警控制器或图形显示装置查找故障位置','确认是设备故障还是线路故障','核查规格型号、性能参数是否与设计文件一致','拆卸故障件，用编码器读码','用编码器对新换件编码并读码确认','正确安装新换件，进行相关功能测试']},
+          {id:'b40', cat:'water', catName:'供水灭火', name:'保养湿式干式系统组件消防泵组及电气控制柜', level:'★★★', steps:['湿式、干式系统阀门、管道、报警阀组保养：阀门外观完好，启闭正常；管道无渗漏、无锈蚀、无脱漆','水流指示器和试验装置保养：外观完好，启动、反馈信号准确，无锈蚀，无渗漏','消防泵组的电气控制柜保养：检查电气元件，检查线路接头，检查启停泵、手自动切换等功能是否正常']},
+          {id:'b41', cat:'alarm', catName:'报警系统', name:'保养消防电话系统', level:'★★', steps:['使用吸尘器、清洁的干软布进行外观检查保养','使用工具进行接线检查保养','进行呼叫、通话及总机自检、消音、复位等功能检查','保养完成后，对消防电话总机进行复位和自检，等待2分钟后观察是否处于正常监视状态']},
+          {id:'b42', cat:'alarm', catName:'报警系统', name:'保养消防应急广播系统', level:'★★', steps:['使用吸尘器、清洁的干软布进行外观检查保养','使用工具进行接线检查保养','手动启动广播，监听扬声器，用声级计在扬声器正前方3m处声压级不应小于65dB','保养完成后，对消防应急广播系统进行复位和自检，等待2min后查看是否处于正常监视状态']},
+          {id:'b43', cat:'smoke', catName:'防排烟', name:'保养防（排）烟风机', level:'★★', steps:['手动启动送风机、排烟机，检查风机启停功能','检查指示灯及电压、电流表工作是否正常','检查风机各部件运转有无异常振动或声响','检查调节阀的启闭动作情况和开启角度标志']},
+          {id:'b44', cat:'alarm', catName:'报警系统', name:'消防电话系统消防应急广播系统组件更换', level:'★★★', steps:['电话系统更换：确认故障部件位置并记录编码，拆卸消防电话分机和插孔，拨码后安装，测试通话功能','广播系统更换：确认故障部件位置，拆卸广播模块，对广播模块编码并读编码确认，安装，测试启动功能']},
+          {id:'b45', cat:'alarm', catName:'报警系统', name:'消防应急灯具更换', level:'★★', steps:['通过平面布置图和编码表找到需更换的应急灯具','关闭应急照明控制器和消防集中应急电源，切断消防应急灯具供电','利用工具对新更换的照明灯具进行编码','打开应急照明控制器和集中应急电源，灯具进行自动登录','进行更换灯具的地址设置和初始化操作']},
+          {id:'b46', cat:'other', catName:'其他设施', name:'防火卷帘组件更换', level:'★★★', steps:['核查规格型号、性能参数','关闭防火卷帘控制器电源','拆除损坏的手动按钮盒','进行新按钮盒接线和安装','开启防火卷帘控制器电源，测试手动按钮盒功能']},
+          {id:'b47', cat:'water', catName:'供水灭火', name:'消火栓箱组件更换及水带绑扎测试', level:'★★★', steps:['更换消火栓按钮：核查规格型号，分离新旧按钮底座，获取旧按钮编码，对新按钮编码写入并接线，测试功能','绑扎消防水带：铁丝从内接口根部箍槽开始向外螺旋缠绕，每个箍槽缠绕5-6圈，完成后进行出水试验','更换室内消火栓：关闭供水阀门，排出余水，卸下旧消火栓，用麻丝缠绕丝扣，安装新消火栓并测试']},
+        ];
+
+        let _examBankFilter = 'all';
+
+        // 渲染实操考核题库
+        function renderExamBank() {
+            const tbody  = document.getElementById('examBankBody');
+            if (!tbody) return;
+            const data   = loadExamData();
+            const items  = _examBankFilter === 'all'
+                ? EXAM_BANK
+                : EXAM_BANK.filter(e => e.cat === _examBankFilter);
+
+            tbody.innerHTML = items.map((e, i) => {
+                const saved   = data[e.id] || {};
+                const learned = !!saved.learned;
+                const hasImg  = !!saved.img;
+                return `<tr style="cursor:pointer;" onclick="openExamBankModal('${e.id}')">
+                    <td style="text-align:center;font-weight:600;color:var(--primary);">${EXAM_BANK.indexOf(e)+1}</td>
+                    <td><span class="status-badge ${
+                        e.cat==='alarm'?'danger':e.cat==='water'?'info':e.cat==='smoke'?'warning':'secondary'
+                    }">${e.catName}</span></td>
+                    <td>${e.name} ${hasImg?'<span style="font-size:10px;color:var(--accent);">📷</span>':''} <span style="font-size:10px;color:#e74c3c;">${e.level}</span></td>
+                    <td style="text-align:center;">${e.level}</td>
+                    <td><span class="status-badge ${learned?'success':'secondary'}">${learned?'✅ 已学习':'未学习'}</span></td>
+                </tr>`;
+            }).join('');
+
+            // 更新进度（以 EXAM_BANK 为基准）
+            const total = EXAM_BANK.length;
+            const done  = EXAM_BANK.filter(e => data[e.id]?.learned).length;
+            const pct   = Math.round(done/total*100);
+            const bar   = document.getElementById('identifyProgressBar');
+            const text  = document.getElementById('identifyProgressText');
+            if (bar)  bar.style.width  = pct + '%';
+            if (text) text.textContent = `${done} / ${total} 题已学习（${pct}%）`;
+        }
+
+        function filterExamBank(cat) {
+            _examBankFilter = cat;
+            // 更新按钮样式
+            ['all','alarm','water','smoke','other'].forEach(c => {
+                const btn = document.querySelector(`[onclick="filterExamBank('${c}')"]`);
+                if (btn) {
+                    btn.style.background = c === cat ? 'var(--primary)' : '';
+                    btn.style.color      = c === cat ? '#fff' : '';
+                    btn.style.borderColor= c === cat ? 'var(--primary)' : '';
+                }
+            });
+            renderExamBank();
+        }
+
+        // 打开题库弹窗（复用 examModal）
+        function openExamBankModal(examId) {
+            const item  = EXAM_BANK.find(e => e.id === examId);
+            if (!item) return;
+            _currentExamId = examId;
+            const data  = loadExamData();
+            const saved = data[examId] || {};
+            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
+
+            document.getElementById('examModalTitle').textContent =
+                `🔥 第${EXAM_BANK.indexOf(item)+1}题：${item.name}`;
+
+            // 图片
+            const imgEl = document.getElementById('examImg');
+            const phEl  = document.getElementById('examImgPlaceholder');
+            const upBtn = document.getElementById('examImgUploadBtn');
+            if (saved.img) {
+                imgEl.src = saved.img; imgEl.style.display='block'; phEl.style.display='none';
+            } else {
+                imgEl.style.display='none'; phEl.style.display='block';
+            }
+            upBtn.className = 'exam-img-upload' + (isAdmin?' admin-visible':'');
+
+            // 步骤（优先用题库内置步骤，管理员可覆盖）
+            const steps = (saved.steps && saved.steps.length) ? saved.steps : (item.steps || []);
+            document.getElementById('examStepsList').innerHTML =
+                steps.length ? steps.map(s=>`<li>${s}</li>`).join('') : '<li style="color:var(--text-light);">暂无操作步骤</li>';
+
+            // 管理员编辑区
+            const editEl = document.getElementById('examStepsEdit');
+            editEl.className = 'exam-steps-edit' + (isAdmin?' admin-visible':'');
+            document.getElementById('examStepsTextarea').value = (saved.steps||[]).join('\n');
+
+            // 已学习按钮
+            const learnBtn = document.getElementById('examLearnBtn');
+            if (saved.learned) {
+                learnBtn.textContent = '✅ 已标记学习';
+                learnBtn.style.background = '#9e9e9e';
+            } else {
+                learnBtn.textContent = '✅ 标记已学习';
+                learnBtn.style.background = '#4caf50';
+            }
+
+            document.getElementById('examModal').classList.add('show');
+        }
+
+        // ================================================================
         // 实操考试模块
         // ================================================================
 
@@ -3032,6 +3206,7 @@
                     : '<li style="color:var(--text-light);">暂无步骤</li>';
             alert('✅ 操作步骤已保存！');
             renderIdentify();
+            renderExamBank();
         }
 
         // 标记已学习
@@ -3051,6 +3226,7 @@
                 btn.style.background = '#4caf50';
             }
             renderIdentify();
+            renderExamBank();
         }
 
         // 重置所有学习进度（管理员）
@@ -3058,8 +3234,10 @@
             if (!confirm('确定要重置所有实操学习进度吗？')) return;
             const data = loadExamData();
             EXAM_ITEMS.forEach(e => { if (data[e.id]) data[e.id].learned = false; });
+            EXAM_BANK.forEach(e => { if (data[e.id]) data[e.id].learned = false; });
             saveExamData(data);
             renderIdentify();
+            renderExamBank();
             alert('✅ 学习进度已重置');
         }
 
@@ -4136,6 +4314,7 @@
             loadRemoteData();
             initSplash(); // 开屏弹窗
             renderDeviceDocs(); // 设备清单文档卡片
+            renderExamBank();   // 实操考核题库
             handleFireConfirm(); // 处理飞书确认跳转
             handleReportAction(); // 处理保养任务回报跳转
             renderPlanReports();  // 渲染回报历史
