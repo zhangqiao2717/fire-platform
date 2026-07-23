@@ -161,18 +161,17 @@ async function main() {
         `${i+1}. **${t.system}** · ${t.content}（${t.cycle}）`
     ).join('\n');
 
-    // 5. @ 文本
-    const atText = MAINTAINERS.map(m => `<at id="${m.openId}"></at>`).join(' ');
+    // 5. @ 文本（应用机器人 API 支持真正的 @ 提醒）
+    const atText   = MAINTAINERS.map(m => `<at id="${m.openId}"></at>`).join(' ');
     const nameText = MAINTAINERS.map(m => m.name).join('、');
 
     // 确认按钮链接
-    // 回报链接（携带月份和任务ID，点击后跳转网页并弹出回报弹窗）
-    const taskIdStr = thisMonthTasks.map(t => t.id).join(',');
+    const taskIdStr  = thisMonthTasks.map(t => t.id).join(',');
     const dispatchId = `plan_${Date.now()}`;
     const reportUrl  = `${CONFIG.siteUrl}?action=report&month=${month}&taskIds=${taskIdStr}&dispatchId=${dispatchId}`;
     const confirmUrl = reportUrl;
 
-    // 6. 群通知卡片
+    // 6. 群通知卡片（@ 孙伟 牛超，弹窗提醒）
     const groupCard = {
         config: { wide_screen_mode: true },
         header: {
@@ -184,7 +183,15 @@ async function main() {
                 tag: 'div',
                 text: {
                     tag: 'lark_md',
-                    content: `**下发时间：** ${nowStr}\n**任务数量：** ${thisMonthTasks.length} 项\n**执行人员：** ${atText} ${nameText}`,
+                    content: `${atText}\n**${nameText}，本月消防维保保养任务已下发，请及时查收并按计划执行！**`,
+                },
+            },
+            { tag: 'hr' },
+            {
+                tag: 'div',
+                text: {
+                    tag: 'lark_md',
+                    content: `**下发时间：** ${nowStr}\n**任务数量：** ${thisMonthTasks.length} 项\n**执行人员：** ${nameText}`,
                 },
             },
             { tag: 'hr' },
@@ -205,7 +212,7 @@ async function main() {
                     },
                     {
                         tag: 'button',
-                        text: { tag: 'plain_text', content: '📋 查看保养计划' },
+                        text: { tag: 'plain_text', content: '📋 查看保养计划详情' },
                         type: 'default',
                         url:  confirmUrl,
                     },
@@ -214,7 +221,7 @@ async function main() {
             { tag: 'hr' },
             {
                 tag: 'note',
-                elements: [{ tag: 'plain_text', content: '⚠️ 「已收到」按钮仅 孙伟/牛超 可操作，请按计划完成各项保养任务并记录' }],
+                elements: [{ tag: 'plain_text', content: `⚠️ 「已收到，开始执行」按钮仅 ${nameText} 可操作，请按计划完成各项保养任务并记录` }],
             },
         ],
     };
