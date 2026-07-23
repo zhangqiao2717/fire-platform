@@ -30,7 +30,7 @@ const CONFIG = {
         'https://open.feishu.cn/open-apis/bot/v2/hook/486a84ae-3861-4652-b00d-cad5e2759cba',
         'https://open.feishu.cn/open-apis/bot/v2/hook/7c826fde-ab70-456d-ad8e-32cb6298f084',
     ],
-    siteUrl:        'https://beijing-fire.netlify.app',
+    siteUrl:        'https://zhangqiao2717.github.io/fire-platform',
     dataFile:       path.join(__dirname, '..', 'data.json'),
     screenshotFile: path.join(__dirname, '..', 'screenshot.png'),
     chromePath:     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',

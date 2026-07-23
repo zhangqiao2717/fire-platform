@@ -25,7 +25,7 @@ const CONFIG = {
         // 'oc_b362688580f805857fddc1a2d9df0ff9', // 消防维保群（已取消）
         'oc_5cedb65c30a3cf0887b1870b4cd08e82', // 北京基地消防工作群
     ],
-    siteUrl:  'https://beijing-fire.netlify.app',
+    siteUrl:  'https://zhangqiao2717.github.io/fire-platform',
     dataFile: path.join(__dirname, '..', 'data.json'),
     planFile: path.join(__dirname, 'plan_data.json'),
 };

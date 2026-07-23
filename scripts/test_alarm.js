@@ -7,13 +7,13 @@ const WEBHOOKS = [
     'https://open.feishu.cn/open-apis/bot/v2/hook/486a84ae-3861-4652-b00d-cad5e2759cba',
     'https://open.feishu.cn/open-apis/bot/v2/hook/7c826fde-ab70-456d-ad8e-32cb6298f084',
 ];
-const SITE_URL = 'https://beijing-fire.netlify.app';
+const SITE_URL = 'https://zhangqiao2717.github.io/fire-platform';
 
 const now          = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
 const area         = '总装车间';
 const responsible  = '刘海兰';
 // 如果你有刘海兰的飞书 open_id 可以填在这里，否则留空用纯文本 @
-const openId       = '';
+const openId       = 'ou_37aff01e4dda13eda95d4624ce20a951'; // 刘海兰
 
 const confirmUrl1 = `${SITE_URL}?confirm=safe&area=${encodeURIComponent(area)}&name=${encodeURIComponent(responsible)}&time=${encodeURIComponent(now)}`;
 const confirmUrl2 = `${SITE_URL}?confirm=emergency&area=${encodeURIComponent(area)}&name=${encodeURIComponent(responsible)}&time=${encodeURIComponent(now)}`;
@@ -115,7 +115,7 @@ const WEBHOOKS = [
     'https://open.feishu.cn/open-apis/bot/v2/hook/486a84ae-3861-4652-b00d-cad5e2759cba', // 原群
     'https://open.feishu.cn/open-apis/bot/v2/hook/7c826fde-ab70-456d-ad8e-32cb6298f084', // 安全管理室群
 ];
-const SITE_URL = 'https://beijing-fire.netlify.app';
+const SITE_URL = 'https://zhangqiao2717.github.io/fire-platform';
 
 const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
 const area = '总装车间';
