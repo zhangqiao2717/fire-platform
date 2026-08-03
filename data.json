@@ -1,5 +1,5 @@
 {
-  "_updated": "2026-08-02T06:41:49.007Z",
+  "_updated": "2026-08-03T00:00:14.285Z",
   "_source": "local_scrape",
   "duty": [],
   "fault": [],
@@ -9,35 +9,35 @@
   "assessment": [],
   "tianze_alarms": [
     {
-      "time": "2026/8/2 14:41:49",
+      "time": "2026/8/3 08:00:14",
       "location": "火警",
       "type": "火警",
       "status": "待处理",
       "raw": "火警"
     },
     {
-      "time": "2026/8/2 14:41:49",
+      "time": "2026/8/3 08:00:14",
       "location": "火警",
       "type": "火警",
       "status": "待处理",
       "raw": "正常火警预警故障隐患动作离线"
     },
     {
-      "time": "2026/8/2 14:41:49",
+      "time": "2026/8/3 08:00:14",
       "location": "火灾自动报警系统",
       "type": "报警",
       "status": "待处理",
       "raw": "火灾自动报警系统"
     },
     {
-      "time": "2026/8/2 14:41:49",
+      "time": "2026/8/3 08:00:14",
       "location": "可燃气体探测报警系统",
       "type": "报警",
       "status": "待处理",
       "raw": "可燃气体探测报警系统"
     }
   ],
-  "tianze_last_check": "2026/8/2 14:41:49",
+  "tianze_last_check": "2026/8/3 08:00:14",
   "tianze_new_count": 0,
   "plan_dispatch_log": [
     {
