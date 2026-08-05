@@ -1,5 +1,5 @@
 {
-  "_updated": "2026-08-05T01:50:52.483Z",
+  "_updated": "2026-08-05T05:52:53.195Z",
   "_source": "local_scrape",
   "duty": [],
   "fault": [],
@@ -9,36 +9,36 @@
   "assessment": [],
   "tianze_alarms": [
     {
-      "time": "2026/8/5 09:50:52",
+      "time": "2026/8/5 13:52:53",
       "location": "火警",
       "type": "火警",
       "status": "待处理",
       "raw": "火警"
     },
     {
-      "time": "2026/8/5 09:50:52",
+      "time": "2026/8/5 13:52:53",
       "location": "火警",
       "type": "火警",
       "status": "待处理",
-      "raw": "正常火警预警故障隐患动作离线"
+      "raw": "正常火警预警故障存在动作离线"
     },
     {
-      "time": "2026/8/5 09:50:52",
+      "time": "2026/8/5 13:52:53",
       "location": "火灾自动报警系统",
       "type": "报警",
       "status": "待处理",
       "raw": "火灾自动报警系统"
     },
     {
-      "time": "2026/8/5 09:50:52",
+      "time": "2026/8/5 13:52:53",
       "location": "可燃气体探测报警系统",
       "type": "报警",
       "status": "待处理",
       "raw": "可燃气体探测报警系统"
     }
   ],
-  "tianze_last_check": "2026/8/5 09:50:52",
-  "tianze_new_count": 0,
+  "tianze_last_check": "2026/8/5 13:52:53",
+  "tianze_new_count": 1,
   "plan_dispatch_log": [
     {
       "id": "plan_1785570822556",
@@ -85,6 +85,20 @@
     }
   ],
   "alarm_history": [
+    {
+      "time": "2026/8/5 13:52:53",
+      "location": "火警",
+      "type": "火警",
+      "status": "待处理",
+      "raw": "正常火警预警故障存在动作离线",
+      "id": "alarm_1785909173195_y3ajla",
+      "confirm_status": "pending",
+      "confirm_person": "",
+      "confirm_time": "",
+      "area": "其他区域",
+      "responsible": "张乔",
+      "responsible_phone": "19800312191"
+    },
     {
       "time": "2026/8/5 09:36:07",
       "location": "火警",
