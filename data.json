@@ -1,139 +1,46 @@
 {
-  "_updated": "2026-08-06T00:08:40.845Z",
+  "_updated": "2026-08-06T00:51:29.033Z",
   "_source": "local_scrape",
-  "duty": [],
-  "fault": [],
-  "record": [],
-  "testRecord": [],
-  "training": [],
-  "assessment": [],
   "tianze_alarms": [
     {
-      "time": "2026/8/6 08:08:40",
+      "time": "2026/8/6 08:51:29",
       "location": "火警",
       "type": "火警",
       "status": "待处理",
       "raw": "火警"
     },
     {
-      "time": "2026/8/6 08:08:40",
+      "time": "2026/8/6 08:51:29",
       "location": "火警",
       "type": "火警",
       "status": "待处理",
-      "raw": "正常火警预警故障存在动作离线"
+      "raw": "正常火警预警故障隐患动作离线"
     },
     {
-      "time": "2026/8/6 08:08:40",
+      "time": "2026/8/6 08:51:29",
       "location": "火灾自动报警系统",
       "type": "报警",
       "status": "待处理",
       "raw": "火灾自动报警系统"
     },
     {
-      "time": "2026/8/6 08:08:40",
+      "time": "2026/8/6 08:51:29",
       "location": "可燃气体探测报警系统",
       "type": "报警",
       "status": "待处理",
       "raw": "可燃气体探测报警系统"
     }
   ],
-  "tianze_last_check": "2026/8/6 08:08:40",
-  "tianze_new_count": 1,
-  "plan_dispatch_log": [
-    {
-      "id": "plan_1785570822556",
-      "month": "2026年8月",
-      "task_count": 4,
-      "receivers": "孙伟、牛超",
-      "dispatch_time": "2026/8/1 15:53:40",
-      "tasks": [
-        "四、消火栓（消防炮）系统·对消防管网主要阀门进行一次开启和关闭操作",
-        "八、建筑防烟排烟系统·清洁排烟风机控制柜",
-        "八、建筑防烟排烟系统·检查风机控制柜内电器元件有无松动、烧损现象，及时紧固或更换",
-        "八、建筑防烟排烟系统·检查设备、支架和紧固件，存在锈蚀的应及时维护"
-      ]
-    },
-    {
-      "id": "plan_1784785838323",
-      "month": "2026年7月",
-      "task_count": 10,
-      "receivers": "孙伟、牛超",
-      "dispatch_time": "2026/7/23 13:50:37",
-      "tasks": [
-        "二、火灾自动报警系统·清洁应急广播系统主机",
-        "二、火灾自动报警系统·清洁消防电话总机和消防专用电话分机",
-        "四、消火栓（消防炮）系统·对消防管网主要阀门进行一次开启和关闭操作",
-        "七、高压细水雾灭火系统·更换一次储水箱内的水，储水容器内的水定期更换",
-        "七、高压细水雾灭火系统·检查接线情况，清洗储水箱、过滤器",
-        "七、高压细水雾灭火系统·清洁细水雾灭火控制器的内外机柜",
-        "七、高压细水雾灭火系统·检查设备、管道及支架，存在锈蚀的应及时维护",
-        "十、防火分隔设施·对防火门速度过慢的防火门，及时调整调节螺丝",
-        "十、防火分隔设施·对卷帘门传动链条链轮等装置加注润滑油一次",
-        "十、防火分隔设施·清理防火卷帘门导轨内杂物，并加涂黄油润滑一次"
-      ]
-    },
-    {
-      "id": "plan_1784613293199",
-      "month": "2026年7月",
-      "task_count": 2,
-      "receivers": "孙伟、牛超",
-      "dispatch_time": "2026/7/21 13:54:51",
-      "tasks": [
-        "火灾自动报警·清洁应急广播系统主机",
-        "消火栓系统·对管网主要阀门操作"
-      ]
-    }
-  ],
+  "tianze_last_check": "2026/8/6 08:51:29",
+  "tianze_new_count": 4,
   "alarm_history": [
     {
-      "time": "2026/8/6 08:08:40",
-      "location": "火警",
-      "type": "火警",
-      "status": "待处理",
-      "raw": "正常火警预警故障存在动作离线",
-      "id": "alarm_1785974920844_m2j55m",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
-      "area": "其他区域",
-      "responsible": "张乔",
-      "responsible_phone": "19800312191"
-    },
-    {
-      "time": "2026/8/5 18:32:00",
-      "location": "火警",
-      "type": "火警",
-      "status": "待处理",
-      "raw": "正常火警预警故障隐患动作离线",
-      "id": "alarm_1785925920049_tjqerv",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
-      "area": "其他区域",
-      "responsible": "张乔",
-      "responsible_phone": "19800312191"
-    },
-    {
-      "time": "2026/8/5 13:52:53",
-      "location": "火警",
-      "type": "火警",
-      "status": "待处理",
-      "raw": "正常火警预警故障存在动作离线",
-      "id": "alarm_1785909173195_y3ajla",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
-      "area": "其他区域",
-      "responsible": "张乔",
-      "responsible_phone": "19800312191"
-    },
-    {
-      "time": "2026/8/5 09:36:07",
+      "time": "2026/8/6 08:51:29",
       "location": "火警",
       "type": "火警",
       "status": "待处理",
       "raw": "火警",
-      "id": "alarm_1785893767694_ltljbp",
+      "id": "alarm_1785977489033_k2q5bx",
       "confirm_status": "pending",
       "confirm_person": "",
       "confirm_time": "",
@@ -142,12 +49,12 @@
       "responsible_phone": "19800312191"
     },
     {
-      "time": "2026/8/5 09:36:07",
+      "time": "2026/8/6 08:51:29",
       "location": "火警",
       "type": "火警",
       "status": "待处理",
       "raw": "正常火警预警故障隐患动作离线",
-      "id": "alarm_1785893767694_rliwoa",
+      "id": "alarm_1785977489033_jtnzlo",
       "confirm_status": "pending",
       "confirm_person": "",
       "confirm_time": "",
@@ -156,12 +63,12 @@
       "responsible_phone": "19800312191"
     },
     {
-      "time": "2026/8/5 09:36:07",
+      "time": "2026/8/6 08:51:29",
       "location": "火灾自动报警系统",
       "type": "报警",
       "status": "待处理",
       "raw": "火灾自动报警系统",
-      "id": "alarm_1785893767694_mgajnl",
+      "id": "alarm_1785977489033_adxi8s",
       "confirm_status": "pending",
       "confirm_person": "",
       "confirm_time": "",
@@ -170,40 +77,12 @@
       "responsible_phone": "19800312191"
     },
     {
-      "time": "2026/8/5 09:36:07",
+      "time": "2026/8/6 08:51:29",
       "location": "可燃气体探测报警系统",
       "type": "报警",
       "status": "待处理",
       "raw": "可燃气体探测报警系统",
-      "id": "alarm_1785893767694_umyibs",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
-      "area": "其他区域",
-      "responsible": "张乔",
-      "responsible_phone": "19800312191"
-    },
-    {
-      "time": "2026/7/23 08:00:12",
-      "location": "火灾自动报警系统",
-      "type": "报警",
-      "status": "待处理",
-      "raw": "火灾自动报警系统",
-      "id": "alarm_1784764812520_uu3bqb",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
-      "area": "其他区域",
-      "responsible": "张乔",
-      "responsible_phone": "19800312191"
-    },
-    {
-      "time": "2026/7/23 08:00:12",
-      "location": "可燃气体探测报警系统",
-      "type": "报警",
-      "status": "待处理",
-      "raw": "可燃气体探测报警系统",
-      "id": "alarm_1784764812520_hx72x6",
+      "id": "alarm_1785977489033_v0e935",
       "confirm_status": "pending",
       "confirm_person": "",
       "confirm_time": "",
