@@ -618,40 +618,11 @@
     ]
   ],
   "_record_updated": "2026-08-28T00:02:18.254Z",
-  "_updated": "2026-09-11T00:22:26.533Z",
+  "_updated": "2026-09-12T00:08:24.278Z",
   "_source": "local_scrape",
-  "tianze_alarms": [
-    {
-      "time": "2026/9/11 08:22:26",
-      "location": "火警",
-      "type": "火警",
-      "status": "待处理",
-      "raw": "火警"
-    },
-    {
-      "time": "2026/9/11 08:22:26",
-      "location": "火警",
-      "type": "火警",
-      "status": "待处理",
-      "raw": "正常火警预警故障隐患动作离线"
-    },
-    {
-      "time": "2026/9/11 08:22:26",
-      "location": "火灾自动报警系统",
-      "type": "报警",
-      "status": "待处理",
-      "raw": "火灾自动报警系统"
-    },
-    {
-      "time": "2026/9/11 08:22:26",
-      "location": "可燃气体探测报警系统",
-      "type": "报警",
-      "status": "待处理",
-      "raw": "可燃气体探测报警系统"
-    }
-  ],
-  "tianze_last_check": "2026/9/11 08:22:26",
-  "tianze_new_count": 4,
+  "tianze_alarms": [],
+  "tianze_last_check": "2026/9/12 08:08:24",
+  "tianze_new_count": 0,
   "alarm_history": [
     {
       "time": "2026/9/11 08:22:26",
@@ -660,9 +631,9 @@
       "status": "待处理",
       "raw": "火警",
       "id": "alarm_1789086146532_kbgev2",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -674,9 +645,9 @@
       "status": "待处理",
       "raw": "正常火警预警故障隐患动作离线",
       "id": "alarm_1789086146532_nbwuzn",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -688,9 +659,9 @@
       "status": "待处理",
       "raw": "火灾自动报警系统",
       "id": "alarm_1789086146532_q4zgko",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -702,9 +673,9 @@
       "status": "待处理",
       "raw": "可燃气体探测报警系统",
       "id": "alarm_1789086146532_2aazbf",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -776,9 +747,9 @@
       "status": "待处理",
       "raw": "火警",
       "id": "alarm_1788307770847_lbfytm",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -790,9 +761,9 @@
       "status": "待处理",
       "raw": "正常火警预警故障隐患动作离线",
       "id": "alarm_1788307770847_uij0r9",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -804,9 +775,9 @@
       "status": "待处理",
       "raw": "火灾自动报警系统",
       "id": "alarm_1788307770847_jq9hkc",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -818,9 +789,9 @@
       "status": "待处理",
       "raw": "可燃气体探测报警系统",
       "id": "alarm_1788307770847_zbkxue",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -834,9 +805,9 @@
       "status": "整改中",
       "responsible": "王治纲",
       "responsible_phone": "13810395510",
-      "confirm_status": "pending",
-      "confirm_person": "杜威",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "raw": "点型感烟报火警",
       "source": "feishu"
     },
@@ -849,9 +820,9 @@
       "status": "整改中",
       "responsible": "张蕴龙",
       "responsible_phone": "15040026850",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "raw": "点型感烟报火警",
       "source": "feishu"
     },
@@ -864,9 +835,9 @@
       "status": "整改中",
       "responsible": "何迅达",
       "responsible_phone": "13681070413",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "raw": "点型感烟报火警",
       "source": "feishu"
     },
@@ -879,9 +850,9 @@
       "status": "整改中",
       "responsible": "何迅达",
       "responsible_phone": "13681070413",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "raw": "点型感烟报火警（5：47\n一次6：02一次，6：23一次）",
       "source": "feishu"
     },
@@ -894,9 +865,9 @@
       "status": "整改中",
       "responsible": "何迅达",
       "responsible_phone": "13681070413",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "raw": "2号厂房总装车间B46轴卫生间点型感烟报火警7.28，第二次",
       "source": "feishu"
     },
@@ -1329,9 +1300,9 @@
       "status": "整改中",
       "responsible": "郭书强",
       "responsible_phone": "18658424252",
-      "confirm_status": "pending",
-      "confirm_person": "孙伟",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "raw": "5.5m TC BC文丘里防爆温感",
       "source": "feishu"
     },
@@ -1404,9 +1375,9 @@
       "status": "整改中",
       "responsible": "郭书强",
       "responsible_phone": "18658424252",
-      "confirm_status": "pending",
+      "confirm_status": "confirmed_safe",
       "confirm_person": "张乔",
-      "confirm_time": "",
+      "confirm_time": "2026/9/11 18:33:52",
       "raw": "火警，器件故障，误报",
       "source": "feishu"
     },
@@ -1492,9 +1463,9 @@
       "status": "待处理",
       "raw": "火警",
       "id": "alarm_1786520609318_iqjt51",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -1506,9 +1477,9 @@
       "status": "待处理",
       "raw": "正常火警预警故障隐患动作离线",
       "id": "alarm_1786520609318_lim02u",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -1520,9 +1491,9 @@
       "status": "待处理",
       "raw": "火灾自动报警系统",
       "id": "alarm_1786520609318_a0t9hc",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -1534,9 +1505,9 @@
       "status": "待处理",
       "raw": "可燃气体探测报警系统",
       "id": "alarm_1786520609318_lqdhh0",
-      "confirm_status": "pending",
-      "confirm_person": "",
-      "confirm_time": "",
+      "confirm_status": "confirmed_safe",
+      "confirm_person": "张乔",
+      "confirm_time": "2026/9/11 18:33:52",
       "area": "其他区域",
       "responsible": "张乔",
       "responsible_phone": "19800312191"
@@ -2030,7 +2001,7 @@
       "张乔",
       "反复报故障，自动恢复",
       "张乔",
-      "采购后更换",
+      "—",
       "已整改"
     ],
     [
@@ -3061,10 +3032,10 @@
       "2026/4/3",
       "火灾自动报警系统",
       "综合站房",
-      "—",
+      "原件老化异常故障。",
       "整改完成",
       "孙伟",
-      "—",
+      "原件老化异常故障。",
       "孙伟",
       "配件更换，恢复正常",
       "已整改"
@@ -3808,7 +3779,7 @@
       "孙伟",
       "2#厂房东配电室20AA7 W2 201017-106照明配电模块频繁报反馈",
       "孙伟",
-      "更换模块后恢复章程",
+      "更换模块后恢��章程",
       "已整改"
     ],
     [
@@ -4112,12 +4083,12 @@
       "火灾自动报警系统",
       "涂装",
       "设备老化",
-      "整改完成",
+      "整改中",
       "孙伟",
       "设备老化",
       "孙伟",
       "更换后恢复正常",
-      "已整改"
+      "整改中"
     ],
     [
       185,
@@ -4606,7 +4577,7 @@
       32,
       "2026/3/4 23:42:41",
       "餐厅",
-      "探测器瞬间电流过大超量程，",
+      "漏电探测报警0304mA",
       "电气火灾监控系统",
       "18AA十",
       "反馈",
@@ -5590,7 +5561,7 @@
       "细水雾释放灯",
       "屏蔽",
       "现场施工",
-      "改造完成后恢复"
+      "改造完成后��复"
     ],
     [
       122,
@@ -5674,7 +5645,7 @@
       "2026/5/8 16:05:02",
       "涂装车间",
       "7.5m TT CC流平2细水雾释放灯",
-      "火灾自动报警系统",
+      "",
       "细水雾释放灯",
       "屏蔽",
       "现场施工",
@@ -6146,7 +6117,7 @@
       172,
       "2026/5/22 05:28:05",
       "消防水泵房",
-      "喷淋稳压泵启动异常记录",
+      "喷淋稳压泵启泵",
       "自动喷水灭火系统",
       "喷淋稳压泵",
       "反馈",
@@ -6256,7 +6227,7 @@
       182,
       "2026/3/11 13:41:00",
       "餐厅",
-      "水蒸气过大导致",
+      "水蒸气过大",
       "火灾自动报警系统",
       "感温探测器",
       "火警",
@@ -6888,7 +6859,7 @@
       "光束感烟",
       "报备",
       "现场施工",
-      "涂装车间施工人员遮挡"
+      "涂装车间��工人员遮挡"
     ],
     [
       240,
@@ -7521,7 +7492,7 @@
       297,
       "2026/6/22 11:05:30",
       "涂装车间",
-      "涂装车间施工人员遮挡",
+      "3#厂房涂装二层G-57轴，施工遮挡，已报备",
       "火灾自动报警系统",
       "光束感烟",
       "报备",
@@ -8294,7 +8265,7 @@
       "消火栓稳压泵反馈",
       "消火栓及消防给水系统",
       "消火栓稳压泵",
-      "反��",
+      "反馈",
       "其他异常",
       "稳压日常监测"
     ],
@@ -8973,12 +8944,12 @@
       429,
       "2026/8/6 22:09:14",
       "消防水泵房",
-      "消火栓稳压泵",
+      "稳压日常监测",
       "消火栓及消防给水系统",
       "消火栓稳压泵",
       "反馈",
       "其他异常",
-      "���压日常监测"
+      "稳压日常监测"
     ],
     [
       430,
@@ -9512,7 +9483,7 @@
       478,
       "2026/8/20 04:36:50",
       "餐厅",
-      "测试期间正常报警",
+      "2层厨房水流指示报反馈",
       "火灾自动报警系统",
       "水流指示",
       "反馈",
@@ -10232,7 +10203,7 @@
       "水流指示器",
       "反馈",
       "器件故障",
-      "报警阀阀瓣损坏，采购后更���。"
+      "报警阀阀瓣损坏，采购后更换。"
     ],
     [
       544,
@@ -10517,8 +10488,8 @@
       "消火栓及消防给水系统",
       "消火栓稳压泵",
       "反馈",
-      "",
-      ""
+      "其他异常",
+      "稳压日常监测"
     ],
     [
       570,
@@ -10528,12 +10499,34 @@
       "火灾自动报警系统",
       "消火栓",
       "值机故障",
+      "器件故障",
+      "更换后恢复正常"
+    ],
+    [
+      571,
+      "2026/9/11 07:27:56",
+      "消防水泵房",
+      "消火栓稳压泵",
+      "消火栓及消防给水系统",
+      "消火栓稳压泵",
+      "反馈",
+      "其他异常",
+      "稳压日常监测"
+    ],
+    [
+      572,
+      "2026/9/12 02:27:00",
+      "总装车间",
+      "总装，物流区，传感器故障。",
+      "其他关键设施",
+      "热成像传感器故障",
+      "值机故障",
       "",
       ""
     ]
   ],
-  "_duty_updated": "2026-09-11T00:22:33.605Z",
-  "_fault_updated": "2026-09-11T00:22:38.499Z",
+  "_duty_updated": "2026-09-12T00:08:30.680Z",
+  "_fault_updated": "2026-09-12T00:08:36.351Z",
   "maintainPlan": [
     [
       17,
@@ -10680,7 +10673,7 @@
       ],
       [
         {
-          "text": "清理防火卷帘门导轨内���物，并加涂黄油润滑一次",
+          "text": "清理防火卷帘门导轨内杂物，并加涂黄油润滑一次",
           "type": "text"
         }
       ],
@@ -11071,7 +11064,7 @@
       ],
       [
         {
-          "text": "检查设备、管道及支架，存在锈蚀的应及时维护",
+          "text": "检查设备、��道及支架，存在锈蚀的应及时维护",
           "type": "text"
         }
       ],
@@ -11939,7 +11932,7 @@
       "—"
     ]
   ],
-  "_maintain_plan_updated": "2026-09-11T00:22:40.464Z",
+  "_maintain_plan_updated": "2026-09-12T00:08:38.097Z",
   "testPlan": [
     {
       "id": 1,
