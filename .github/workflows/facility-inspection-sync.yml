@@ -1,0 +1,38 @@
+name: 同步设施巡查飞书数据
+
+on:
+  schedule:
+    # 每日 UTC 00:15 = 北京时间 08:15
+    - cron: '15 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-facility-inspections:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 拉取代码
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 🔄 同步北京基地设施巡查数据
+        env:
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+        run: node scripts/sync_facility_inspections.js
+
+      - name: 📦 提交同步后的数据
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "FireBot"
+          git add data.json
+          git diff --staged --quiet || git commit -m "📋 同步设施巡查数据 $(TZ='Asia/Shanghai' date '+%Y-%m-%d')"
+          git push
