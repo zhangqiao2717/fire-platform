@@ -1,18 +1,28 @@
-name: monthly-plan-dispatch
+name: monthly-maintenance-dispatch
 
 on:
   schedule:
-    # 每月1日 UTC 00:00 = 北京时间 08:00
-    - cron: '0 0 1 * *'
-  # 手动触发（测试用）
+    # 每月 1 日与 25 日 UTC 00:00 = 北京时间 08:00
+    - cron: '0 0 1,25 * *'
   workflow_dispatch:
     inputs:
+      mode:
+        description: '执行模式（dispatch 下发任务 / reminder 25日汇总）'
+        type: choice
+        required: true
+        default: dispatch
+        options:
+          - dispatch
+          - reminder
       month:
-        description: '指定月份（留空=当前月）'
+        description: '指定月份（留空为当前月）'
         required: false
 
+permissions:
+  contents: write
+
 jobs:
-  dispatch:
+  maintenance-notify:
     runs-on: ubuntu-latest
     steps:
       - name: 📥 拉取代码
@@ -25,20 +35,25 @@ jobs:
         with:
           node-version: '20'
 
-      - name: 🔧 推送月度保养任务
+      - name: 🔧 发送消防保养任务或汇总
         env:
+          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
           FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+          FEISHU_MAINTENANCE_CHAT_ID: ${{ secrets.FEISHU_MAINTENANCE_CHAT_ID }}
+          FIRE_PLATFORM_URL: ${{ secrets.FIRE_PLATFORM_URL }}
         run: |
-          if [ -n "${{ github.event.inputs.month }}" ]; then
-            node scripts/send_monthly_plan.js --month=${{ github.event.inputs.month }}
-          else
-            node scripts/send_monthly_plan.js
+          MODE="${{ github.event.inputs.mode }}"
+          if [ -z "$MODE" ]; then
+            if [ "$(TZ='Asia/Shanghai' date '+%d')" = "01" ]; then MODE="dispatch"; else MODE="reminder"; fi
           fi
+          MONTH_ARG=""
+          if [ -n "${{ github.event.inputs.month }}" ]; then MONTH_ARG="--month=${{ github.event.inputs.month }}"; fi
+          node scripts/send_monthly_plan.js --mode="$MODE" $MONTH_ARG
 
-      - name: 📦 提交下发记录
+      - name: 📦 提交任务状态
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "FireBot"
           git add data.json
-          git diff --staged --quiet || git commit -m "📋 $(TZ='Asia/Shanghai' date '+%Y年%m月')保养任务已下发"
+          git diff --staged --quiet || git commit -m "🛠️ 更新消防保养任务状态 $(TZ='Asia/Shanghai' date '+%Y-%m-%d')"
           git push

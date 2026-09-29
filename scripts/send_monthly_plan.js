@@ -1,310 +1,289 @@
 /**
- * 月度保养任务推送脚本
- * 每月1日早上8点自动运行
- * 筛选当月保养任务 → 推送飞书群通知 + 私信孙伟/牛超
+ * 消防保养任务推送与 25 日执行汇总
  *
  * 用法：
- *   node send_monthly_plan.js          ← 正常运行（按当前月份）
- *   node send_monthly_plan.js --test   ← 测试模式（模拟当月，不写记录）
- *   node send_monthly_plan.js --month=7 ← 指定月份测试
+ *   node scripts/send_monthly_plan.js --mode=dispatch
+ *   node scripts/send_monthly_plan.js --mode=reminder
+ *   node scripts/send_monthly_plan.js --month=8 --mode=dispatch
+ *   node scripts/send_monthly_plan.js --test
+ *
+ * 环境变量：
+ *   FEISHU_APP_ID、FEISHU_APP_SECRET、FEISHU_MAINTENANCE_CHAT_ID、FIRE_PLATFORM_URL
  */
 
-const https   = require('https');
-const fs      = require('fs');
-const path    = require('path');
-const { execSync } = require('child_process');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
 
-// ============================================================
-// ⚙️ 配置
-// ============================================================
 const CONFIG = {
-    appId:     'cli_aadddd5e85f81bd1',
-    appSecret: 'HcRDNeBimwNvg9N1DLQOVhsiOG5L3okI',
-    // 应用机器人群 chat_id（无需每群建 Webhook）
-    chatIds: [
-        // 'oc_b362688580f805857fddc1a2d9df0ff9', // 消防维保群（已取消）
-        'oc_5cedb65c30a3cf0887b1870b4cd08e82', // 北京基地消防工作群
-    ],
-    siteUrl:  'https://zhangqiao2717.github.io/fire-platform',
+    appId: process.env.FEISHU_APP_ID,
+    appSecret: process.env.FEISHU_APP_SECRET,
+    chatId: process.env.FEISHU_MAINTENANCE_CHAT_ID || 'oc_5cedb65c30a3cf0887b1870b4cd08e82',
+    siteUrl: (process.env.FIRE_PLATFORM_URL || 'http://10.231.43.248:8080').replace(/\/$/, ''),
     dataFile: path.join(__dirname, '..', 'data.json'),
-    planFile: path.join(__dirname, 'plan_data.json'),
+    baseToken: 'EZsjbgvvLayY7SsAJktcueMIn3f',
+    maintenanceTableId: 'tblTzKaHm8owsQH1',
 };
 
-// ============================================================
-// ⚙️ 固定接收人员（维保组）
-// ============================================================
 const MAINTAINERS = [
-    { name: '孙伟', openId: 'ou_63124c2341b701f4a9fef354a6d80f70', role: '维保主管' },
-    { name: '牛超', openId: 'ou_f31b4418835c8636e1a57deb8bf78cb7', role: '维保员'   },
+    { name: '孙伟', openId: 'ou_63124c2341b701f4a9fef354a6d80f70' },
+    { name: '牛超', openId: 'ou_f31b4418835c8636e1a57deb8bf78cb7' },
 ];
 
-// ============================================================
-// 工具：HTTP/HTTPS 请求
-// ============================================================
-function request(url, options, body) {
+function request(options, body) {
     return new Promise((resolve, reject) => {
-        const isHttps = url.startsWith('https');
-        const lib = isHttps ? require('https') : require('http');
-        const u = new URL(url);
-        const req = lib.request({
-            hostname: u.hostname,
-            port:     u.port || (isHttps ? 443 : 80),
-            path:     u.pathname + u.search,
-            method:   options.method || 'GET',
-            headers:  options.headers || {},
-        }, res => {
-            let d = '';
-            res.on('data', c => d += c);
-            res.on('end', () => resolve(d));
+        const req = https.request(options, res => {
+            let data = '';
+            res.on('data', chunk => { data += chunk; });
+            res.on('end', () => {
+                try {
+                    const json = JSON.parse(data);
+                    if (res.statusCode < 200 || res.statusCode >= 300) {
+                        reject(new Error(json.msg || `HTTP ${res.statusCode}`));
+                        return;
+                    }
+                    resolve(json);
+                } catch {
+                    reject(new Error('飞书接口返回了无法解析的数据'));
+                }
+            });
         });
         req.on('error', reject);
-        if (body) req.write(body);
+        if (body) req.write(JSON.stringify(body));
         req.end();
     });
 }
 
-// ============================================================
-// 工具：获取 app_access_token
-// ============================================================
-async function getAppToken() {
-    const res = await request(
-        'https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal',
-        { method: 'POST', headers: { 'Content-Type': 'application/json' } },
-        JSON.stringify({ app_id: CONFIG.appId, app_secret: CONFIG.appSecret })
-    );
-    const token = JSON.parse(res)?.app_access_token;
-    if (!token) throw new Error('获取 app_access_token 失败');
-    return token;
-}
-
-// ============================================================
-// 工具：发送飞书私信
-// ============================================================
-async function sendDM(openId, card, appToken) {
-    const body = JSON.stringify({
-        receive_id: openId,
-        msg_type:   'interactive',
-        content:    JSON.stringify(card),
-    });
-    const res = await request(
-        'https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=open_id',
-        { method: 'POST', headers: { 'Authorization': `Bearer ${appToken}`, 'Content-Type': 'application/json' } },
-        body
-    );
-    const result = JSON.parse(res);
-    if (result.code !== 0) console.warn('⚠️  私信发送失败:', result.msg);
-    return result.code === 0;
-}
-
-// ============================================================
-// 工具：发送飞书群 Webhook
-// ============================================================
-async function sendWebhook(webhook, card) {
-    const body = JSON.stringify({ msg_type: 'interactive', card });
-    const res = await request(webhook, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
-    }, body);
-    const result = JSON.parse(res);
-    return result.code === 0;
-}
-
-// ============================================================
-// 工具：推送到 GitHub
-// ============================================================
-function pushToGithub() {
-    try {
-        const dir = path.join(__dirname, '..');
-        execSync('git add data.json', { cwd: dir });
-        execSync('git diff --staged --quiet || git commit -m "monthly plan dispatched"', { cwd: dir, shell: true });
-        execSync('git push --set-upstream origin main', { cwd: dir });
-        console.log('✅ 已推送到 GitHub');
-    } catch(e) {
-        console.log('⚠️  GitHub 推送:', e.message.split('\n')[0]);
+async function getTenantToken() {
+    const result = await request({
+        hostname: 'open.feishu.cn',
+        path: '/open-apis/auth/v3/tenant_access_token/internal',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    }, { app_id: CONFIG.appId, app_secret: CONFIG.appSecret });
+    if (result.code !== 0 || !result.tenant_access_token) {
+        throw new Error(`获取飞书访问令牌失败：${result.msg || result.code}`);
     }
+    return result.tenant_access_token;
 }
 
-// ============================================================
-// 主流程
-// ============================================================
-async function main() {
-    const args     = process.argv.slice(2);
-    const isTest   = args.includes('--test');
-    const monthArg = args.find(a => a.startsWith('--month='));
-    const now      = new Date();
-    const month    = monthArg ? parseInt(monthArg.split('=')[1]) : now.getMonth() + 1;
-    const year     = now.getFullYear();
-    const monthStr = `${year}年${month}月`;
-    const nowStr   = now.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+async function getAllRecords(token) {
+    const records = [];
+    let pageToken = '';
+    do {
+        const query = new URLSearchParams({ page_size: '500', text_field_option: 'html' });
+        if (pageToken) query.set('page_token', pageToken);
+        const result = await request({
+            hostname: 'open.feishu.cn',
+            path: `/open-apis/bitable/v1/apps/${CONFIG.baseToken}/tables/${CONFIG.maintenanceTableId}/records?${query}`,
+            method: 'GET',
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (result.code !== 0) throw new Error(`读取消防保养计划失败：${result.msg || result.code}`);
+        records.push(...(result.data?.items || []));
+        pageToken = result.data?.has_more ? (result.data.page_token || '') : '';
+    } while (pageToken);
+    return records;
+}
 
-    console.log(`\n🔧 ${nowStr} 开始推送 ${monthStr} 保养任务${isTest ? ' [测试模式]' : ''}...`);
+function plainText(value, fallback = '—') {
+    if (value === null || value === undefined || value === '') return fallback;
+    if (typeof value === 'string' || typeof value === 'number') {
+        const text = String(value)
+            .replace(/<[^>]*>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .trim();
+        return text && !text.startsWith('opt') ? text : fallback;
+    }
+    if (Array.isArray(value)) {
+        const values = value.map(item => plainText(item, '')).filter(Boolean);
+        return values.length ? values.join('、') : fallback;
+    }
+    if (typeof value === 'object') return plainText(value.text ?? value.value ?? value.name ?? '', fallback);
+    return fallback;
+}
 
-    // 1. 读取保养计划数据
-    const planData = JSON.parse(fs.readFileSync(CONFIG.planFile, 'utf-8'));
+function taskFromRecord(record) {
+    const fields = record.fields || {};
+    return {
+        id: record.record_id,
+        month: plainText(fields['计划实施月份'], ''),
+        project: plainText(fields['保养项目']),
+        content: plainText(fields['保养内容']),
+        frequency: plainText(fields['保养频次']),
+        system: plainText(fields['系统名称']),
+    };
+}
 
-    // 2. 筛选本月需要执行的保养项
-    const thisMonthTasks = planData.filter(item => item.months.includes(month));
-    console.log(`📋 本月保养任务: ${thisMonthTasks.length} 项`);
-    thisMonthTasks.forEach((t, i) => console.log(`   ${i+1}. [${t.cycle}] ${t.system} · ${t.content}`));
+function matchesMonth(value, month) {
+    return String(value || '').split(/[、,，\s]+/).some(item => parseInt(item, 10) === month);
+}
 
-    if (thisMonthTasks.length === 0) {
-        console.log('ℹ️  本月无保养任务，跳过推送');
+function readData() {
+    try { return JSON.parse(fs.readFileSync(CONFIG.dataFile, 'utf8')); } catch { return {}; }
+}
+
+function writeData(data) {
+    fs.writeFileSync(CONFIG.dataFile, JSON.stringify(data, null, 2) + '\n', 'utf8');
+}
+
+async function sendGroupCard(token, card) {
+    const result = await request({
+        hostname: 'open.feishu.cn',
+        path: '/open-apis/im/v1/messages?receive_id_type=chat_id',
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json; charset=utf-8' },
+    }, {
+        receive_id: CONFIG.chatId,
+        msg_type: 'interactive',
+        content: JSON.stringify(card),
+    });
+    if (result.code !== 0) throw new Error(`发送北京基地消防工作群消息失败：${result.msg || result.code}`);
+    return result.data?.message_id || '';
+}
+
+function atMaintainers() {
+    return MAINTAINERS.map(person => `<at id="${person.openId}"></at>`).join(' ');
+}
+
+function taskSummary(tasks) {
+    return tasks.map((task, index) => `${index + 1}. **${task.system}** · ${task.project}\n　${task.content}（${task.frequency}）`).join('\n');
+}
+
+function dispatchCard({ year, month, tasks, dispatchId, now }) {
+    const url = `${CONFIG.siteUrl}/?action=maintenance-report&dispatchId=${encodeURIComponent(dispatchId)}`;
+    return {
+        config: { wide_screen_mode: true },
+        header: { title: { tag: 'plain_text', content: `🛠️ 【${year}年${month}月】消防保养任务下发` }, template: 'blue' },
+        elements: [
+            { tag: 'div', text: { tag: 'lark_md', content: `${atMaintainers()}\n**孙伟、牛超：本月消防保养任务已下发，请接收并按计划完成。**` } },
+            { tag: 'hr' },
+            { tag: 'div', text: { tag: 'lark_md', content: `**下发时间：** ${now}\n**任务数量：** ${tasks.length} 项` } },
+            { tag: 'hr' },
+            { tag: 'div', text: { tag: 'lark_md', content: `**本月任务清单：**\n${taskSummary(tasks)}` } },
+            { tag: 'hr' },
+            { tag: 'action', actions: [{
+                tag: 'button',
+                text: { tag: 'plain_text', content: '✅ 接收并填报任务' },
+                type: 'primary',
+                url,
+                confirm_users: MAINTAINERS.map(person => person.openId),
+            }] },
+            { tag: 'note', elements: [{ tag: 'plain_text', content: '点击后请逐项填写执行数量、执行人并上传现场保养照片。' }] },
+        ],
+    };
+}
+
+function reminderCard({ year, month, dispatch, reports, now }) {
+    const completed = new Set(reports.map(report => report.task_id));
+    const finishedTasks = dispatch.tasks.filter(task => completed.has(task.id));
+    const unfinishedTasks = dispatch.tasks.filter(task => !completed.has(task.id));
+    const rate = dispatch.tasks.length ? Math.round(finishedTasks.length / dispatch.tasks.length * 100) : 0;
+    const allDone = unfinishedTasks.length === 0;
+    const content = allDone
+        ? `**${atMaintainers()} ${year}年${month}月消防保养任务已全部完成。**\n\n完成任务：${finishedTasks.length}/${dispatch.tasks.length} 项\n完成率：${rate}%\n回报人员：${[...new Set(reports.map(report => report.reporter).filter(Boolean))].join('、') || '—'}\n\n请继续保持保养记录和现场照片完整。`
+        : `**${atMaintainers()} ${year}年${month}月消防保养尚有 ${unfinishedTasks.length} 项未完成，请尽快完成并提交数量、执行人和现场照片。**\n\n已完成：${finishedTasks.length}/${dispatch.tasks.length} 项（${rate}%）\n\n**未完成任务：**\n${taskSummary(unfinishedTasks)}`;
+    const url = `${CONFIG.siteUrl}/?action=maintenance-report&dispatchId=${encodeURIComponent(dispatch.id)}`;
+    return {
+        config: { wide_screen_mode: true },
+        header: { title: { tag: 'plain_text', content: allDone ? `✅ 【${year}年${month}月】消防保养完成结果` : `⚠️ 【${year}年${month}月】消防保养未完成提醒` }, template: allDone ? 'green' : 'orange' },
+        elements: [
+            { tag: 'div', text: { tag: 'lark_md', content } },
+            { tag: 'hr' },
+            { tag: 'div', text: { tag: 'lark_md', content: `**汇总时间：** ${now}` } },
+            { tag: 'action', actions: [{ tag: 'button', text: { tag: 'plain_text', content: allDone ? '查看完成回报' : '继续完成并填报' }, type: 'primary', url, confirm_users: MAINTAINERS.map(person => person.openId) }] },
+        ],
+    };
+}
+
+async function dispatch({ year, month, test }) {
+    const token = await getTenantToken();
+    const tasks = (await getAllRecords(token)).map(taskFromRecord).filter(task => matchesMonth(task.month, month));
+    if (!tasks.length) {
+        console.log(`ℹ️ ${year}年${month}月没有消防保养任务`);
         return;
     }
 
-    // 3. 获取 app token
-    const appToken = await getAppToken();
-    console.log('✅ app_access_token 获取成功');
-
-    // 4. 构建任务清单文本
-    const taskList = thisMonthTasks.map((t, i) =>
-        `${i+1}. **${t.system}** · ${t.content}（${t.cycle}）`
-    ).join('\n');
-
-    // 5. @ 文本（应用机器人 API 支持真正的 @ 提醒）
-    const atText   = MAINTAINERS.map(m => `<at id="${m.openId}"></at>`).join(' ');
-    const nameText = MAINTAINERS.map(m => m.name).join('、');
-
-    // 确认按钮链接
-    const taskIdStr  = thisMonthTasks.map(t => t.id).join(',');
-    const dispatchId = `plan_${Date.now()}`;
-    const reportUrl  = `${CONFIG.siteUrl}?action=report&month=${month}&taskIds=${taskIdStr}&dispatchId=${dispatchId}`;
-    const confirmUrl = reportUrl;
-
-    // 6. 群通知卡片（@ 孙伟 牛超，弹窗提醒）
-    const groupCard = {
-        config: { wide_screen_mode: true },
-        header: {
-            title: { tag: 'plain_text', content: `🔧 【${monthStr}】消防维保保养任务下发` },
-            template: 'blue',
-        },
-        elements: [
-            {
-                tag: 'div',
-                text: {
-                    tag: 'lark_md',
-                    content: `${atText}\n**${nameText}，本月消防维保保养任务已下发，请及时查收并按计划执行！**`,
-                },
-            },
-            { tag: 'hr' },
-            {
-                tag: 'div',
-                text: {
-                    tag: 'lark_md',
-                    content: `**下发时间：** ${nowStr}\n**任务数量：** ${thisMonthTasks.length} 项\n**执行人员：** ${nameText}`,
-                },
-            },
-            { tag: 'hr' },
-            {
-                tag: 'div',
-                text: { tag: 'lark_md', content: `**本月保养任务清单：**\n${taskList}` },
-            },
-            { tag: 'hr' },
-            {
-                tag: 'action',
-                actions: [
-                    {
-                        tag: 'button',
-                        text: { tag: 'plain_text', content: '✅ 已收到，开始执行' },
-                        type: 'primary',
-                        url:  confirmUrl,
-                        confirm_users: MAINTAINERS.map(m => m.openId),
-                    },
-                    {
-                        tag: 'button',
-                        text: { tag: 'plain_text', content: '📋 查看保养计划详情' },
-                        type: 'default',
-                        url:  confirmUrl,
-                    },
-                ],
-            },
-            { tag: 'hr' },
-            {
-                tag: 'note',
-                elements: [{ tag: 'plain_text', content: `⚠️ 「已收到，开始执行」按钮仅 ${nameText} 可操作，请按计划完成各项保养任务并记录` }],
-            },
-        ],
-    };
-
-    // 7. 个人私信卡片
-    const buildDMCard = (person) => ({
-        config: { wide_screen_mode: true },
-        header: {
-            title: { tag: 'plain_text', content: `🔧 【${monthStr}保养任务】${person.name}，您好！` },
-            template: 'blue',
-        },
-        elements: [
-            {
-                tag: 'div',
-                text: {
-                    tag: 'lark_md',
-                    content: `**${person.name}（${person.role}）您好！**\n\n本月消防维保保养任务已下发，共 **${thisMonthTasks.length} 项**，请按计划执行。\n\n**下发时间：** ${nowStr}`,
-                },
-            },
-            { tag: 'hr' },
-            { tag: 'div', text: { tag: 'lark_md', content: `**本月任务清单：**\n${taskList}` } },
-            { tag: 'hr' },
-            {
-                tag: 'action',
-                actions: [{
-                    tag:  'button',
-                    text: { tag: 'plain_text', content: '📋 查看保养计划详情' },
-                    type: 'primary',
-                    url:  confirmUrl,
-                }],
-            },
-        ],
-    });
-
-    if (!isTest) {
-        // 8. 向群发送通知（应用机器人 API，无需每群建 Webhook）
-        for (const chatId of CONFIG.chatIds) {
-            const body = JSON.stringify({
-                receive_id: chatId,
-                msg_type:   'interactive',
-                content:    JSON.stringify(groupCard),
-            });
-            const res = await request(
-                'https://open.feishu.cn/open-apis/im/v1/messages?receive_id_type=chat_id',
-                { method: 'POST', headers: { 'Authorization': `Bearer ${appToken}`, 'Content-Type': 'application/json' } },
-                body
-            );
-            const result = JSON.parse(res);
-            console.log(result.code === 0
-                ? `✅ 群通知发送成功: ...${chatId.slice(-8)}`
-                : `❌ 群通知失败 (...${chatId.slice(-8)}): ${result.msg}`);
-        }
-
-        // 10. 写入下发记录到 data.json
-        let dataJson = {};
-        try { dataJson = JSON.parse(fs.readFileSync(CONFIG.dataFile, 'utf-8')); } catch {}
-        const log = dataJson.plan_dispatch_log || [];
-        log.unshift({
-            id:         `plan_${Date.now()}`,
-            month:      monthStr,
-            task_count: thisMonthTasks.length,
-            receivers:  nameText,
-            dispatch_time: nowStr,
-            tasks:      thisMonthTasks.map(t => `${t.system}·${t.content}`),
-        });
-        dataJson.plan_dispatch_log = log.slice(0, 24); // 最多保留24条（2年）
-        fs.writeFileSync(CONFIG.dataFile, JSON.stringify(dataJson, null, 2));
-        console.log('✅ 下发记录已写入 data.json');
-
-        // 11. 推送到 GitHub
-        pushToGithub();
-
-    } else {
-        console.log('\n[测试模式] 不发送实际消息，仅预览：');
-        console.log('群通知卡片标题:', groupCard.header.title.content);
-        console.log('私信人员:', MAINTAINERS.map(m => m.name).join('、'));
-        console.log('任务列表:\n' + taskList);
+    const data = readData();
+    const dispatches = data.maintenance_dispatches || [];
+    const existing = dispatches.find(item => item.year === year && item.month === month);
+    if (existing) {
+        console.log(`ℹ️ ${year}年${month}月任务已在 ${existing.dispatch_time} 下发，跳过重复下发`);
+        return;
     }
 
-    console.log(`\n✅ ${monthStr} 保养任务下发完成！`);
+    const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+    const dispatchId = `maintenance_${year}_${String(month).padStart(2, '0')}`;
+    const card = dispatchCard({ year, month, tasks, dispatchId, now });
+    if (!test) await sendGroupCard(token, card);
+
+    dispatches.unshift({
+        id: dispatchId,
+        year,
+        month,
+        month_label: `${year}年${month}月`,
+        tasks,
+        task_count: tasks.length,
+        dispatch_time: now,
+        receivers: MAINTAINERS.map(person => person.name),
+        accepted_by: [],
+        accepted_at: '',
+    });
+    data.maintenance_dispatches = dispatches.slice(0, 24);
+    writeData(data);
+    console.log(`✅ ${year}年${month}月消防保养任务已${test ? '模拟' : ''}下发：${tasks.length} 项`);
 }
 
-main().catch(err => {
-    console.error('❌ 运行失败:', err.message);
+async function remind({ year, month, test }) {
+    const data = readData();
+    const dispatch = (data.maintenance_dispatches || []).find(item => item.year === year && item.month === month);
+    if (!dispatch) {
+        console.log(`ℹ️ 未找到 ${year}年${month}月下发任务，跳过 25 日汇总`);
+        return;
+    }
+    if ((data.maintenance_reminders || []).some(item => item.year === year && item.month === month)) {
+        console.log(`ℹ️ ${year}年${month}月 25 日汇总已发送，跳过重复推送`);
+        return;
+    }
+
+    const reports = (data.maintenance_reports || []).filter(report => report.dispatch_id === dispatch.id);
+    const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+    const token = await getTenantToken();
+    const card = reminderCard({ year, month, dispatch, reports, now });
+    if (!test) await sendGroupCard(token, card);
+
+    const doneIds = new Set(reports.map(report => report.task_id));
+    data.maintenance_reminders = [{
+        id: `maintenance_reminder_${year}_${String(month).padStart(2, '0')}`,
+        year,
+        month,
+        sent_at: now,
+        completed_count: dispatch.tasks.filter(task => doneIds.has(task.id)).length,
+        total_count: dispatch.tasks.length,
+    }, ...(data.maintenance_reminders || [])].slice(0, 24);
+    writeData(data);
+    console.log(`✅ ${year}年${month}月 25 日消防保养汇总已${test ? '模拟' : ''}发送`);
+}
+
+async function main() {
+    const args = process.argv.slice(2);
+    const mode = (args.find(arg => arg.startsWith('--mode=')) || '--mode=dispatch').split('=')[1];
+    const test = args.includes('--test');
+    const now = new Date();
+    const month = parseInt((args.find(arg => arg.startsWith('--month=')) || `--month=${now.getMonth() + 1}`).split('=')[1], 10);
+    const year = parseInt((args.find(arg => arg.startsWith('--year=')) || `--year=${now.getFullYear()}`).split('=')[1], 10);
+    if (!CONFIG.appId || !CONFIG.appSecret) throw new Error('缺少 FEISHU_APP_ID 或 FEISHU_APP_SECRET');
+    if (!Number.isInteger(month) || month < 1 || month > 12) throw new Error('月份必须是 1-12');
+    if (!['dispatch', 'reminder'].includes(mode)) throw new Error('mode 仅支持 dispatch 或 reminder');
+
+    if (mode === 'dispatch') await dispatch({ year, month, test });
+    else await remind({ year, month, test });
+}
+
+main().catch(error => {
+    console.error(`❌ 消防保养任务处理失败：${error.message}`);
     process.exit(1);
 });

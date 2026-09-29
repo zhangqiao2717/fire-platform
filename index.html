@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>消防维保综合管理系统</title>
+    <title>消防综合管理系统</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -127,6 +127,13 @@
             text-decoration: none;
             margin-bottom: 2px;
             position: relative;
+        }
+        /* "首页"单独一行：与下方分组之间加分隔线，突出独立性 */
+        .sidebar-nav > .nav-item[data-page="dashboard"] {
+            margin-bottom: 10px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
         }
         .sidebar-nav .nav-item:hover {
             background: rgba(255, 255, 255, 0.07);
@@ -471,67 +478,183 @@
             white-space: nowrap;
         }
 
-        /* ===== 会议记录 ===== */
-        .meeting-item {
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border);
+        /* ===== 仪表板右侧全景图滚动视窗 ===== */
+        .panorama-viewport {
+            position: fixed;
+            top: 96px;
+            right: 16px;
+            width: 150px;
+            height: calc(100vh - 130px);
+            max-height: 620px;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #0b2b5c;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+            z-index: 500;
+            display: none;          /* 仅仪表板页显示 */
+            cursor: pointer;
+            user-select: none;
         }
-        .meeting-item:last-child {
-            border-bottom: none;
-        }
-        .meeting-item .meta {
+        .panorama-viewport.show { display: block; }
+        .panorama-track {
             display: flex;
-            gap: 20px;
+            flex-direction: column;
+            gap: 8px;
+            padding: 8px;
+            will-change: transform;
+        }
+        .panorama-track img {
+            width: 100%;
+            border-radius: 6px;
+            display: block;
+            pointer-events: auto;   /* 需可点击：暂停后点击放大 */
+            transition: transform 0.2s ease;
+        }
+        .panorama-track img:hover { transform: scale(1.03); }
+        .panorama-hint {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: linear-gradient(transparent, rgba(7,29,61,0.92));
+            color: #fff;
+            font-size: 10px;
+            text-align: center;
+            padding: 16px 4px 6px;
+            pointer-events: none;
+            line-height: 1.5;
+        }
+        .panorama-viewport.paused .panorama-hint { background: linear-gradient(transparent, rgba(230,126,34,0.95)); }
+        /* 仪表板内容右侧留白，避免被视窗遮挡 */
+        @media (min-width: 1101px) {
+            #page-dashboard { padding-right: 176px; }
+        }
+        @media (max-width: 1100px) {
+            .panorama-viewport { display: none !important; }
+        }
+
+        /* ===== 欢迎开屏页（主题色背景 + 悬浮全景图 + 底部大图标导航）===== */
+        .welcome-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 8000;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 18% 22%, rgba(26, 63, 122, 0.95) 0, rgba(26, 63, 122, 0) 42%),
+                linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transition: opacity 0.7s ease;
+        }
+        .welcome-screen.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .welcome-scroll {
+            position: absolute;
+            top: 112px;
+            bottom: 142px;
+            left: 0;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            width: max-content;
+            padding: 0 12vw;
+            will-change: transform;
+        }
+        .welcome-scroll img {
+            width: min(42vw, 680px);
+            height: min(54vh, 520px);
+            object-fit: cover;
+            flex-shrink: 0;
+            display: block;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 22px;
+            box-shadow: 0 24px 56px rgba(0, 0, 0, 0.36), 0 0 0 8px rgba(255, 255, 255, 0.06);
+            animation: welcomeFloat 4.5s ease-in-out infinite;
+        }
+        .welcome-scroll img:nth-child(even) {
+            animation-delay: -2.25s;
+        }
+        @keyframes welcomeFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-14px); }
+        }
+        .welcome-mask {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(7, 29, 61, 0.30), transparent 28%, transparent 70%, rgba(7, 29, 61, 0.72));
+            pointer-events: none;
+        }
+        .welcome-title {
+            position: absolute;
+            top: 30px; left: 0; right: 0;
+            text-align: center;
+            color: #fff;
+            pointer-events: none;
+            text-shadow: 0 2px 14px rgba(0,0,0,0.55);
+        }
+        .welcome-title h1 {
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin: 0 0 8px;
+        }
+        .welcome-title p {
             font-size: 13px;
-            color: var(--text-light);
-            margin-bottom: 6px;
-            flex-wrap: wrap;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.72);
+            margin: 0;
         }
-        .meeting-item .meta strong {
-            color: var(--text);
-        }
-        .meeting-item .content {
-            font-size: 14px;
-        }
-        .meeting-item .tags {
+        .welcome-nav {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            padding: 10px 20px 24px;
             display: flex;
-            gap: 6px;
             flex-wrap: wrap;
-            margin-top: 6px;
-        }
-        .meeting-item .tags span {
-            background: var(--bg);
-            padding: 1px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            color: var(--text-light);
-        }
-
-        /* ===== 技能鉴定表 ===== */
-        .skill-table td:first-child {
-            font-weight: 500;
-        }
-
-        /* ===== 电伴热 ===== */
-        .heat-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            justify-content: center;
             gap: 10px;
         }
-        .heat-item {
-            background: var(--bg);
-            padding: 10px 14px;
-            border-radius: var(--radius-sm);
-            border-left: 3px solid var(--accent);
-            font-size: 13px;
+        .welcome-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 90px;
+            min-height: 80px;
+            padding: 11px 5px 9px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.22);
+            backdrop-filter: blur(9px);
+            -webkit-backdrop-filter: blur(9px);
+            color: #fff;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.22s ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
         }
-        .heat-item .loc {
-            font-weight: 600;
-            color: var(--primary);
+        .welcome-btn:hover {
+            background: rgba(230,126,34,0.88);
+            border-color: rgba(255,255,255,0.55);
+            transform: translateY(-6px) scale(1.06);
+            box-shadow: 0 14px 30px rgba(230,126,34,0.45);
         }
-        .heat-item .val {
-            color: var(--text-light);
-            font-size: 12px;
+        .welcome-btn:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+        .welcome-btn .wb-icon {
+            font-size: 32px;
+            line-height: 1;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+        }
+        .welcome-btn .wb-label {
+            font-size: 12.5px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        @media (max-width: 900px) {
+            .welcome-btn { width: 78px; min-height: 72px; }
+            .welcome-btn .wb-icon { font-size: 26px; }
+            .welcome-btn .wb-label { font-size: 11px; }
+            .welcome-title h1 { font-size: 20px; }
         }
 
         /* ===== 响应式 ===== */
@@ -1567,11 +1690,25 @@
 </head>
 <body>
 
+    <!-- ===== 全屏欢迎开屏页（基地全景图滚动 + 底部大图标导航）===== -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-scroll" id="welcomeScroll">
+            <img src="images/base-map.jpg"  alt="北京基地全景图">
+            <img src="images/key-areas.jpg" alt="北京基地消防重点部位">
+        </div>
+        <div class="welcome-mask"></div>
+        <div class="welcome-title">
+            <h1>消防综合管理平台</h1>
+            <p>北京基地 · 点击下方图标快速进入</p>
+        </div>
+        <div class="welcome-nav" id="welcomeNav"></div>
+    </div>
+
     <!-- ===== 开屏欢迎弹窗 ===== -->
     <div class="splash-overlay" id="splashOverlay">
         <div class="splash-content">
             <div class="splash-logo">🧯</div>
-            <div class="splash-title">消防维保综合管理系统</div>
+            <div class="splash-title">消防综合管理系统</div>
             <div class="splash-subtitle">FIRE SAFETY MANAGEMENT PLATFORM</div>
             <div class="splash-bar-wrap">
                 <div class="splash-bar" id="splashBar"></div>
@@ -1590,34 +1727,32 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <div class="logo-icon">🧯</div>
-            <h1>消防维保<small>综合管理平台</small></h1>
+            <h1>消防<small>综合管理平台</small></h1>
         </div>
         <nav class="sidebar-nav" id="navContainer">
-            <div class="nav-label">核心模块</div>
-            <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span> 仪表板</div>
+            <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span> 首页</div>
+
+            <div class="nav-label">火警通知</div>
             <div class="nav-item" data-page="duty"><span class="icon">📋</span> 值班记录</div>
             <div class="nav-item" data-page="fault"><span class="icon">⚠️</span> 故障巡查</div>
-            <div class="nav-item" data-page="analysis"><span class="icon">📈</span> 月度分析</div>
 
-            <div class="nav-label">设施管理</div>
-            <div class="nav-item" data-page="facility"><span class="icon">🏗️</span> 设施基准</div>
-            <div class="nav-item" data-page="fire"><span class="icon">🔥</span> 防火基准</div>
+            <div class="nav-label">防火巡查</div>
+            <div class="nav-item" data-page="facility"><span class="icon">🏗️</span> 设施巡查</div>
+            <div class="nav-item" data-page="fire"><span class="icon">🔥</span> 防火巡查</div>
 
-            <div class="nav-label">维保计划</div>
+            <div class="nav-label">保养测试</div>
             <div class="nav-item" data-page="maintain-plan"><span class="icon">📅</span> 保养计划</div>
             <div class="nav-item" data-page="maintain-record"><span class="icon">📝</span> 保养记录</div>
             <div class="nav-item" data-page="test-plan"><span class="icon">🧪</span> 测试计划</div>
             <div class="nav-item" data-page="test-record"><span class="icon">📊</span> 测试记录</div>
 
-            <div class="nav-label">人员 & 会议</div>
+            <div class="nav-label">消防技能</div>
             <div class="nav-item" data-page="skill"><span class="icon">🎯</span> 技能提升</div>
             <div class="nav-item" data-page="identify"><span class="icon">📄</span> 技能鉴定</div>
+            <div class="nav-item" data-page="exam"><span class="icon">📝</span> 理论考试</div>
             <div class="nav-item" data-page="training"><span class="icon">📚</span> 培训记录</div>
-            <div class="nav-item" data-page="meeting"><span class="icon">🗂️</span> 月度会议</div>
-            <div class="nav-item" data-page="assessment"><span class="icon">⭐</span> 月度考核</div>
 
             <div class="nav-label">专项</div>
-            <div class="nav-item" data-page="heat"><span class="icon">🌡️</span> 电伴热管理</div>
             <div class="nav-item" data-page="device-list"><span class="icon">📦</span> 设备清单</div>
         </nav>
         <div class="sidebar-footer">v2.6 · 北京基地</div>
@@ -1630,7 +1765,7 @@
         <div class="topbar">
             <div style="display:flex;align-items:center;gap:12px;">
                 <button class="mobile-toggle" id="menuToggle">☰</button>
-                <h2 id="pageTitle">仪表板 <small>消防维保总览</small></h2>
+                <h2 id="pageTitle">首页 <small>消防维保总览</small></h2>
             </div>
             <div class="date-badge" id="realTimeClock">📅 加载中...</div>
         </div>
@@ -1699,6 +1834,37 @@
                     </table>
                 </div>
             </div>
+
+            <!-- ===== 月度分析（原独立页面，已并入仪表板）===== -->
+
+            <div class="module-desc">📈 月度数据分析 · 关键指标看板</div>
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-header"><h3>📊 各区域火警分布</h3></div>
+                    <div style="height:200px;"><canvas id="areaChart"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>📊 故障维修分类</h3></div>
+                    <div style="height:200px;"><canvas id="repairChart"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h3>📋 月度指标汇总</h3></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>指标</th><th>1月</th><th>2月</th><th>3月</th><th>4月</th><th>5月</th></tr></thead>
+                        <tbody>
+                            <tr><td>值机故障</td><td>16</td><td>16</td><td>8</td><td>21</td><td>—</td></tr>
+                            <tr><td>防火巡查故障</td><td>9</td><td>2</td><td>1</td><td>3</td><td>—</td></tr>
+                            <tr><td>测试故障</td><td>5</td><td>7</td><td>2</td><td>2</td><td>—</td></tr>
+                            <tr><td>实际故障率</td><td>0.49%</td><td>0.41%</td><td>0.18%</td><td>0.42%</td><td>—</td></tr>
+                            <tr><td>目标故障率</td><td>2%</td><td>2%</td><td>2%</td><td>2%</td><td>2%</td></tr>
+                            <tr><td>整改率</td><td>86.7%</td><td>88%</td><td>81.8%</td><td>92.3%</td><td>—</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
 
         <!-- ============================================================ -->
@@ -1761,43 +1927,47 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- 页面：月度分析 -->
-        <!-- ============================================================ -->
-        <div class="page" id="page-analysis">
-            <div class="module-desc">📈 月度数据分析 · 关键指标看板</div>
-            <div class="two-col">
-                <div class="card">
-                    <div class="card-header"><h3>📊 各区域火警分布</h3></div>
-                    <div style="height:200px;"><canvas id="areaChart"></canvas></div>
-                </div>
-                <div class="card">
-                    <div class="card-header"><h3>📊 故障维修分类</h3></div>
-                    <div style="height:200px;"><canvas id="repairChart"></canvas></div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header"><h3>📋 月度指标汇总</h3></div>
-                <div class="table-wrap">
-                    <table>
-                        <thead><tr><th>指标</th><th>1月</th><th>2月</th><th>3月</th><th>4月</th><th>5月</th></tr></thead>
-                        <tbody>
-                            <tr><td>值机故障</td><td>16</td><td>16</td><td>8</td><td>21</td><td>—</td></tr>
-                            <tr><td>防火巡查故障</td><td>9</td><td>2</td><td>1</td><td>3</td><td>—</td></tr>
-                            <tr><td>测试故障</td><td>5</td><td>7</td><td>2</td><td>2</td><td>—</td></tr>
-                            <tr><td>实际故障率</td><td>0.49%</td><td>0.41%</td><td>0.18%</td><td>0.42%</td><td>—</td></tr>
-                            <tr><td>目标故障率</td><td>2%</td><td>2%</td><td>2%</td><td>2%</td><td>2%</td></tr>
-                            <tr><td>整改率</td><td>86.7%</td><td>88%</td><td>81.8%</td><td>92.3%</td><td>—</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ============================================================ -->
-        <!-- 页面：设施基准 -->
+        <!-- 页面：设施巡查 -->
         <!-- ============================================================ -->
         <div class="page" id="page-facility">
-            <div class="module-desc">🏗️ 消防设备设施巡查基准 · 各区域巡查项目与频次</div>
+            <div class="module-desc">🏗️ 设施巡查 · 各区域每日巡查 OK/NG 月度分析</div>
+
+            <!-- ===== 当月巡查分析看板（数据来自飞书各区域巡查表）===== -->
+            <div id="facilityBoardWrap">
+                <div class="stats-grid" id="facilityStatsGrid">
+                    <div class="stat-card"><div class="label">巡查区域</div><div class="value" id="fi-areaCount">— <span class="unit">个</span></div><div class="change" id="fi-monthLabel">—</div></div>
+                    <div class="stat-card"><div class="label">巡查次数</div><div class="value" id="fi-totalChecks">— <span class="unit">次</span></div><div class="change">当月累计</div></div>
+                    <div class="stat-card"><div class="label">OK（无问题）</div><div class="value" id="fi-totalOk">— <span class="unit">项</span></div><div class="change">✓ 正常</div></div>
+                    <div class="stat-card"><div class="label">NG（有问题）</div><div class="value" id="fi-totalNg">— <span class="unit">项</span></div><div class="change danger" id="fi-ngRate">—</div></div>
+                </div>
+
+                <div class="chart-grid">
+                    <div class="chart-box"><h4>📊 整体巡查情况（OK / NG）</h4><canvas id="facilityOverallChart"></canvas></div>
+                    <div class="chart-box"><h4>🧩 各区域 NG 分布</h4><canvas id="facilityAreaChart"></canvas></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h3>📋 各区域巡查汇总</h3><span class="sub" id="fi-updatedAt">—</span></div>
+                    <div class="table-wrap fixed-height" style="max-height:320px;">
+                        <table>
+                            <thead><tr><th>序号</th><th>区域</th><th>巡查次数</th><th>OK</th><th>NG</th><th>OK率</th><th>最近巡查</th><th>状态</th></tr></thead>
+                            <tbody id="facilitySummaryBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" id="facilityNgCard">
+                    <div class="card-header"><h3>⚠️ NG 问题明细</h3><span class="sub" id="fi-ngCount">—</span></div>
+                    <div class="table-wrap fixed-height" style="max-height:260px;">
+                        <table>
+                            <thead><tr><th>序号</th><th>区域</th><th>日期</th><th>问题系统</th><th>问题描述</th></tr></thead>
+                            <tbody id="facilityNgBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="module-desc">📋 巡查基准清单（各区域巡查项目与频次）</div>
             <div class="card">
                 <div class="card-header"><h3>📋 巡查基准一览</h3><span class="sub">共 49 项</span></div>
                 <div class="table-wrap fixed-height" style="max-height:460px;">
@@ -1810,10 +1980,57 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- 页面：防火基准 -->
+        <!-- 页面：防火巡查 -->
         <!-- ============================================================ -->
         <div class="page" id="page-fire">
-            <div class="module-desc">🔥 防火巡查基准 · 电气、可燃物、疏散、水源、值班等七大维度</div>
+            <div class="module-desc">🔥 防火巡查月度分析 · 10 大类别 OK/NG 统计（每日同步自飞书防火巡查表）</div>
+
+            <!-- 防火巡查月度看板（数据来自 data.json 的 fireInspections） -->
+            <div id="fireBoardWrap">
+                <div class="stats-grid" id="fireStatsGrid">
+                    <div class="stat-card"><div class="label">巡查次数</div><div class="value" id="fbi-totalRecords">— <span class="unit">次</span></div><div class="change" id="fbi-monthLabel">—</div></div>
+                    <div class="stat-card"><div class="label">检查类别</div><div class="value" id="fbi-catCount">— <span class="unit">类</span></div><div class="change">本月统计</div></div>
+                    <div class="stat-card"><div class="label">OK（无问题）</div><div class="value" id="fbi-totalOk">— <span class="unit">项</span></div><div class="change">✓ 正常</div></div>
+                    <div class="stat-card"><div class="label">NG（有问题）</div><div class="value" id="fbi-totalNg">— <span class="unit">项</span></div><div class="change danger" id="fbi-ngRate">—</div></div>
+                </div>
+
+                <div class="chart-grid">
+                    <div class="chart-box"><h4>📊 本月整体情况（OK / NG）</h4><canvas id="fireOverallChart"></canvas></div>
+                    <div class="chart-box"><h4>🧩 各类别 OK / NG 对比</h4><canvas id="fireCategoryChart"></canvas></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h3>📋 各类别巡查汇总（本月）</h3><span class="sub" id="fbi-updatedAt">—</span></div>
+                    <div class="table-wrap fixed-height" style="max-height:380px;">
+                        <table>
+                            <thead><tr><th>序号</th><th>检查类别</th><th>检查次数</th><th>OK</th><th>NG</th><th>OK率</th><th>状态</th></tr></thead>
+                            <tbody id="fireCategoryBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" id="fireNgCard">
+                    <div class="card-header"><h3>⚠️ NG 问题明细</h3><span class="sub" id="fbi-ngCount">—</span></div>
+                    <div class="table-wrap fixed-height" style="max-height:260px;">
+                        <table>
+                            <thead><tr><th>序号</th><th>日期</th><th>问题类别</th><th>巡查人</th><th>问题描述</th></tr></thead>
+                            <tbody id="fireNgBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h3>📅 每日巡查记录</h3><span class="sub" id="fbi-recordsCount">—</span></div>
+                    <div class="table-wrap fixed-height" style="max-height:340px;">
+                        <table>
+                            <thead><tr><th>序号</th><th>日期</th><th>巡查人</th><th>OK</th><th>NG</th><th>结果</th></tr></thead>
+                            <tbody id="fireRecordsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="module-desc">📋 防火检查基准清单</div>
             <div class="card">
                 <div class="card-header"><h3>📋 防火检查项目</h3><span class="sub">共 117 项</span></div>
                 <div class="table-wrap fixed-height" style="max-height:460px;">
@@ -1891,10 +2108,10 @@
             </div>
 
             <div class="card">
-                <div class="card-header"><h3>🔧 保养执行记录</h3><span class="sub">共 234 条</span></div>
+                <div class="card-header"><h3>🔧 保养执行记录</h3><span class="sub" id="recordCount">共 234 条</span></div>
                 <div class="table-wrap fixed-height" style="max-height:460px;">
                     <table>
-                        <thead><tr><th>序号</th><th>保养日期</th><th>保养项目</th><th>区域</th><th>数量</th><th>详细内容</th></tr></thead>
+                        <thead><tr><th>序号</th><th>保养日期</th><th>保养项目</th><th>系统名称</th><th>操作内容</th><th>频次</th><th>数量</th><th>状态</th></tr></thead>
                         <tbody id="recordTableBody"></tbody>
                     </table>
                 </div>
@@ -2023,70 +2240,6 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- 页面：月度会议 -->
-        <!-- ============================================================ -->
-        <div class="page" id="page-meeting">
-            <div class="module-desc">🗂️ 月度会议记录 · 交办事项跟踪</div>
-            <div class="card">
-                <div class="card-header"><h3>📌 会议纪要</h3></div>
-                <div id="meetingList"></div>
-            </div>
-        </div>
-
-        <!-- ============================================================ -->
-        <!-- 页面：月度考核 -->
-        <!-- ============================================================ -->
-        <div class="page" id="page-assessment">
-            <div class="module-desc">⭐ 月度扣分记录表 · 服务质量考核</div>
-            <div class="card">
-                <div class="card-header"><h3>📋 考核记录</h3></div>
-                <div class="table-wrap">
-                    <table>
-                        <thead><tr><th>序号</th><th>时间</th><th>内容</th><th>扣分条款</th><th>确认人</th><th>检查人</th></tr></thead>
-                        <tbody id="assessmentTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card" style="background:#fef9e7;border-color:#f9e79f;">
-                <div style="font-size:13px;color:#7d6608;">
-                    <strong>📌 火警处理测试通报</strong><br>
-                    测试背景：顺义区消防双随机抽查项 · 结论：合格，记录问题1项<br>
-                    报警地点：总装辅房二楼205会议室门口手报 · 跑点准确 · 值班人员响应及时<br>
-                    ⚠️ 应急手电无电（点检表增加周度充电项目）
-                </div>
-            </div>
-        </div>
-
-        <!-- ============================================================ -->
-        <!-- 页面：电伴热管理 -->
-        <!-- ============================================================ -->
-        <div class="page" id="page-heat">
-            <div class="module-desc">🌡️ 消防电伴热周电检表 · 冬季防冻关键</div>
-            <div class="two-col">
-                <div class="card">
-                    <div class="card-header"><h3>📍 电伴热位置统计</h3></div>
-                    <div id="heatLocationList" style="max-height:380px;overflow-y:auto;"></div>
-                </div>
-                <div class="card">
-                    <div class="card-header"><h3>📊 周检状态</h3></div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead><tr><th>区域</th><th>11月</th><th>12月</th><th>1月</th><th>2月</th><th>3月</th></tr></thead>
-                            <tbody>
-                                <tr><td>焊装BDC高架库</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-                                <tr><td>冲压废料间</td><td>✓</td><td>✓</td><td>▲</td><td>✓</td><td>✓</td></tr>
-                                <tr><td>总装东风机房</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-                                <tr><td>涂装供蜡间</td><td>✓</td><td>✓</td><td>✓</td><td>▲</td><td>✓</td></tr>
-                                <tr><td>办公楼3层</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div style="margin-top:12px;font-size:12px;color:var(--text-light);">✓ 正常  ▲ 异常  × 维修</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ============================================================ -->
         <!-- 页面：设备清单 -->
         <!-- ============================================================ -->
         <div class="page" id="page-device-list">
@@ -2101,6 +2254,12 @@
         </div>
 
     </main>
+
+    <!-- ===== 仪表板右侧：消防系统全景图滚动视窗 ===== -->
+    <div class="panorama-viewport" id="panoramaViewport" title="消防系统全景图（点击暂停/放大）">
+        <div class="panorama-track" id="panoramaTrack"></div>
+        <div class="panorama-hint" id="panoramaHint">🖱 点击暂停 · 再点图片放大</div>
+    </div>
 
     <!-- ===== 实操考试弹窗 ===== -->
     <div class="exam-modal-overlay" id="examModal">
@@ -2208,6 +2367,7 @@
                 <p style="color:#aaa;text-align:center;padding:20px 0;">加载中...</p>
             </div>
             <div class="fire-modal-footer">
+                <span id="fireModalMsg" style="color:#c0392b;font-size:12px;margin-right:auto;line-height:1.4;max-width:58%;text-align:left;"></span>
                 <button class="fire-btn-close" onclick="closeFireModal()">稍后查看</button>
                 <button class="fire-btn-confirm" onclick="confirmFireModal()">✅ 已知晓，立即处理</button>
             </div>
@@ -2274,7 +2434,7 @@
             [10, '设施巡查', '2026-01-14', '孙伟', '消防给水', '器件故障', '综合站房', '/', '供水单向阀', '阀门不能停止供水', '已整改'],
         ];
 
-        // ----- 设施基准 (精选) -----
+        // ----- 设施巡查 (精选) -----
         const facilityData = [
             [1, '消防供配电设施', '消防电源控制器工作状态', '3台', '1台', '—', '1台', '—', '—', '—'],
             [2, '消防供配电设施', '消防电源配电箱外观', '⭕', '3个', '8个', '3个', '⭕', '1个', '2个'],
@@ -2288,7 +2448,7 @@
             [10, '应急照明和疏散', '应急灯外观', '⭕', '⭕', '⭕', '⭕', '⭕', '⭕', '⭕'],
         ];
 
-        // ----- 防火基准 (精选) -----
+        // ----- 防火巡查 (精选) -----
         const fireData = [
             [1, '电气防火', '电气线路设备状况', '开关安装在可燃材料上', '—'],
             [2, '电气防火', '电气线路设备状况', '插座安装在可燃材料上', '—'],
@@ -2392,41 +2552,21 @@
             ['3月份', '消防值班', '李晓刚', 80, 87, '郭同立', 82, 89, '张金辉', 80, 80, '100%'],
         ];
 
-        // ----- 月度考核 -----
-        const assessmentData = [
-            [1, '2026-01-15', '值班记录填写不规范', '扣1分', '张乔', '刘海兰'],
-            [2, '2026-02-03', '消防应急包手电无电', '扣0.5分', '张乔', '刘海兰'],
-            [3, '2026-03-10', '防火巡查漏项', '扣1分', '张乔', '刘海兰'],
-        ];
-
-        // ----- 电伴热位置 -----
-        const heatLocations = [
-            { loc: '焊装BDC高架库南侧', val: '左5.1Ω / 右5.5Ω', status: '✓' },
-            { loc: '焊装BDC高架库北侧', val: '左4.9Ω / 右5.1Ω', status: '✓' },
-            { loc: '焊涂连廊1层北', val: '左8.2Ω / 右3.3Ω', status: '✓' },
-            { loc: '焊涂连廊1层南', val: '左0.75Ω / 右4.3Ω', status: '✓' },
-            { loc: '冲压废料间', val: '68.51Ω', status: '▲' },
-            { loc: '总装东2层风机房', val: '15.5Ω', status: '✓' },
-            { loc: '总装1层西连廊', val: '左5.2Ω / 右12.7Ω', status: '✓' },
-            { loc: '涂装西南供蜡间', val: '左9.7Ω / 右24.4Ω', status: '✓' },
-            { loc: '涂装东北物流门', val: '25.4Ω', status: '✓' },
-            { loc: '办公楼3层中卷帘门', val: '已开启', status: '✓' },
-            { loc: '综合站房南配电间北', val: '798Ω', status: '✓' },
-            { loc: '综合站房南配电间南', val: '620Ω', status: '✓' },
-            { loc: '2#总装南供液间', val: '10.6Ω', status: '✓' },
-            { loc: '2#仓库北物流门', val: '14.5Ω', status: '✓' },
-            { loc: '焊装车间北零配件库', val: '—', status: '✓' },
-        ];
-
         // ================================================================
         // 渲染函数
         // ================================================================
 
         function renderDuty() {
             const tbody = document.getElementById('dutyTableBody');
-            tbody.innerHTML = dutyData.map((r, i) =>
+            // 按时间倒序排列（最新在最上面）
+            const sortedDuty = [...dutyData].sort((a, b) => {
+                const ta = new Date(a[1]).getTime() || 0;
+                const tb = new Date(b[1]).getTime() || 0;
+                return tb - ta;
+            });
+            tbody.innerHTML = sortedDuty.map((r, i) =>
                 `<tr>
-                    <td>${r[0]}</td>
+                    <td>${i + 1}</td>
                     <td>${r[1]}</td>
                     <td>${r[2]}</td>
                     <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[3]}">${r[3]}</td>
@@ -2473,6 +2613,291 @@
             ).join('');
         }
 
+        // ================================================================
+        // 设施巡查月度看板（数据来自 data.json 的 facilityInspections）
+        // ================================================================
+        let facilityCharts = {};
+
+        function renderFacilityBoard(fi) {
+            const wrap = document.getElementById('facilityBoardWrap');
+            if (!wrap) return;
+
+            // 无数据时提示
+            if (!fi || !fi.areas || !fi.areas.length) {
+                wrap.innerHTML = '<div class="card" style="text-align:center;color:var(--text-light);padding:40px;">' +
+                    '暂无设施巡查数据<br><small>将在每日自动同步后显示（数据来源：飞书各区域巡查表）</small></div>';
+                return;
+            }
+
+            const areas = fi.areas;
+
+            // ── 统计卡片 ──
+            const totalOk = fi.totalOk || areas.reduce((a, x) => a + (x.ok || 0), 0);
+            const totalNg = fi.totalNg || areas.reduce((a, x) => a + (x.ng || 0), 0);
+            const totalChecks = totalOk + totalNg;
+            const ngRate = totalChecks > 0 ? (totalNg / totalChecks * 100).toFixed(1) + '%' : '0%';
+
+            document.getElementById('fi-areaCount').innerHTML   = areas.length + ' <span class="unit">个</span>';
+            document.getElementById('fi-monthLabel').textContent = '统计月份：' + (fi.month || '—');
+            document.getElementById('fi-totalChecks').innerHTML  = totalChecks + ' <span class="unit">次</span>';
+            document.getElementById('fi-totalOk').innerHTML      = totalOk + ' <span class="unit">项</span>';
+            document.getElementById('fi-totalNg').innerHTML      = totalNg + ' <span class="unit">项</span>';
+            document.getElementById('fi-ngRate').textContent     = 'NG率 ' + ngRate;
+            document.getElementById('fi-updatedAt').textContent  = '更新于 ' + (fi.updatedAt || '—');
+            document.getElementById('fi-ngCount').textContent    = '共 ' + totalNg + ' 项';
+
+            // ── 图表1：整体 OK / NG ──
+            const cv1 = document.getElementById('facilityOverallChart');
+            if (cv1 && typeof Chart !== 'undefined') {
+                if (facilityCharts.overall) facilityCharts.overall.destroy();
+                facilityCharts.overall = new Chart(cv1.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['OK（无问题）', 'NG（有问题）'],
+                        datasets: [{
+                            data: [totalOk, totalNg],
+                            backgroundColor: ['#2ecc71', '#e74c3c'],
+                            borderWidth: 0,
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { boxWidth: 12, padding: 12 } } },
+                        cutout: '62%' }
+                });
+            }
+
+            // ── 图表2：各区域 NG 分布（横向条形）──
+            const cv2 = document.getElementById('facilityAreaChart');
+            if (cv2 && typeof Chart !== 'undefined') {
+                if (facilityCharts.areaNg) facilityCharts.areaNg.destroy();
+                const labels = areas.map(a => a.area);
+                const ngData = areas.map(a => a.ng || 0);
+                const okData = areas.map(a => a.ok || 0);
+                facilityCharts.areaNg = new Chart(cv2.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [
+                            { label: 'NG', data: ngData, backgroundColor: '#e74c3c', borderRadius: 3 },
+                            { label: 'OK', data: okData, backgroundColor: '#2ecc71', borderRadius: 3 },
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                        plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 10 } } },
+                        scales: { x: { beginAtZero: true, stacked: false, grid: { color: 'rgba(0,0,0,0.04)' } },
+                                  y: { grid: { display: false } } } }
+                });
+            }
+
+            // ── 表格1：各区域汇总 ──
+            const tb1 = document.getElementById('facilitySummaryBody');
+            if (tb1) {
+                tb1.innerHTML = areas.map((a, i) => {
+                    const tot = (a.ok || 0) + (a.ng || 0);
+                    const rate = tot > 0 ? ((a.ok || 0) / tot * 100).toFixed(0) + '%' : '—';
+                    const badge = (a.ng || 0) > 0
+                        ? '<span class="status-badge danger">有NG</span>'
+                        : '<span class="status-badge success">全部正常</span>';
+                    return `<tr>
+                        <td>${i + 1}</td>
+                        <td><strong>${a.area}</strong></td>
+                        <td>${a.records ? a.records.length : 0}</td>
+                        <td><span style="color:#2ecc71;font-weight:600">${a.ok || 0}</span></td>
+                        <td><span style="color:${(a.ng||0)>0?'#e74c3c':'#888'};font-weight:600">${a.ng || 0}</span></td>
+                        <td>${rate}</td>
+                        <td>${a.lastDate || '—'}</td>
+                        <td>${badge}</td>
+                    </tr>`;
+                }).join('');
+            }
+
+            // ── 表格2：NG 明细 ──
+            const tb2 = document.getElementById('facilityNgBody');
+            if (tb2) {
+                const ngRows = [];
+                areas.forEach(a => {
+                    (a.records || []).forEach(r => {
+                        (r.ngSystems || []).forEach(sys => {
+                            ngRows.push({ area: a.area, date: r.date, system: sys,
+                                          problem: (r.problems && r.problems[0]) ? r.problems[0] : '—' });
+                        });
+                    });
+                    // 也收集顶层 ngItems（备选结构）
+                    if (!a.records && a.ngItems) {
+                        a.ngItems.forEach(n => ngRows.push({ area: a.area, date: n.date, system: n.system, problem: '—' }));
+                    }
+                });
+                if (ngRows.length === 0) {
+                    tb2.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:18px;">✅ 当月暂无 NG 问题，各区域巡查全部正常</td></tr>';
+                    const card = document.getElementById('facilityNgCard');
+                    if (card) card.style.borderLeft = '4px solid #2ecc71';
+                } else {
+                    tb2.innerHTML = ngRows.map((r, i) => `<tr>
+                        <td>${i + 1}</td>
+                        <td><strong>${r.area}</strong></td>
+                        <td>${r.date || '—'}</td>
+                        <td><span class="status-badge danger">${r.system}</span></td>
+                        <td>${r.problem}</td>
+                    </tr>`).join('');
+                    const card = document.getElementById('facilityNgCard');
+                    if (card) card.style.borderLeft = '4px solid #e74c3c';
+                }
+            }
+        }
+
+        // ================================================================
+        // 防火巡查月度看板（数据来自 data.json 的 fireInspections）
+        // 只展示当月；按 10 个检查类别统计 OK/NG；含 NG 明细与每日记录
+        // ================================================================
+        let fireCharts = {};
+
+        function renderFireBoard(fi) {
+            const wrap = document.getElementById('fireBoardWrap');
+            if (!wrap) return;
+
+            if (!fi || !fi.byCategory || !fi.byCategory.length) {
+                wrap.querySelectorAll('.card, .stats-grid, .chart-grid').forEach(el => el.style.display = '');
+                document.getElementById('fbi-totalRecords').innerHTML = '— <span class="unit">次</span>';
+                document.getElementById('fbi-monthLabel').textContent = '暂无数据';
+                return;
+            }
+
+            const curMonth = fi.currentMonth || (fi.months && fi.months[0] && fi.months[0].month) || '';
+            const monthData = (fi.months || []).find(m => m.month === curMonth) || { records: 0, ok: 0, ng: 0 };
+
+            // 当月各类别数据（优先用 months 里的分月数据，无则回退到全量）
+            const catRows = (fi.byCategory || []).map(c => {
+                const m = (c.months && c.months[curMonth]) || null;
+                const ok = m ? m.ok : (c.ok || 0);
+                const ng = m ? m.ng : (c.ng || 0);
+                return { name: c.name, ok, ng, total: ok + ng };
+            });
+
+            const monthOk = catRows.reduce((s, c) => s + c.ok, 0);
+            const monthNg = catRows.reduce((s, c) => s + c.ng, 0);
+            const monthTotal = monthOk + monthNg;
+            const ngRate = monthTotal > 0 ? (monthNg / monthTotal * 100).toFixed(1) + '%' : '0%';
+
+            // ── 统计卡片 ──
+            document.getElementById('fbi-totalRecords').innerHTML = monthData.records + ' <span class="unit">次</span>';
+            document.getElementById('fbi-monthLabel').textContent = '统计月份：' + (curMonth || '—');
+            document.getElementById('fbi-catCount').innerHTML = catRows.length + ' <span class="unit">类</span>';
+            document.getElementById('fbi-totalOk').innerHTML = monthOk + ' <span class="unit">项</span>';
+            document.getElementById('fbi-totalNg').innerHTML = monthNg + ' <span class="unit">项</span>';
+            document.getElementById('fbi-ngRate').textContent = 'NG率 ' + ngRate;
+            document.getElementById('fbi-updatedAt').textContent = '更新于 ' + (fi.updatedAt || '—');
+
+            // ── 图表1：整体 OK/NG 环形 ──
+            const cv1 = document.getElementById('fireOverallChart');
+            if (cv1 && typeof Chart !== 'undefined') {
+                if (fireCharts.overall) fireCharts.overall.destroy();
+                fireCharts.overall = new Chart(cv1.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['OK（无问题）', 'NG（有问题）'],
+                        datasets: [{ data: [monthOk, monthNg], backgroundColor: ['#2ecc71', '#e74c3c'], borderWidth: 0 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { boxWidth: 12, padding: 12 } } }, cutout: '62%' }
+                });
+            }
+
+            // ── 图表2：各类别 OK/NG 横向条形 ──
+            const cv2 = document.getElementById('fireCategoryChart');
+            if (cv2 && typeof Chart !== 'undefined') {
+                if (fireCharts.category) fireCharts.category.destroy();
+                const shortNames = catRows.map(c => c.name.length > 10 ? c.name.slice(0, 9) + '…' : c.name);
+                fireCharts.category = new Chart(cv2.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: shortNames,
+                        datasets: [
+                            { label: 'OK', data: catRows.map(c => c.ok), backgroundColor: '#2ecc71', borderRadius: 3 },
+                            { label: 'NG', data: catRows.map(c => c.ng), backgroundColor: '#e74c3c', borderRadius: 3 },
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                        plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 10 } },
+                                   tooltip: { callbacks: { title: (items) => catRows[items[0].dataIndex]?.name || '' } } },
+                        scales: { x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { grid: { display: false } } } }
+                });
+            }
+
+            // ── 表格1：各类别汇总（本月）──
+            const tb1 = document.getElementById('fireCategoryBody');
+            if (tb1) {
+                tb1.innerHTML = catRows.map((c, i) => {
+                    const rate = c.total > 0 ? (c.ok / c.total * 100).toFixed(0) + '%' : '—';
+                    const badge = c.ng > 0
+                        ? '<span class="status-badge danger">有NG</span>'
+                        : '<span class="status-badge success">全部正常</span>';
+                    return `<tr>
+                        <td>${i + 1}</td>
+                        <td><strong>${c.name}</strong></td>
+                        <td>${c.total}</td>
+                        <td>${c.ok}</td>
+                        <td>${c.ng}</td>
+                        <td>${rate}</td>
+                        <td>${badge}</td>
+                    </tr>`;
+                }).join('');
+            }
+
+            // ── 表格2：NG 明细（本月）──
+            const tb2 = document.getElementById('fireNgBody');
+            if (tb2) {
+                const ngRows = [];
+                (fi.records || []).filter(r => r.month === curMonth).forEach(r => {
+                    (r.ngKeys || []).forEach(k => {
+                        ngRows.push({ date: r.date, category: k, person: r.inspector || r.submitter || '—',
+                                      problem: (r.problems && r.problems[0]) ? r.problems[0] : '—' });
+                    });
+                });
+                if (ngRows.length === 0) {
+                    tb2.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:18px;">✅ 当月暂无 NG 问题，各类别巡查全部正常</td></tr>';
+                    const card = document.getElementById('fireNgCard');
+                    if (card) card.style.borderLeft = '4px solid #2ecc71';
+                } else {
+                    tb2.innerHTML = ngRows.map((r, i) => `<tr>
+                        <td>${i + 1}</td>
+                        <td>${r.date || '—'}</td>
+                        <td><span class="status-badge danger">${r.category}</span></td>
+                        <td>${r.person}</td>
+                        <td>${r.problem}</td>
+                    </tr>`).join('');
+                    const card = document.getElementById('fireNgCard');
+                    if (card) card.style.borderLeft = '4px solid #e74c3c';
+                    document.getElementById('fbi-ngCount').textContent = '共 ' + ngRows.length + ' 项';
+                }
+                if (ngRows.length === 0) document.getElementById('fbi-ngCount').textContent = '共 0 项';
+            }
+
+            // ── 表格3：每日巡查记录（本月）──
+            const tb3 = document.getElementById('fireRecordsBody');
+            if (tb3) {
+                const monthRecords = (fi.records || []).filter(r => r.month === curMonth);
+                document.getElementById('fbi-recordsCount').textContent =
+                    `本月 ${monthRecords.length} 条（累计 ${fi.totalRecords || monthRecords.length} 条 / ${(fi.months || []).length} 个月份）`;
+                if (monthRecords.length === 0) {
+                    tb3.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-light);padding:18px;">当月暂无巡查记录</td></tr>';
+                } else {
+                    tb3.innerHTML = monthRecords.map((r, i) => {
+                        const badge = r.ng > 0
+                            ? `<span class="status-badge danger">${r.ng} 项 NG</span>`
+                            : '<span class="status-badge success">全部正常</span>';
+                        return `<tr>
+                            <td>${i + 1}</td>
+                            <td>${r.date || '—'}</td>
+                            <td>${r.inspector || r.submitter || '—'}</td>
+                            <td>${r.ok}</td>
+                            <td>${r.ng}</td>
+                            <td>${badge}</td>
+                        </tr>`;
+                    }).join('');
+                }
+            }
+        }
+
         function renderFire() {
             const tbody = document.getElementById('fireTableBody');
             tbody.innerHTML = fireData.map((r, i) =>
@@ -2503,18 +2928,88 @@
             }).join('');
         }
 
+        // 渲染飞书保养计划同步数据
+        // 格式：[序号, 系统名称, 保养项目, 保养内容, 保养频次, 计划实施月份, 保养情况]
+        function renderFeishuMaintainPlan(data) {
+            // 检查是否已有飞书保养计划区域，没有则插入
+            let feishuCard = document.getElementById('feishuMaintainPlanCard');
+            if (!feishuCard) {
+                const planPage = document.getElementById('page-maintain-plan');
+                if (!planPage) return;
+                feishuCard = document.createElement('div');
+                feishuCard.id = 'feishuMaintainPlanCard';
+                feishuCard.className = 'card';
+                feishuCard.style.marginTop = '16px';
+                feishuCard.innerHTML = `
+                    <div class="card-header">
+                        <h3>📋 飞书保养计划</h3>
+                        <span class="sub" id="feishuPlanCount">共 0 条</span>
+                    </div>
+                    <div class="table-wrap" style="max-height:480px;overflow-y:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>系统名称</th>
+                                    <th>保养项目</th>
+                                    <th style="max-width:200px;">保养内容</th>
+                                    <th>保养频次</th>
+                                    <th>计划实施月份</th>
+                                    <th>保养情况</th>
+                                </tr>
+                            </thead>
+                            <tbody id="feishuPlanTableBody"></tbody>
+                        </table>
+                    </div>`;
+                planPage.appendChild(feishuCard);
+            }
+
+            document.getElementById('feishuPlanCount').textContent = '共 ' + data.length + ' 条';
+            document.getElementById('feishuPlanTableBody').innerHTML = data.map((r, i) => {
+                const status = r[6] || '—';
+                const statusClass = status.includes('正常') ? 'success' : status === '—' ? 'secondary' : 'warning';
+                return `<tr>
+                    <td>${i + 1}</td>
+                    <td>${r[1] || '—'}</td>
+                    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[2] || ''}">${r[2] || '—'}</td>
+                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[3] || ''}">${r[3] || '—'}</td>
+                    <td><span class="status-badge info">${r[4] || '—'}</span></td>
+                    <td>${r[5] || '—'}</td>
+                    <td><span class="status-badge ${statusClass}">${status}</span></td>
+                </tr>`;
+            }).join('');
+        }
+
         function renderRecord() {
-            const tbody = document.getElementById('recordTableBody');
-            tbody.innerHTML = recordData.map((r, i) =>
-                `<tr>
+            const tbody   = document.getElementById('recordTableBody');
+            const countEl = document.getElementById('recordCount');
+            if (countEl) countEl.textContent = `共 ${recordData.length} 条`;
+
+            // 频次标签颜色
+            const freqColor = { '月': '#0b2b5c', '季度': '#e67e22', '半年': '#8e44ad', '年': '#c0392b' };
+            // 状态标签
+            const statusBadge = (s) => {
+                if (!s) return '';
+                const clean = String(s).replace(/^✅\s*/, '');
+                const cls   = clean === '正常' ? 'success' : clean.includes('异常') ? 'danger' : 'info';
+                return `<span class="status-badge ${cls}">${clean}</span>`;
+            };
+
+            tbody.innerHTML = recordData.map((r) => {
+                const freq = r[7] || '';
+                const freqBg = freqColor[freq] || '#666';
+                const freqHtml = freq ? `<span style="background:${freqBg};color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">${freq}</span>` : '—';
+                return `<tr>
                     <td>${r[0]}</td>
-                    <td>${r[1]}</td>
-                    <td>${r[2]}</td>
-                    <td>${r[3]}</td>
-                    <td>${r[4]}</td>
-                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[5]}">${r[5]}</td>
-                </tr>`
-            ).join('');
+                    <td style="white-space:nowrap">${r[1]}</td>
+                    <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[2]}">${r[2] || '—'}</td>
+                    <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[6]}">${r[6] || '—'}</td>
+                    <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[5]}">${r[5] || '—'}</td>
+                    <td>${freqHtml}</td>
+                    <td>${r[4] || '—'}</td>
+                    <td>${statusBadge(r[8])}</td>
+                </tr>`;
+            }).join('');
         }
 
         function renderTestPlan() {
@@ -2600,35 +3095,47 @@
             ).join('');
         }
 
-        function renderAssessment() {
-            const tbody = document.getElementById('assessmentTableBody');
-            tbody.innerHTML = assessmentData.map((r, i) =>
-                `<tr>
-                    <td>${r[0]}</td>
-                    <td>${r[1]}</td>
-                    <td>${r[2]}</td>
-                    <td>${r[3]}</td>
-                    <td>${r[4]}</td>
-                    <td>${r[5]}</td>
-                </tr>`
-            ).join('');
-        }
-
-        function renderHeat() {
-            const container = document.getElementById('heatLocationList');
-            container.innerHTML = heatLocations.map(h =>
-                `<div class="heat-item">
-                    <div class="loc">📍 ${h.loc}</div>
-                    <div class="val">阻值: ${h.val} &nbsp;|&nbsp; 状态: <span style="font-weight:600;color:${h.status==='✓'?'#2e7d32':h.status==='▲'?'#e65100':'#c62828'}">${h.status}</span></div>
-                </div>`
-            ).join('');
-        }
-
         // ----- 仪表板数据 -----
         function renderDashboard() {
-            // 近期火警
+            // 动态计算仪表盘统计数字
+            const now = new Date();
+            const thisMonth = `${now.getFullYear()}/${now.getMonth() + 1}/`;
+
+            // 本月故障数（duty 里本月的值机故障/反馈）
+            const monthFaults = dutyData.filter(r => {
+                const t = r[1] || '';
+                const s = r[6] || '';
+                return t.startsWith(thisMonth) && (s === '值机故障' || s === '反馈');
+            });
+            // 本月火警数（duty 里本月火警）
+            const monthAlarms = dutyData.filter(r => {
+                const t = r[1] || '';
+                return t.startsWith(thisMonth) && r[6] === '火警';
+            });
+            // 待整改数（fault 里状态为整改中）
+            const pendingFaults = faultData.filter(r => r[10] === '整改中');
+            // 整改率
+            const totalFaults   = faultData.length;
+            const doneFaults    = faultData.filter(r => r[10] === '整改完成' || r[10] === '已整改').length;
+            const fixRate       = totalFaults > 0 ? ((doneFaults / totalFaults) * 100).toFixed(1) : '—';
+
+            // 更新仪表盘卡片
+            const statsGrid = document.getElementById('statsGrid');
+            if (statsGrid) {
+                statsGrid.innerHTML = `
+                    <div class="stat-card"><div class="label">设备总数</div><div class="value">6,155 <span class="unit">台</span></div><div class="change">✓ 在线率 97.2%</div></div>
+                    <div class="stat-card"><div class="label">本月故障</div><div class="value">${monthFaults.length} <span class="unit">次</span></div><div class="change warn">本月统计</div></div>
+                    <div class="stat-card"><div class="label">待整改</div><div class="value">${pendingFaults.length} <span class="unit">项</span></div><div class="change ${pendingFaults.length > 0 ? 'danger' : ''}">需关注</div></div>
+                    <div class="stat-card"><div class="label">整改率</div><div class="value">${fixRate}<span class="unit">%</span></div><div class="change">✓ 达标</div></div>
+                    <div class="stat-card"><div class="label">本月火警</div><div class="value">${monthAlarms.length} <span class="unit">起</span></div><div class="change warn">本月统计</div></div>
+                    <div class="stat-card"><div class="label">保养计划</div><div class="value">12 <span class="unit">项</span></div><div class="change">✓ 进行中</div></div>
+                `;
+            }
+
+            // 近期火警（按时间倒序取最新5条）
             const alarmTbody = document.getElementById('recentAlarm');
-            const alarms = dutyData.filter(r => r[6] === '火警' || r[6] === '预警').slice(0, 5);
+            const alarms = dutyData.filter(r => r[6] === '火警' || r[6] === '预警')
+                .sort((a, b) => new Date(b[1]) - new Date(a[1])).slice(0, 5);
             alarmTbody.innerHTML = alarms.map(r =>
                 `<tr>
                     <td>${r[1]}</td>
@@ -2636,7 +3143,7 @@
                     <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r[3]}">${r[3]}</td>
                     <td><span class="status-badge ${r[6]==='火警'?'warning':'info'}">${r[6]}</span></td>
                 </tr>`
-            ).join('');
+            ).join('') || '<tr><td colspan="4" style="text-align:center;color:#999">暂无火警记录</td></tr>';
 
             // 待整改
             const pendingTbody = document.getElementById('pendingList');
@@ -2651,21 +3158,27 @@
             ).join('');
 
             // 月度统计
+            // 月度异常统计（动态计算最近6个月）
             const statsTbody = document.getElementById('monthlyStatsTable');
-            const months = ['1月', '2月', '3月', '4月', '5月'];
-            const statsData = [
-                [6, 5, 5, 6, 0],
-                [16, 16, 8, 21, 0],
-                [49, 49, 27, 7, 0],
-                [6, 1, 0, 4, 0],
-                [0, 5, 5, 2, 0],
-                [4, 0, 0, 3, 0]
-            ];
-            const labels = ['火警', '故障', '反馈', '预警', '屏蔽', '报备'];
-            statsTbody.innerHTML = months.map((m, mi) => {
-                const row = statsData.map(d => d[mi]).join('</td><td>');
-                const total = statsData.reduce((s, d) => s + d[mi], 0);
-                return `<tr><td>${m}</td><td>${row}</td><td><strong>${total}</strong></td></tr>`;
+            const now2 = new Date();
+            const recentMonths = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now2.getFullYear(), now2.getMonth() - i, 1);
+                recentMonths.push({ label: `${d.getMonth()+1}月`, year: d.getFullYear(), month: d.getMonth()+1 });
+            }
+            // 更新标题
+            const statsHeader = document.querySelector('#monthlyStatsTable')?.closest('.card')?.querySelector('.card-header .sub');
+            if (statsHeader) statsHeader.textContent = `${recentMonths[0].year}年${recentMonths[0].month}-${recentMonths[5].month}月`;
+
+            const statTypes = ['火警','值机故障','反馈','预警','屏蔽','报备'];
+            statsTbody.innerHTML = recentMonths.map(({ label, year, month }) => {
+                const rows = dutyData.filter(r => {
+                    const t = r[1] || '';
+                    return t.includes(`${year}/${month}/`) || t.includes(`${year}/${String(month).padStart(2,'0')}/`);
+                });
+                const counts = statTypes.map(type => rows.filter(r => r[6] === type).length);
+                const total  = counts.reduce((s, v) => s + v, 0);
+                return `<tr><td>${label}</td>${counts.map(c=>`<td>${c}</td>`).join('')}<td><strong>${total}</strong></td></tr>`;
             }).join('');
         }
 
@@ -2675,6 +3188,11 @@
         let charts = {};
 
         function initCharts() {
+            if (typeof Chart === 'undefined') {
+                // 图表库（CDN）未加载成功时跳过，不影响页面其他功能
+                console.warn('⚠️ Chart.js 未加载，图表跳过；页面其他功能不受影响');
+                return;
+            }
             // 趋势图
             const ctx1 = document.getElementById('trendChart').getContext('2d');
             charts.trend = new Chart(ctx1, {
@@ -2761,22 +3279,19 @@
         // ================================================================
 
         const pageTitles = {
-            dashboard: '仪表板',
+            dashboard: '首页',
             duty: '值班记录',
             fault: '故障巡查',
-            analysis: '月度分析',
-            facility: '设施基准',
-            fire: '防火基准',
+            facility: '设施巡查',
+            fire: '防火巡查',
             'maintain-plan': '保养计划',
             'maintain-record': '保养记录',
             'test-plan': '测试计划',
             'test-record': '测试记录',
             skill: '技能提升',
             identify: '技能鉴定',
+            exam: '理论考试',
             training: '培训记录',
-            meeting: '月度会议',
-            assessment: '月度考核',
-            heat: '电伴热管理',
             'device-list': '设备清单'
         };
 
@@ -2799,10 +3314,20 @@
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('overlay').classList.remove('active');
 
-            // 重绘图表（如果页面是仪表板或分析）
+            // 右侧全景图视窗：仅仪表板显示
+            const pv = document.getElementById('panoramaViewport');
+            if (pv) pv.classList.toggle('show', pageId === 'dashboard');
+
+            // 重绘图表（仪表板内的图表需要 resize）
             setTimeout(() => {
-                if (pageId === 'dashboard' || pageId === 'analysis') {
+                if (pageId === 'dashboard') {
                     Object.values(charts).forEach(c => { if (c && c.resize) c.resize(); });
+                }
+                if (pageId === 'facility') {
+                    Object.values(facilityCharts).forEach(c => { if (c && c.resize) c.resize(); });
+                }
+                if (pageId === 'fire') {
+                    Object.values(fireCharts).forEach(c => { if (c && c.resize) c.resize(); });
                 }
             }, 100);
         }
@@ -2826,63 +3351,6 @@
             this.classList.remove('active');
         });
 
-        // ================================================================
-        // 会议记录渲染
-        // ================================================================
-
-        function renderMeetings() {
-            const container = document.getElementById('meetingList');
-            const meetings = [{
-                date: '2026-01-07',
-                attend: '刘海兰、王海欣、张乔、闫鸿丙、夏婷停、张建才、孙瑞清',
-                items: [
-                    { task: 'BU施工遗留问题持续跟进，保证消防系统正常运行无影响及风险', by: '刘海兰', status: '进行中',
-                    due: '持续' },
-                    { task: '消防值班、维保人员技能月度培训，涵盖理想安全管理人员', by: '刘海兰', status: '进行中',
-                    due: '持续' }
-                ]
-            }, {
-                date: '2026-02-04',
-                attend: '刘海兰、张乔、闫鸿丙、夏婷停、张建才、孙瑞清',
-                items: [
-                    { task: '依斯倍2月对维保工作建立标准作业书，并实施培训技能操作', by: '刘海兰', status: '已完成',
-                    due: '2026-02-28' }
-                ]
-            }, {
-                date: '2026-04-01',
-                attend: '张乔、闫鸿丙、孙伟、夏婷婷、张建才、李洋',
-                items: [
-                    { task: '消防维保2人尽快考取电工证', by: '张乔', status: '进行中', due: '—' },
-                    { task: '餐厅消防玻璃规格统计及其他区域玻璃规格统计', by: '张乔', status: '进行中', due: '—' },
-                    { task: '消防应急照明控制柜线路故障联系BU处理', by: '张乔', status: '进行中', due: '—' }
-                ]
-            }];
-
-            container.innerHTML = meetings.map(m =>
-                `<div class="meeting-item">
-                    <div class="meta">
-                        <span><strong>📅 ${m.date}</strong></span>
-                        <span>👥 ${m.attend}</span>
-                    </div>
-                    ${m.items.map(item =>
-                        `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 4px 16px;border-left:2px solid #e67e22;margin:4px 0;background:#fafcfe;border-radius:4px;padding-left:14px;">
-                            <span style="font-size:14px;">${item.task}</span>
-                            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12px;">
-                                <span style="color:var(--text-light);">交办: ${item.by}</span>
-                                <span class="status-badge ${item.status==='已完成'?'success':item.status==='进行中'?'warning':'secondary'}">${item.status}</span>
-                                ${item.due !== '—' ? `<span style="color:var(--text-light);">📌 ${item.due}</span>` : ''}
-                            </div>
-                        </div>`
-                    ).join('')}
-                </div>`
-            ).join('');
-        }
-
-        // ================================================================
-        // ================================================================
-        // ================================================================
-        // 实操考核题库（47题完整版）
-        // ================================================================
         const EXAM_BANK = [
           // 报警系统（二楼）
           {id:'b01', cat:'alarm', catName:'报警系统', name:'火灾报警控制器手动自动状态切换', level:'★★', ref:'https://v.1190119.com/huozaibaojingkongzhiqi/', steps:['确定控制器当前的控制方式（手动/自动）状态','按要求切换控制器当前控制方式']},
@@ -2936,57 +3404,6 @@
           {id:'b46', cat:'other', catName:'其他设施', name:'防火卷帘组件更换', level:'★★★', ref:'https://v.1190119.com/fanghuojuanlian/', steps:['核查规格型号、性能参数','关闭防火卷帘控制器电源','拆除损坏的手动按钮盒','进行新按钮盒接线和安装','开启防火卷帘控制器电源，测试手动按钮盒功能']},
           {id:'b47', cat:'water', catName:'供水灭火', name:'消火栓箱组件更换及水带绑扎测试', level:'★★★', ref:'https://v.1190119.com/snxhs/', steps:['更换消火栓按钮：核查规格型号，分离新旧按钮底座，获取旧按钮编码，对新按钮编码写入并接线，测试功能','绑扎消防水带：铁丝从内接口根部箍槽开始向外螺旋缠绕，每个箍槽缠绕5-6圈，完成后进行出水试验','更换室内消火栓：关闭供水阀门，排出余水，卸下旧消火栓，用麻丝缠绕丝扣，安装新消火栓并测试']},
         ];
-          {id:'b02', cat:'alarm', catName:'报警系统', name:'现场消防设备工作状态判别', level:'★★', steps:['查看火灾报警控制器连接的现场设备总数','查看某一现场消防设备的回路号、地址号','查看某一现场消防设备的工作状态']},
-          {id:'b03', cat:'alarm', catName:'报警系统', name:'总线盘手动自动操作', level:'★★★', steps:['设置火灾报警控制器为"手动允许"状态','按下对应设备按键，启动灯常亮表示向设备发出启动信号','10秒内启动灯、反馈灯常亮表示设备启动成功；10秒后闪烁表示未启动','按下对应设备按键，启动灯、反馈灯熄灭表示设备停止成功']},
-          {id:'b04', cat:'alarm', catName:'报警系统', name:'直接手动控制单元操作（多线盘）', level:'★★★', steps:['将手动锁切换为"手动允许"状态','按下对应设备按键，启动灯常亮表示向设备发出启动信号','10秒内启动灯和反馈灯常亮表示设备启动成功','按下停止按钮，启动灯、反馈灯熄灭表示现场设备停止成功','故障灯点亮表示设备故障或线路故障','把手动锁切换回"手动禁止"状态']},
-          {id:'b05', cat:'alarm', catName:'报警系统', name:'火灾报警系统联动功能测试', level:'★★★', steps:['设置火灾报警控制器为"自动"状态','触发同一防火分区内两只独立报警器，联动启动相关消防设备','查看联动设备的启动和信号反馈情况','对相关联动设备进行手动停止、复位操作（送风机、排烟风机、声光报警、应急广播、防火卷帘等）']},
-          {id:'b06', cat:'alarm', catName:'报警系统', name:'消防应急广播操作', level:'★★', steps:['查看应急广播控制盘手动/自动状态，查看功率放大器电源状态','使用SD卡或话筒录制疏散指令音频文件','使用应急广播或总线盘向指定分区播放疏散指令音频文件','使用话筒向指定分区播放紧急事项']},
-          {id:'b07', cat:'alarm', catName:'报警系统', name:'消防电话检查操作', level:'★★', steps:['按下"自检"按钮，测试消防电话总机自检功能','使用消防电话总机呼叫分机，测试通话录音功能','发出报警声信号，按下静音键，检查是否消除报警声','断开总机与分机连接线，检查总机显示屏是否显示故障信息','消除故障后，按下"复位"按钮测试复位功能']},
-          {id:'b08', cat:'alarm', catName:'报警系统', name:'消防应急照明和疏散指示系统功能测试', level:'★★★', steps:['操作手动锁启动应急照明和疏散指示系统，查看应急灯具点亮情况','使用照度计测量应急照明灯具的照度（疏散楼梯间不低于10Lx）','设置火灾报警控制器、应急照明控制器为"自动"状态','触发同一防火分区内两只独立报警器（手报+烟感）','使用秒表测试转换时间（不应大于5秒）']},
-          {id:'b09', cat:'alarm', catName:'报警系统', name:'消防应急广播系统联动控制功能测试', level:'★★', steps:['检查广播系统组件数量、规格、型号和安装位置','手动按下应急广播键并选择广播分区进行播放','设置火灾报警控制器、广播控制盘为"自动"状态','触发同一防火分区内两只独立报警器，检查广播系统启动情况']},
-          // 供水灭火（负一楼）
-          {id:'b10', cat:'water', catName:'供水灭火', name:'自动喷水灭火系统电气控制柜操作', level:'★★★', steps:['识别消防水泵控制柜所处状态（手动/自动）','切换消防水泵控制柜"手动—自动"状态','消防水泵控制柜"主泵—备泵"手动切换','切断主电源开关，自动转换备电运行；合闸主电源开关，自动转换主电运行','将喷淋泵/稳压泵控制柜切换为"手动状态"，启动水泵，观察运行情况，停止后复位为"自动"状态']},
-          {id:'b11', cat:'water', catName:'供水灭火', name:'模拟主泵故障主备泵自动切换', level:'★★★', steps:['消防水泵控制柜设置为"自动状态"','打开试水阀，压力开关动作，5分钟内自动启动消防主泵','检查水泵运行情况，切断主泵电源，2分钟内自动切换备泵运行','消防水泵控制柜切换为手动状态，停止消防水泵','复位试水阀、复位消防主机，复位主泵电源，水泵控制柜复位为自动状态']},
-          {id:'b12', cat:'water', catName:'供水灭火', name:'末端试水阀连锁功能测试', level:'★★★', steps:['消防水泵控制柜设置为"自动状态"','打开试水阀，压力表出水压力不应低于0.05MPa','水流指示器、报警阀阀瓣、压力开关应有动作，5分钟内自动启动消防水泵','检查消防水泵启动和信号反馈情况','消防水泵控制柜切换为手动状态，停止消防水泵','复位试水阀、复位消防主机，水泵控制柜复位为自动状态']},
-          {id:'b13', cat:'water', catName:'供水灭火', name:'消防供水设施的检查和功能测试', level:'★★', steps:['检查稳压泵电源工作状态','检查稳压泵自动启停功能是否正常','检查稳压泵手动启停功能是否正常','测量最不利点处静水压力是否符合设计要求','检查消防水箱管路各阀门是否处于正常启闭状态','查看液位计，检查当前有效储水量']},
-          {id:'b14', cat:'water', catName:'供水灭火', name:'消火栓系统检查和功能测试', level:'★★★', steps:['将消防联动控制器设置为"自动允许"状态，消防水泵控制柜设置为"自动"状态','按下消火栓按钮，检查火灾自动报警系统显示的相关信息','触发消火栓按钮所在报警区域内的两只独立报警器发出火灾报警信号','检查消防水泵启动、反馈信号','将消防水泵控制柜切换"手动"状态，停止消防水泵','复位消火栓按钮、手报、消防主机，将消防水泵控制柜复位"自动"状态']},
-          {id:'b15', cat:'water', catName:'供水灭火', name:'湿式干式自动喷水灭火系统工作压力和流量测试', level:'★★★', steps:['确认喷淋泵控制柜处于"自动"状态','关闭系统侧管网控制阀，打开专用测试管路控制阀，按下秒表计时','记录水力警铃报警、消防水泵启动时间','检查测试管路压力表和流量计读数变化','将消防水泵控制柜切换"手动"状态，停止消防水泵','关闭专用测试管路控制阀，打开系统侧管网控制阀','复位火灾报警控制器，复位喷淋泵控制柜为"自动"状态']},
-          {id:'b16', cat:'water', catName:'供水灭火', name:'湿式干式系统联锁联动控制功能测试', level:'★★★', steps:['联锁测试：确认喷淋泵控制柜处于"自动"状态，缓慢打开末端试水装置，检查压力开关连锁启动喷淋泵组情况','联动测试：设置水泵控制柜和火灾报警控制器为"自动"状态，断开压力开关与消防水泵控制柜的连线','触发防护区域内任一手动报警按钮，开启警铃实验阀','检查消防水泵的启动和反馈信号','将消防水泵控制柜切换"手动"状态，停止消防水泵','关闭警铃试验阀，恢复压力开关与控制柜的连线，水泵控制柜恢复到"自动"状态']},
-          // 防排烟（三楼）
-          {id:'b17', cat:'smoke', catName:'防排烟', name:'防烟系统连锁控制功能测试', level:'★★★', steps:['将送风机控制柜和火灾报警控制器设置为"自动"状态','通过手动执行机构开启送风口，连锁启动送风机','检查送风机启动和信号反馈情况','风机控制柜切换手动状态，停止风机','复位送风口，复位火灾报警控制器，复位送风机控制柜为"自动"状态']},
-          {id:'b18', cat:'smoke', catName:'防排烟', name:'防烟系统联动控制功能测试', level:'★★★', steps:['将送风机控制柜、火灾报警控制器设置为"自动"状态','触发同一防烟分区内两只独立报警器，联动启动送风机','检查风机启动和信号反馈情况','使用微压计测量前室和楼梯间的余压值','风机控制柜切换手动状态，停止风机','复位送风口，复位火灾报警控制器，复位风机控制柜为自动状态']},
-          {id:'b19', cat:'smoke', catName:'防排烟', name:'排烟系统连锁控制功能测试', level:'★★★', steps:['将排烟风机控制柜、火灾报警控制器设置为"自动"状态','现场手动开启排烟口、自动排烟窗、挡烟垂壁，连锁启动排烟风机','检查排烟风机启动和信号反馈情况','风机控制柜切换手动状态，停止风机','复位排烟口、复位自动排烟窗、复位挡烟垂壁、复位火灾报警控制器']},
-          {id:'b20', cat:'smoke', catName:'防排烟', name:'排烟系统联动控制功能测试', level:'★★★', steps:['将排烟风机控制柜、火灾报警控制器设置为"自动"状态','触发同一防烟分区内两只独立报警器，联动启动排烟风机','检查排烟风机启动和信号反馈情况','手动关闭排烟防火阀，检查排烟风机停止情况','风机控制柜切换手动状态，复位排烟防火阀，复位消防主机']},
-          {id:'b21', cat:'smoke', catName:'防排烟', name:'现场手动开启并复位自动排烟窗排烟口', level:'★★', steps:['通过手动按钮盒开启自动排烟窗，通过手动按钮盒复位自动排烟窗','通过远程执行机构开启排烟口，通过六角扳手复位排烟口（复位顺序先1后2）']},
-          {id:'b22', cat:'smoke', catName:'防排烟', name:'测量加压送风部位余压值', level:'★★★', steps:['将送风机控制柜、火灾报警控制器设置为"自动"状态','选取着火层和相邻上下层前室，触发两只独立报警器，联动启动风机和送风口','使用微压计分别测量前室和楼梯间的余压值，记录测试情况','手动停止风机，复位送风口，复位主机，复位送风机控制柜为自动状态']},
-          {id:'b23', cat:'smoke', catName:'防排烟', name:'测量排风口处风速', level:'★★', steps:['将排烟风机控制柜、火灾报警控制器设置为"自动状态"','触发同一防烟分区内两只独立报警器，联动启动风机和排烟口','使用风速仪测量排烟口处风速值并记录（送风口不宜大于7m/s，排烟口不宜大于10m/s）','测试完毕，手动停止风机','复位排烟口，复位主机，复位排风机控制柜为自动状态']},
-          // 其他设施
-          {id:'b24', cat:'other', catName:'其他设施', name:'消防设备末端配电装置主备电源切换', level:'★★', steps:['自动切换：将双电源自动转换开关设置为"自动"状态，断开主电电源查看备用电源指示灯，合闸主电电源查看主电指示灯','手动切换：将双电源自动转换开关设置为"手动"状态，使用六角扳手手动切换备用电源，恢复为"自动"状态']},
-          {id:'b25', cat:'other', catName:'其他设施', name:'防火门手动联动控制功能测试', level:'★★', steps:['通过防火门监控器启动或现场操作防火门释放器按钮关闭防火门','检查防火门关闭情况、防火门监控器指示变化','将火灾报警控制器设置为"自动允许"状态，防火门监控器设置为自动状态','触发防火分区内两只独立报警器，检查防火门关闭情况','复位报警器，复位常开式防火门、防火门监控器、火灾报警控制器']},
-          {id:'b26', cat:'other', catName:'其他设施', name:'防火卷帘手动联动控制功能测试', level:'★★★', steps:['通过现场手动按钮盒、手动拉链、手动速放装置操作防火卷帘下降','检查防火卷帘下降情况、防火卷帘控制器指示变化','将火灾报警控制器设置为"自动允许"状态','触发防火分区内两只独立报警器，检查防火卷帘下降情况']},
-          {id:'b27', cat:'other', catName:'其他设施', name:'消防电梯检查和功能测试', level:'★★★', steps:['打开保护罩，按下紧急迫降按钮','检查消防电梯迫降至首层、开门待用，查看信号反馈情况','在轿厢内操作消防电梯到指定楼层，检查开门关门情况','使用轿厢内专用消防对讲电话与消防电话主机进行通话测试','测试消防电梯运行到顶层时间不应大于60秒（载重不小于800KG）','复位紧急迫降按钮，复位火灾报警控制器']},
-          {id:'b28', cat:'other', catName:'其他设施', name:'查询历史信息', level:'★', steps:['通过集中火灾报警控制器查询历史信息：按2.查询键—2.记录信息查询—根据要求查询','通过图形显示装置查询历史信息：鼠标点击系统操作—日志查询—选类型、输入起止时间—查找—读总数']},
-          {id:'b29', cat:'other', catName:'其他设施', name:'线型火灾探测器火警和故障报警功能测试', level:'★★★', steps:['火警测试：选择减光值10.0dB滤光片，置于光路中靠近接收器，30S内应发出火警信号','故障测试：选择减光值11.5dB滤光片，60S内应发出火警或故障信号','线型感温探测器测试：使用温度不低于54℃的热水对感温电缆加热，30s内发出火灾报警信号','感温故障测试：拆除信号处理单元与终端盒之间任一端的感温电缆，查看故障报警信号','测试完毕，将探测器恢复原状，复位火灾报警控制器']},
-          {id:'b30', cat:'other', catName:'其他设施', name:'火灾显示盘功能测试', level:'★★', steps:['自检功能：按自检键（输密码），测试火灾显示盘自检','消音功能：按消音键，消音指示灯点亮，报警声消失','火灾报警功能：按下同一防火分区手动报警按钮，火警灯点亮','故障报警功能：拆卸同一防火分区探测器，火灾显示盘报故障','复位功能：先复位触发装置，再按主机"复位"键复位']},
-          {id:'b31', cat:'water', catName:'供水灭火', name:'区分湿式干式自动喷水灭火系统', level:'★★', steps:['识别湿式报警阀、水流指示器','识别干式报警阀组、充气设备和气压维持装置','识别洒水喷头：按安装方式分（直立Z、下垂X、边墙B、通用P）','按结构型式分（开式、闭式）；按热敏元件分（玻璃球、易熔金属元件）','按动作温度分（橙57℃、红68℃、黄79℃、绿93℃、蓝141℃）']},
-          {id:'b32', cat:'water', catName:'供水灭火', name:'增稳压泵组电气控制柜操作', level:'★★', steps:['判断增（稳）压泵组电气控制柜的控制状态','将稳压泵控制柜设置"手动状态"，按下启动按钮，启动稳压泵','运行平稳后，按下停止按钮停止稳压泵','将控制柜恢复为"自动状态"']},
-          {id:'b33', cat:'alarm', catName:'报警系统', name:'消防电话操作', level:'★', steps:['总机呼叫分机：摘下总机话筒，输入密码，按下对应分机号并按接通键，通话完毕挂好话筒','分机呼叫总机：现场摘下电话分机，总机响铃，摘下总机话筒，通话完毕挂好话筒','电话插孔呼叫总机：使用手柄电话插入电话插孔，总机响铃，摘下总机话筒，通话完毕挂好话筒']},
-          {id:'b34', cat:'other', catName:'其他设施', name:'防火卷帘现场手动操作', level:'★★', steps:['使用专用钥匙解锁手动按钮盒，操作上升、下降、停止按钮','操作手动拉链，防火卷帘上升和下降','操作手动速放装置，防火卷帘依靠自重恒速下降']},
-          {id:'b35', cat:'other', catName:'其他设施', name:'防火门操作', level:'★★', steps:['主备电源切换：断开主电开关，自动切换到备电工作；复位主电开关，自动恢复主电工作','切换手/自动状态：按"3.用户设置"键—输密码—"3.启动设置"—选择自动禁止/自动允许','自检、消音及复位：点击自检键、消音键、复位键','现场手动关闭常开式防火门：按下电动闭门器按钮关门']},
-          {id:'b36', cat:'alarm', catName:'报警系统', name:'应急照明控制器操作', level:'★★', steps:['自检操作：鼠标点击"命令操作"，选系统月自检/年自检，点开始','切换手/自动状态：鼠标点击"系统操作"—系统设置—自动','模拟火警：鼠标点击"系统操作"—模拟火警','手动应急启动：鼠标点击"启动应急"或转动"强制启动"钥匙','系统复位：鼠标点击"复位"']},
-          {id:'b37', cat:'other', catName:'其他设施', name:'操作紧急迫降按钮迫降电梯', level:'★★', steps:['打开消防电梯紧急迫降按钮保护罩','启动紧急迫降功能，使消防电梯进入消防工作模式','消防电梯从任意一层回到首层或电梯转换层保持开门待用','查看消防控制室反馈信号','进行紧急迫降按钮复位和消防控制室的复位操作']},
-          {id:'b38', cat:'other', catName:'其他设施', name:'消防控制室相关设备保养', level:'★★', steps:['切断设备主/备电源','用干抹布对柜壳外表面指示灯及显示屏清洁，用小毛刷、吸尘器等对柜内设备灰尘清洁','检查线路接线端有无松动、氧化、锈蚀并处理','设备送电、自检观察2分钟，运行正常后锁闭箱门，填写保养记录表']},
-          {id:'b39', cat:'alarm', catName:'报警系统', name:'火灾报警系统组件更换', level:'★★★', steps:['通过火灾报警控制器或图形显示装置查找故障位置','确认是设备故障还是线路故障','核查规格型号、性能参数是否与设计文件一致','拆卸故障件，用编码器读码','用编码器对新换件编码并读码确认','正确安装新换件，进行相关功能测试']},
-          {id:'b40', cat:'water', catName:'供水灭火', name:'保养湿式干式系统组件消防泵组及电气控制柜', level:'★★★', steps:['湿式、干式系统阀门、管道、报警阀组保养：阀门外观完好，启闭正常；管道无渗漏、无锈蚀、无脱漆','水流指示器和试验装置保养：外观完好，启动、反馈信号准确，无锈蚀，无渗漏','消防泵组的电气控制柜保养：检查电气元件，检查线路接头，检查启停泵、手自动切换等功能是否正常']},
-          {id:'b41', cat:'alarm', catName:'报警系统', name:'保养消防电话系统', level:'★★', steps:['使用吸尘器、清洁的干软布进行外观检查保养','使用工具进行接线检查保养','进行呼叫、通话及总机自检、消音、复位等功能检查','保养完成后，对消防电话总机进行复位和自检，等待2分钟后观察是否处于正常监视状态']},
-          {id:'b42', cat:'alarm', catName:'报警系统', name:'保养消防应急广播系统', level:'★★', steps:['使用吸尘器、清洁的干软布进行外观检查保养','使用工具进行接线检查保养','手动启动广播，监听扬声器，用声级计在扬声器正前方3m处声压级不应小于65dB','保养完成后，对消防应急广播系统进行复位和自检，等待2min后查看是否处于正常监视状态']},
-          {id:'b43', cat:'smoke', catName:'防排烟', name:'保养防（排）烟风机', level:'★★', steps:['手动启动送风机、排烟机，检查风机启停功能','检查指示灯及电压、电流表工作是否正常','检查风机各部件运转有无异常振动或声响','检查调节阀的启闭动作情况和开启角度标志']},
-          {id:'b44', cat:'alarm', catName:'报警系统', name:'消防电话系统消防应急广播系统组件更换', level:'★★★', steps:['电话系统更换：确认故障部件位置并记录编码，拆卸消防电话分机和插孔，拨码后安装，测试通话功能','广播系统更换：确认故障部件位置，拆卸广播模块，对广播模块编码并读编码确认，安装，测试启动功能']},
-          {id:'b45', cat:'alarm', catName:'报警系统', name:'消防应急灯具更换', level:'★★', steps:['通过平面布置图和编码表找到需更换的应急灯具','关闭应急照明控制器和消防集中应急电源，切断消防应急灯具供电','利用工具对新更换的照明灯具进行编码','打开应急照明控制器和集中应急电源，灯具进行自动登录','进行更换灯具的地址设置和初始化操作']},
-          {id:'b46', cat:'other', catName:'其他设施', name:'防火卷帘组件更换', level:'★★★', steps:['核查规格型号、性能参数','关闭防火卷帘控制器电源','拆除损坏的手动按钮盒','进行新按钮盒接线和安装','开启防火卷帘控制器电源，测试手动按钮盒功能']},
-          {id:'b47', cat:'water', catName:'供水灭火', name:'消火栓箱组件更换及水带绑扎测试', level:'★★★', steps:['更换消火栓按钮：核查规格型号，分离新旧按钮底座，获取旧按钮编码，对新按钮编码写入并接线，测试功能','绑扎消防水带：铁丝从内接口根部箍槽开始向外螺旋缠绕，每个箍槽缠绕5-6圈，完成后进行出水试验','更换室内消火栓：关闭供水阀门，排出余水，卸下旧消火栓，用麻丝缠绕丝扣，安装新消火栓并测试']},
-        ];
-
         let _examBankFilter = 'all';
 
         // 渲染实操考核题库
@@ -3507,6 +3924,115 @@
             document.getElementById('photoLightbox').classList.add('show');
         }
 
+        // ================================================================
+        // 仪表板右侧：消防系统全景图滚动视窗
+        // 交互：滚动中点击 → 暂停；暂停后点击图片 → 放大；关闭放大 → 恢复滚动
+        // ================================================================
+        const PANORAMA_IMAGES = [
+            'images/panorama-1.jpg',
+            'images/panorama-2.jpg',
+            'images/panorama-3.jpg',
+            'images/panorama-4.jpg',
+            'images/panorama-5.jpg',
+            'images/panorama-6.jpg',
+        ];
+        let panoramaPaused   = false;
+        let panoramaOffset   = 0;      // 当前位移（px）
+        let panoramaHalfH    = 0;      // 一组图片的高度（无缝循环的循环长度）
+        let panoramaLastTs   = 0;
+        const PANORAMA_SPEED = 0.22;   // 每帧位移（px），约 13px/秒
+
+        function initPanoramaViewport() {
+            const vp    = document.getElementById('panoramaViewport');
+            const track = document.getElementById('panoramaTrack');
+            if (!vp || !track) return;
+
+            // 构建两遍图片，实现无缝循环
+            const doubled = PANORAMA_IMAGES.concat(PANORAMA_IMAGES);
+            track.innerHTML = doubled.map((src, i) =>
+                `<img src="${src}" alt="消防系统全景图" data-idx="${i % PANORAMA_IMAGES.length}">`
+            ).join('');
+
+            // 图片加载完成后测量循环长度
+            const imgs = track.querySelectorAll('img');
+            const measure = () => {
+                if (imgs.length >= PANORAMA_IMAGES.length + 1) {
+                    // 用 offsetTop（不受 transform 影响），差值即一组图片的循环长度
+                    const a = imgs[0].offsetTop;
+                    const b = imgs[PANORAMA_IMAGES.length].offsetTop;
+                    if (b > a) panoramaHalfH = b - a;
+                }
+            };
+            imgs.forEach(img => {
+                img.addEventListener('load', measure);
+                img.addEventListener('error', measure);
+            });
+            measure();
+            window.addEventListener('resize', measure);
+
+            // 点击图片：滚动中 → 暂停；已暂停 → 放大该图
+            imgs.forEach(img => {
+                img.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!panoramaPaused) {
+                        pausePanorama();
+                    } else {
+                        openLightbox(img.src);
+                    }
+                });
+            });
+
+            // 点击容器空白处：滚动中 → 暂停；已暂停 → 恢复滚动
+            vp.addEventListener('click', () => {
+                if (!panoramaPaused) pausePanorama();
+                else resumePanorama();
+            });
+
+            // 放大预览关闭后自动恢复滚动
+            // 放大预览关闭后自动恢复滚动（观察 class 变化）
+            const lb = document.getElementById('photoLightbox');
+            if (lb) {
+                const obs = new MutationObserver(() => {
+                    if (!lb.classList.contains('show') && panoramaPaused) resumePanorama();
+                });
+                obs.observe(lb, { attributes: true, attributeFilter: ['class'] });
+            }
+
+            // 启动滚动循环
+            requestAnimationFrame(panoramaStep);
+        }
+
+        function panoramaStep(ts) {
+            const track = document.getElementById('panoramaTrack');
+            if (track) {
+                if (panoramaLastTs && !panoramaPaused && panoramaHalfH > 0) {
+                    const dt = Math.min(ts - panoramaLastTs, 100); // 防跳帧
+                    panoramaOffset += PANORAMA_SPEED * dt / 16.67;
+                    if (panoramaOffset >= panoramaHalfH) panoramaOffset -= panoramaHalfH;
+                    track.style.transform = `translateY(${-panoramaOffset}px)`;
+                }
+                panoramaLastTs = ts;
+            }
+            requestAnimationFrame(panoramaStep);
+        }
+
+        function pausePanorama() {
+            panoramaPaused = true;
+            const vp = document.getElementById('panoramaViewport');
+            const hint = document.getElementById('panoramaHint');
+            if (vp) vp.classList.add('paused');
+            if (hint) hint.textContent = '⏸ 已暂停 · 点图放大 / 点空白恢复';
+        }
+
+        function resumePanorama() {
+            if (!panoramaPaused) return;
+            panoramaPaused = false;
+            const vp = document.getElementById('panoramaViewport');
+            const hint = document.getElementById('panoramaHint');
+            if (vp) vp.classList.remove('paused');
+            if (hint) hint.textContent = '🖱 点击暂停 · 再点图片放大';
+        }
+
         // 提交单项回报
         function submitTaskReport(taskId) {
             const task = PLAN_DATA.find(t => t.id === taskId);
@@ -3846,22 +4372,57 @@
         // ================================================================
         // 火警记录渲染
         // ================================================================
+        // 页面噪点过滤：天泽页面菜单/图例/系统名等文字曾被误抓成"火警"（无位置/设备信息），
+        // 会导致反复弹窗。规则与 local_monitor.js 保持一致（两处同逻辑）。
+        function isPhantomAlarm(a) {
+            const raw = String((a && a.raw) || '').trim().replace(/\s+/g, '');
+            const loc = String((a && a.location) || '').trim().replace(/\s+/g, '');
+            if (!raw && !loc) return false;
+            const statusCombo = /^(正常|火警|报警|预警|故障|隐患|动作|离线)+$/;
+            if (raw && statusCombo.test(raw)) return true;
+            if (loc && raw === loc && statusCombo.test(loc)) return true;
+            const sysLabels = ['火灾自动报警系统', '可燃气体探测报警系统', '自动喷水灭火系统', '消火栓灭火系统', '泡沫灭火系统', '气体灭火系统', '防烟排烟系统', '应急广播系统', '应急照明和疏散指示标志', '消防专用电话', '消防供配电设施', '消防供水设施', '防火分隔设施'];
+            if (raw && sysLabels.indexOf(raw) !== -1 && (!loc || sysLabels.indexOf(loc) !== -1 || loc === '弹窗报警')) return true;
+            return false;
+        }
+
+        // 未确认（待处理）的火警，供弹窗与角标使用（同时过滤噪点）
+        function getPendingAlarms(alarms) {
+            return (alarms || []).filter(a => {
+                if (isPhantomAlarm(a)) return false;
+                const cs = a.confirm_status;
+                return !cs || cs === 'pending';
+            });
+        }
+
         function renderAlarmHistory(history) {
             const tbody = document.getElementById('alarmHistoryBody');
             const countEl = document.getElementById('alarmHistoryCount');
-            if (!history || history.length === 0) {
+            // 过滤历史数据里遗留的伪火警，避免列表出现"火警/正常火警预警..."这类无意义记录
+            const list = (history || []).filter(a => !isPhantomAlarm(a));
+            if (!list || list.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:20px;">暂无火警记录</td></tr>`;
                 countEl.textContent = '共 0 条';
                 return;
             }
+            history = list;
             countEl.textContent = `共 ${history.length} 条`;
             tbody.innerHTML = history.map((a, i) => {
+                // 状态映射（兼容两种写法：safe/emergency 与 confirmed_safe/confirmed_emergency）
                 const statusMap = {
-                    pending:   { label: '待确认', cls: 'warning' },
-                    safe:      { label: '✅ 无火情', cls: 'success' },
-                    emergency: { label: '🚒 已启动预案', cls: 'danger' },
+                    pending:              { label: '待确认', cls: 'warning' },
+                    safe:                 { label: '✅ 无火情', cls: 'success' },
+                    confirmed_safe:       { label: '✅ 无火情', cls: 'success' },
+                    emergency:            { label: '🚒 有火情', cls: 'danger' },
+                    confirmed_emergency:  { label: '🚒 有火情', cls: 'danger' },
                 };
                 const s = statusMap[a.confirm_status] || statusMap.pending;
+                const isPending = !a.confirm_status || a.confirm_status === 'pending';
+                const confirmBtn = isPending ? `
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+                        <button onclick="manualConfirmAlarm('${a.id || ''}','safe','张乔',this)" style="background:#27ae60;color:#fff;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px;">✅ 无火情</button>
+                        <button onclick="manualConfirmAlarm('${a.id || ''}','emergency','张乔',this)" style="background:#c0392b;color:#fff;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:11px;">🚒 有火情</button>
+                    </div>` : '';
                 return `<tr>
                     <td>${i + 1}</td>
                     <td style="white-space:nowrap">${a.time || '—'}</td>
@@ -3869,11 +4430,105 @@
                     <td><span class="status-badge danger">${a.type || '火警'}</span></td>
                     <td>${a.responsible || '—'}</td>
                     <td>${a.responsible_phone || '—'}</td>
-                    <td><span class="status-badge ${s.cls}">${s.label}</span></td>
+                    <td><span class="status-badge ${s.cls}">${s.label}</span>${confirmBtn}</td>
                     <td>${a.confirm_person || '—'}</td>
                     <td style="white-space:nowrap">${a.confirm_time || '—'}</td>
                 </tr>`;
             }).join('');
+        }
+
+        // ================================================================
+        // 渲染天泽智联故障/预警任务单（新格式，支持整改完成按钮）
+        // ================================================================
+        function renderTianzeFaults(faults) {
+            const tbody = document.getElementById('faultTableBody');
+            if (!tbody || !faults || !faults.length) return;
+            const rows = faults.map((f, i) => {
+                const isClosed = f.status === '整改完成';
+                const btnHtml = isClosed
+                    ? `<span class="status-badge success">整改完成</span><br><small style="color:#888">${f.closedBy || ''} ${f.closedTime || ''}</small>`
+                    : `<button onclick="closeFault('${f.id}')" style="
+                        background:#e67e22;color:#fff;border:none;padding:4px 12px;
+                        border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;">
+                        ✅ 整改完成
+                      </button>`;
+                return `<tr>
+                    <td>${i + 1}</td>
+                    <td>${f.createTime || f.recvTime || '—'}</td>
+                    <td><span class="status-badge ${f.type === '故障' ? 'danger' : 'warning'}">${f.type}</span></td>
+                    <td>—</td>
+                    <td>${f.device || '—'}</td>
+                    <td>—</td>
+                    <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${f.raw || ''}">${f.raw || '—'}</td>
+                    <td>${btnHtml}</td>
+                </tr>`;
+            });
+            // 在原有内容前面插入天泽智联故障记录
+            tbody.innerHTML = rows.join('') + tbody.innerHTML;
+        }
+
+        // 网页端手动确认火警
+        async function manualConfirmAlarm(id, confirm, name, btn) {
+            const label = confirm === 'safe' ? '已现场确认，无火情' : '现场发生火情，已启动应急预案';
+            if (!window.confirm(`确认：${label}？`)) return;
+            try {
+                // ⚠️ 必须先捕获行引用：下面替换 innerHTML 会把按钮从 DOM 移除，之后 btn.closest('tr') 会失效
+                const row = btn.closest('tr');
+                btn.disabled = true;
+                btn.parentElement.innerHTML = '<span style="color:#888;font-size:11px">处理中...</span>';
+                const res = await fetch('/api/confirm-alarm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: id, confirm, name })
+                });
+                const json = await res.json();
+                if (json.ok) {
+                    // 局部更新该行状态（不整页刷新，保持滚动位置）
+                    if (row) {
+                        const statusCell = row.cells[6];
+                        if (statusCell) {
+                            const isSafe = confirm === 'safe';
+                            const uname = name || '操作员';
+                            const nowStr = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+                            statusCell.innerHTML = isSafe
+                                ? '<span class="status-badge success">✅ 无火情</span>'
+                                : '<span class="status-badge danger">🚒 有火情</span>';
+                            // 同步填写后面的"确认人 / 确认时间"
+                            if (row.cells[7]) row.cells[7].textContent = uname;
+                            if (row.cells[8]) row.cells[8].textContent = nowStr;
+                        }
+                    }
+                    // 重新拉取数据，同步刷新弹窗/角标状态（确认后不再提醒）
+                    loadRemoteData();
+                } else {
+                    alert('操作失败，请重试');
+                    if (btn) { btn.disabled = false; }
+                    loadRemoteData();
+                }
+            } catch(e) {
+                alert('请求失败：' + e.message);
+            }
+        }
+
+        // 网页端关闭故障任务单
+        async function closeFault(id) {
+            if (!confirm('确认整改完成并关闭此任务单？')) return;
+            try {
+                const res = await fetch('/api/close-fault', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, closedBy: '操作员' })
+                });
+                const json = await res.json();
+                if (json.ok) {
+                    alert('任务单已关闭！');
+                    location.reload();
+                } else {
+                    alert('关闭失败，请重试');
+                }
+            } catch(e) {
+                alert('请求失败：' + e.message);
+            }
         }
 
         // ================================================================
@@ -3894,6 +4549,16 @@
             const isSafe      = confirm === 'safe';
             const isEmergency = confirm === 'emergency';
             if (!isSafe && !isEmergency) return;
+
+            // 调用本地 API 更新确认状态
+            fetch('/api/confirm-alarm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids, confirm, name, time })
+            }).then(() => {
+                // 刷新页面数据（重新拉取 data.json 并重渲染，使确认状态立即反映到表格）
+                if (typeof loadRemoteData === 'function') loadRemoteData();
+            }).catch(() => {});
 
             // 构建确认弹窗
             const overlay = document.createElement('div');
@@ -3937,7 +4602,7 @@
                     <div style="background:#fce4ec;padding:12px 16px;border-radius:8px;font-size:13px;color:#c62828;margin-bottom:16px;text-align:left;">
                         <strong>应急预案步骤：</strong><br>
                         1. 立即拨打消防电话 <strong>119</strong><br>
-                        2. 通知消防控制室：张乔 <strong>19800312191</strong><br>
+                        2. 通知消防控制室：<strong>010-87427353</strong><br>
                         3. 组织人员疏散，切勿乘坐电梯<br>
                         4. 使用就近灭火器进行初期扑救<br>
                         5. 等待消防人员到达，保持通道畅通
@@ -3963,14 +4628,94 @@
         function initSplash() {
             const overlay = document.getElementById('splashOverlay');
             const bar = document.getElementById('splashBar');
-            // 启动进度条
-            setTimeout(() => { bar.style.width = '100%'; }, 50);
-            // 3秒后淡出
+            if (!overlay) return;
+
+            // 若欢迎开屏页正在展示（非特殊跳转场景），加载页快速让位
+            const welcome = document.getElementById('welcomeScreen');
+            const welcomeShowing = welcome && welcome.style.display !== 'none' && !welcome.classList.contains('hide');
+            const delay = welcomeShowing ? 700 : 3000;
+
+            setTimeout(() => { if (bar) bar.style.width = '100%'; }, 50);
             setTimeout(() => {
                 overlay.classList.add('hide');
                 setTimeout(() => { overlay.style.display = 'none'; }, 600);
-            }, 3000);
+            }, delay);
         }
+
+        // ================================================================
+        // 欢迎开屏页（悬浮全景图 + 底部大图标导航）
+        // ================================================================
+        const WELCOME_NAV = [
+            { page: 'dashboard',      icon: '📊', label: '首页' },
+            { page: 'duty',           icon: '📋', label: '值班记录' },
+            { page: 'fault',          icon: '⚠️', label: '故障巡查' },
+            { page: 'facility',       icon: '🏗️', label: '设施巡查' },
+            { page: 'fire',           icon: '🔥', label: '防火巡查' },
+            { page: 'maintain-plan',  icon: '📅', label: '保养计划' },
+            { page: 'maintain-record',icon: '📝', label: '保养记录' },
+            { page: 'test-plan',      icon: '🧪', label: '测试计划' },
+            { page: 'test-record',    icon: '📈', label: '测试记录' },
+            { page: 'skill',          icon: '🎯', label: '技能提升' },
+            { page: 'identify',       icon: '📄', label: '技能鉴定' },
+            { page: 'exam',           icon: '📝', label: '理论考试' },
+            { page: 'training',       icon: '📚', label: '培训记录' },
+            { page: 'device-list',    icon: '📦', label: '设备清单' },
+        ];
+
+        function initWelcomeScreen() {
+            const screen = document.getElementById('welcomeScreen');
+            const nav    = document.getElementById('welcomeNav');
+            if (!screen || !nav) return;
+
+            // 飞书卡片跳转等特殊场景：跳过欢迎页，直接进业务（避免遮挡确认弹窗）
+            const sp = window.location.search || '';
+            const isSpecial = /[?&](confirm|close-fault|action|closed)=/.test(sp);
+            if (isSpecial) {
+                screen.style.display = 'none';
+                console.log('🔗 检测到跳转参数，跳过欢迎开屏页');
+                return;
+            }
+
+            // 生成底部大图标按钮
+            nav.innerHTML = WELCOME_NAV.map(item =>
+                `<div class="welcome-btn" data-page="${item.page}" title="${item.label}">
+                    <span class="wb-icon">${item.icon}</span>
+                    <span class="wb-label">${item.label}</span>
+                </div>`
+            ).join('');
+
+            // 点击按钮 → 关闭欢迎页并跳转
+            nav.querySelectorAll('.welcome-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const page = btn.dataset.page;
+                    hideWelcomeScreen();
+                    if (page && typeof navigate === 'function') {
+                        setTimeout(() => navigate(page), 260);
+                    }
+                });
+            });
+
+            // 悬停导航或图片时保持交互状态
+            const scrollEl = document.getElementById('welcomeScroll');
+            const pauseWelcome = () => { screen.dataset.hoverWelcome = '1'; };
+            const resumeWelcome = () => { delete screen.dataset.hoverWelcome; };
+            nav.addEventListener('mouseenter', pauseWelcome);
+            nav.addEventListener('mouseleave', resumeWelcome);
+            if (scrollEl) {
+                scrollEl.addEventListener('mouseenter', pauseWelcome);
+                scrollEl.addEventListener('mouseleave', resumeWelcome);
+            }
+        }
+
+        function hideWelcomeScreen() {
+            const screen = document.getElementById('welcomeScreen');
+            if (!screen || screen.classList.contains('hide')) return;
+            screen.classList.add('hide');
+            setTimeout(() => { screen.style.display = 'none'; }, 750);
+        }
+
+        // 欢迎页图片固定展示，无需滚动位置校正。
 
         // ================================================================
         // 实时时钟
@@ -3995,12 +4740,13 @@
         // 火警弹窗模块
         // ================================================================
         let _currentAlarms = [];
+        let _pendingAlarmsCache = [];   // 当前全部未确认火警（弹窗/角标共用口径）
+        let _seenAlarmKeys = new Set(); // 本会话已提示过的报警（同一批只在打开页面后弹一次）
+        // 报警指纹：优先用 raw（监控脚本重启/重新抓取时 id 可能变化，raw 更稳定）
+        function alarmKey(a) { return String((a && (a.raw || a.location || a.id)) || ''); }
 
-        function showFireModal(alarms) {
-            if (!alarms || alarms.length === 0) return;
-            _currentAlarms = alarms;
-
-            // 填充内容
+        // 填充弹窗内容（明细 + 计数）——供首次弹出与静默刷新共用
+        function fillFireModal(alarms) {
             const now = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
             document.getElementById('fireModalTime').textContent = `检测时间：${now}`;
             document.getElementById('fireModalCount').textContent = alarms.length;
@@ -4016,8 +4762,30 @@
                     <div class="fire-alarm-status">${a.status || '未处理'}</div>
                 </div>
             `).join('');
+        }
+
+        function showFireModal(alarms, silent) {
+            // 只展示未确认的（过滤页面噪点与已确认项）——飞书/值班页确认过的不会再次弹出
+            alarms = getPendingAlarms(alarms);
+            if (!alarms || alarms.length === 0) return;
+            _currentAlarms = alarms;
+
+            // 每次打开都复位确认按钮与提示文案（上次点过之后会残留"处理中..."，必须重置）
+            resetFireModalButton();
+            const _fmsg = document.getElementById('fireModalMsg');
+            if (_fmsg) _fmsg.textContent = '';
+
+            // 火警优先：若欢迎开屏页还在展示，先收起它，确保火警弹窗不被遮挡
+            if (typeof hideWelcomeScreen === 'function') hideWelcomeScreen();
+
+            // 填充内容
+            fillFireModal(alarms);
 
             document.getElementById('fireModal').classList.add('show');
+
+            // 静默模式（数据刷新时收敛列表）：不重复响铃
+            if (silent) return;
+
             // 播放提示音（浏览器允许时）
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -4039,22 +4807,79 @@
 
         function closeFireModal() {
             document.getElementById('fireModal').classList.remove('show');
-            // 显示角标提醒
+            // 显示角标提醒（数量 = 当前未确认火警）
             const badge = document.getElementById('fireBadge');
             const badgeText = document.getElementById('fireBadgeText');
-            badge.classList.add('show');
-            badgeText.textContent = `${_currentAlarms.length} 条火警未处理`;
+            const cnt = (_pendingAlarmsCache && _pendingAlarmsCache.length) || _currentAlarms.length;
+            if (badge) {
+                badge.classList.add('show');
+                if (badgeText) badgeText.textContent = `${cnt} 条火警待确认`;
+            }
         }
 
-        function confirmFireModal() {
+        // 复位火警弹窗的确认按钮（避免"处理中..."残留导致看起来卡死）；提示文案由调用方管理
+        function resetFireModalButton() {
+            const btn = document.querySelector('.fire-btn-confirm');
+            if (btn) { btn.disabled = false; btn.textContent = '✅ 已知晓，立即处理'; }
+        }
+
+        async function confirmFireModal() {
+            const btn = document.querySelector('.fire-btn-confirm');
+            const msg = document.getElementById('fireModalMsg');
+            const myAlarms = _currentAlarms; // 捕获本次点击对应的火警列表（用于识别"期间是否弹了新一轮"）
+            if (btn) { btn.disabled = true; btn.textContent = '处理中...'; }
+
+            // 收集当前弹窗里所有火警的 id（若有），一并标记为"已确认·无火情"
+            const ids = (_currentAlarms || []).map(a => a.id).filter(Boolean).join(',');
+            let json = null;
+            let failText = '';
+            try {
+                // 请求带 8 秒超时：本地服务无响应时不会永久卡在"处理中..."
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 8000);
+                try {
+                    const res = await fetch('/api/confirm-alarm', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ids, confirm: 'safe', name: '张乔' }),
+                        signal: controller.signal
+                    });
+                    json = await res.json();
+                } finally {
+                    clearTimeout(timer);
+                }
+                if (!json || !json.ok) failText = '⚠️ 状态保存失败，可重试；或点"稍后查看"到值班记录页手动确认';
+            } catch (e) {
+                failText = (e && e.name === 'AbortError')
+                    ? '⚠️ 服务响应超时，可重试；或点"稍后查看"到值班记录页手动确认'
+                    : '⚠️ 请求失败，可重试；或点"稍后查看"到值班记录页手动确认';
+            }
+
+            if (failText) {
+                // 保存失败：弹窗保留、按钮恢复可点、显示提示，方便重试（不静默丢失确认状态）
+                if (msg) msg.textContent = failText;
+                resetFireModalButton();
+                return;
+            }
+
+            // 保存成功：若期间未弹新一轮火警 → 关闭弹窗并跳转；否则保留新弹窗、只复位按钮
+            if (myAlarms !== _currentAlarms) {
+                resetFireModalButton();
+                return; // 新一轮火警已在弹窗中展示，等待用户确认
+            }
             document.getElementById('fireModal').classList.remove('show');
             document.getElementById('fireBadge').classList.remove('show');
-            // 跳转到值班记录页
+            _currentAlarms = []; // 清空，避免残留数据导致再次误判有新火警
             navigate('duty');
+            await loadRemoteData();
+            resetFireModalButton();
+            if (msg) msg.textContent = '';
         }
 
         function openFireModal() {
-            showFireModal(_currentAlarms);
+            // 优先用最新未确认缓存（避免打开时展示已确认的旧数据）
+            const list = (_pendingAlarmsCache && _pendingAlarmsCache.length) ? _pendingAlarmsCache : _currentAlarms;
+            showFireModal(list);
         }
 
         // ================================================================
@@ -4076,14 +4901,19 @@
                 // 用远程数据覆盖内置数据
                 if (json.duty       && json.duty.length)       { dutyData.length=0;       json.duty.forEach(r=>dutyData.push(r)); }
                 if (json.fault      && json.fault.length)      { faultData.length=0;      json.fault.forEach(r=>faultData.push(r)); }
+                // 新格式故障数据（来自天泽智联）
+                if (json.fault && json.fault.length && typeof json.fault[0] === 'object' && json.fault[0].id) {
+                    renderTianzeFaults(json.fault);
+                }
                 if (json.record     && json.record.length)     { recordData.length=0;     json.record.forEach(r=>recordData.push(r)); }
                 if (json.testRecord && json.testRecord.length) { testRecordData.length=0; json.testRecord.forEach(r=>testRecordData.push(r)); }
                 if (json.training   && json.training.length)   { trainingData.length=0;   json.training.forEach(r=>trainingData.push(r)); }
-                if (json.assessment && json.assessment.length) { assessmentData.length=0; json.assessment.forEach(r=>assessmentData.push(r)); }
+                // 飞书保养计划同步数据
+                if (json.maintainPlan && json.maintainPlan.length) { renderFeishuMaintainPlan(json.maintainPlan); }
 
                 // 重新渲染所有页面
                 renderDuty(); renderFault(); renderRecord();
-                renderTestRecord(); renderTraining(); renderAssessment();
+                renderTestRecord(); renderTraining();
                 renderDashboard(); refreshCharts();
 
                 // 显示更新时间
@@ -4108,17 +4938,64 @@
                     renderAlarmHistory(json.alarm_history);
                 }
 
+                // 渲染设施巡查看板
+                if (json.facilityInspections) {
+                    renderFacilityBoard(json.facilityInspections);
+                }
+
+                // 渲染防火巡查月度看板
+                if (json.fireInspections) {
+                    renderFireBoard(json.fireInspections);
+                }
+
                 // 渲染保养任务下发记录
                 if (json.plan_dispatch_log) {
                     renderPlanDispatchLog(json.plan_dispatch_log);
                 }
 
-                // 检查是否有天泽智联火警数据，有则弹窗
-                if (json.tianze_alarms && json.tianze_alarms.length > 0) {
-                    const newCount = json.tianze_new_count || 0;
-                    if (newCount > 0) {
-                        // 有新增火警，延迟1秒弹窗（等页面渲染完毕）
-                        setTimeout(() => showFireModal(json.tianze_alarms.slice(0, 10)), 1000);
+                // 火警弹窗判断：只对"未确认"的报警弹窗（含噪点过滤）——飞书/值班页确认过的不再弹
+                // 注意：不再依赖 tianze_new_count（该计数会被数据同步重置导致重复提醒），
+                //      改为以 pending 状态为准 + 批次指纹防抖
+                const pendingAlarms = getPendingAlarms(json.tianze_alarms);
+                _pendingAlarmsCache = pendingAlarms;
+
+                // 弹窗若正在展示：剔除已被确认的条目；全部确认完则自动关闭弹窗
+                const modalEl = document.getElementById('fireModal');
+                if (modalEl && modalEl.classList.contains('show')) {
+                    const stillPending = getPendingAlarms(_currentAlarms).filter(a =>
+                        pendingAlarms.some(p => alarmKey(p) === alarmKey(a)));
+                    if (stillPending.length === 0) {
+                        modalEl.classList.remove('show');
+                        _currentAlarms = [];
+                    } else if (stillPending.length !== _currentAlarms.length) {
+                        showFireModal(stillPending, true);   // 列表有变化 → 静默刷新弹窗内容（不重复响铃）
+                    }
+                }
+
+                // 角标：有待确认的才显示
+                const badgeEl = document.getElementById('fireBadge');
+                const badgeTextEl = document.getElementById('fireBadgeText');
+                if (pendingAlarms.length > 0) {
+                    if (badgeEl && !document.getElementById('fireModal').classList.contains('show')) {
+                        badgeEl.classList.add('show');
+                        if (badgeTextEl) badgeTextEl.textContent = `${pendingAlarms.length} 条火警待确认`;
+                    }
+                } else if (badgeEl) {
+                    badgeEl.classList.remove('show');   // 全部确认后角标自动消失
+                }
+
+                if (pendingAlarms.length > 0) {
+                    // 只提示"本次会话还未提示过"的报警；新报警出现才再弹（同一批不重复打扰）
+                    const fresh = pendingAlarms.filter(a => !_seenAlarmKeys.has(alarmKey(a)));
+                    if (fresh.length > 0) {
+                        fresh.forEach(a => _seenAlarmKeys.add(alarmKey(a)));  // 立即标记，防止重复调度
+                        // 延迟1秒弹窗（等页面渲染完毕）；延迟期间状态可能已变
+                        //（如飞书确认跳转/自动刷新已同步）→ 回调里用最新缓存复核，避免"已确认还弹窗"
+                        setTimeout(() => {
+                            const latest = _pendingAlarmsCache || [];
+                            const alive = fresh.filter(a => latest.some(p => alarmKey(p) === alarmKey(a)));
+                            if (alive.length > 0) showFireModal(alive);
+                        }, 1000);
                     }
                 }
 
@@ -4126,6 +5003,22 @@
                 // 加载失败无提示，静默使用内置示例数据
                 console.log('ℹ️ 未找到 data.json，使用内置示例数据');
             }
+        }
+
+        // ================================================================
+        // 定时自动刷新（每 60 秒）
+        // 目的：飞书卡片确认后，已打开的网页能自动同步状态（角标消失/弹窗收敛）；
+        //      新报警出现时也会自动弹出提醒
+        // ================================================================
+        let _autoRefreshTimer = null;
+        function startAutoRefresh() {
+            if (_autoRefreshTimer) return;
+            _autoRefreshTimer = setInterval(() => {
+                // 弹窗正在展示时不打扰（等用户操作完再同步），避免刷新打断确认
+                const modalEl = document.getElementById('fireModal');
+                if (modalEl && modalEl.classList.contains('show')) return;
+                loadRemoteData();
+            }, 60 * 1000);
         }
 
         // ================================================================
@@ -4178,6 +5071,8 @@
             if (planBtn) planBtn.style.display = show ? 'inline-block' : 'none';
             // 同步刷新技能鉴定管理员按钮
             renderIdentify();
+            // 同步刷新火警确认按钮（管理员登录/退出时重新渲染）
+            renderAlarmHistory();
         }
 
         function adminLogout() {
@@ -4203,7 +5098,6 @@
             '保养记录':    'record',
             '测试记录':    'testRecord',
             '培训记录':    'training',
-            '月度考核':    'assessment',
         };
 
         // 将 Sheet 的二维数组（含表头）转成对象数组
@@ -4247,32 +5141,41 @@
                     rows.forEach(r => trainingData.push(r));
                     renderTraining();
                     break;
-                case 'assessment':
-                    assessmentData.length = 0;
-                    rows.forEach(r => assessmentData.push(r));
-                    renderAssessment();
-                    break;
             }
             return true;
         }
 
         // 刷新图表数据（根据最新 dutyData / faultData）
         function refreshCharts() {
-            // 重新统计月度故障趋势
-            const monthFault = [0,0,0,0,0];
-            const monthAlarm = [0,0,0,0,0];
-            dutyData.forEach(r => {
-                const d = String(r[1] || '');
-                const m = parseInt(d.split('-')[1]) - 1;
-                if (m >= 0 && m < 5) {
-                    if (r[6] === '故障') monthFault[m]++;
-                    if (r[6] === '火警') monthAlarm[m]++;
-                }
-            });
+            // 重新统计月度故障趋势（动态最近6个月）
+            const now3 = new Date();
+            const trendMonths = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now3.getFullYear(), now3.getMonth() - i, 1);
+                trendMonths.push({ label: `${d.getMonth()+1}月`, year: d.getFullYear(), month: d.getMonth()+1 });
+            }
+            const monthFault = trendMonths.map(({year, month}) =>
+                dutyData.filter(r => {
+                    const t = r[1] || '';
+                    return (t.includes(`${year}/${month}/`) || t.includes(`${year}/${String(month).padStart(2,'0')}/`))
+                        && (r[6] === '值机故障' || r[6] === '反馈');
+                }).length
+            );
+            const monthAlarm = trendMonths.map(({year, month}) =>
+                dutyData.filter(r => {
+                    const t = r[1] || '';
+                    return (t.includes(`${year}/${month}/`) || t.includes(`${year}/${String(month).padStart(2,'0')}/`))
+                        && r[6] === '火警';
+                }).length
+            );
             if (charts.trend) {
+                charts.trend.data.labels   = trendMonths.map(m => m.label);
                 charts.trend.data.datasets[0].data = monthFault;
                 charts.trend.data.datasets[1].data = monthAlarm;
                 charts.trend.update();
+                // 更新图表标题
+                const trendTitle = document.querySelector('#trendChart')?.closest('.chart-box')?.querySelector('h4');
+                if (trendTitle) trendTitle.textContent = `📊 月度故障趋势 (${trendMonths[0].label}-${trendMonths[5].label})`;
             }
             // 重新统计故障类型
             const typeCnt = { '器件故障': 0, '人为原因': 0, '环境因素': 0, '其他': 0 };
@@ -4360,37 +5263,382 @@
         // ================================================================
 
         function init() {
-            renderDuty();
-            renderFault();
-            renderFacility();
-            renderFire();
-            renderPlan();
-            renderRecord();
-            renderTestPlan();
-            renderTestRecord();
-            renderSkill();
-            renderIdentify();
-            renderTraining();
-            renderAssessment();
-            renderHeat();
-            renderDashboard();
-            renderMeetings();
-            initCharts();
-            initImport();
-            checkAdminSession();
-            loadRemoteData();
-            initSplash(); // 开屏弹窗
-            renderDeviceDocs(); // 设备清单文档卡片
-            renderExamBank();   // 实操考核题库
-            handleFireConfirm(); // 处理飞书确认跳转
-            handleReportAction(); // 处理保养任务回报跳转
-            renderPlanReports();  // 渲染回报历史
+            // 各步骤独立容错：某一步失败（如图表库未加载）不会中断整个页面初始化
+            const safeInit = (name, fn) => {
+                try { fn(); } catch (e) { console.warn('初始化步骤跳过:', name, e && e.message); }
+            };
+
+            safeInit('renderDuty',        renderDuty);
+            safeInit('renderFault',       renderFault);
+            safeInit('renderFacility',    renderFacility);
+            safeInit('renderFire',        renderFire);
+            safeInit('renderPlan',        renderPlan);
+            safeInit('renderRecord',      renderRecord);
+            safeInit('renderTestPlan',    renderTestPlan);
+            safeInit('renderTestRecord',  renderTestRecord);
+            safeInit('renderSkill',       renderSkill);
+            safeInit('renderIdentify',    renderIdentify);
+            safeInit('renderTraining',    renderTraining);
+            safeInit('renderDashboard',   renderDashboard);
+            safeInit('initCharts',        initCharts);
+            safeInit('initImport',        initImport);
+            safeInit('checkAdminSession', checkAdminSession);
+            safeInit('loadRemoteData',    loadRemoteData);
+            safeInit('initWelcomeScreen', initWelcomeScreen); // 全屏欢迎开屏页
+            safeInit('initSplash',        initSplash); // 开屏弹窗
+            safeInit('renderDeviceDocs',  renderDeviceDocs); // 设备清单文档卡片
+            safeInit('renderExamBank',    renderExamBank);   // 实操考核题库
+            safeInit('initPanorama',      initPanoramaViewport); // 全景图滚动视窗
+            const _pv0 = document.getElementById('panoramaViewport');
+            if (_pv0) _pv0.classList.add('show'); // 初始页是仪表板
+            safeInit('handleFireConfirm', handleFireConfirm); // 处理飞书确认跳转
+            safeInit('handleReportAction',handleReportAction); // 处理保养任务回报跳转
+            safeInit('renderPlanReports', renderPlanReports);  // 渲染回报历史
+            safeInit('startAutoRefresh',  startAutoRefresh);   // 定时自动刷新（飞书确认后网页自动同步）
 
             // 默认显示仪表板
-            navigate('dashboard');
+            safeInit('navigate', () => navigate('dashboard'));
         }
 
         document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+    <!-- 理论考试题库 -->
+    <script src="exam_questions.js"></script>
+    <!-- 理论考试页面 HTML（动态插入） -->
+    <script>
+    (function() {
+        // 插入页面HTML
+        const examPageHtml = `
+        <div class="page" id="page-exam">
+            <div class="module-desc">📝 中级消防设施操作员理论考试 · 单选100题 · 多选40题 · 判断60题</div>
+
+            <!-- 考试入口 -->
+            <div id="examEntry" class="card" style="text-align:center;padding:40px 20px;">
+                <div style="font-size:48px;margin-bottom:16px;">📝</div>
+                <h2 style="margin-bottom:8px;color:#0b2b5c;">理论考试系统</h2>
+                <p style="color:#666;margin-bottom:24px;">题库共 200 道题：单选题100道 · 多选题40道 · 判断题60道</p>
+                <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:24px;">
+                    <div style="background:#e8f4fd;border-radius:8px;padding:16px 24px;min-width:120px;">
+                        <div style="font-size:28px;font-weight:700;color:#0b2b5c;">100</div>
+                        <div style="color:#666;font-size:13px;">单选题</div>
+                    </div>
+                    <div style="background:#fff3e0;border-radius:8px;padding:16px 24px;min-width:120px;">
+                        <div style="font-size:28px;font-weight:700;color:#e67e22;">40</div>
+                        <div style="color:#666;font-size:13px;">多选题</div>
+                    </div>
+                    <div style="background:#e8f5e9;border-radius:8px;padding:16px 24px;min-width:120px;">
+                        <div style="font-size:28px;font-weight:700;color:#27ae60;">60</div>
+                        <div style="color:#666;font-size:13px;">判断题</div>
+                    </div>
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="font-size:14px;color:#555;">选择考试模式：</label><br><br>
+                    <label style="margin-right:20px;cursor:pointer;">
+                        <input type="radio" name="examMode" value="full" checked> 全题考试（200题 · 90分钟）
+                    </label>
+                    <label style="margin-right:20px;cursor:pointer;">
+                        <input type="radio" name="examMode" value="single"> 仅单选题（100题 · 40分钟）
+                    </label>
+                    <label style="cursor:pointer;">
+                        <input type="radio" name="examMode" value="practice"> 练习模式（随机50题 · 不计时）
+                    </label>
+                </div>
+                <button onclick="startExam()" style="background:#0b2b5c;color:#fff;border:none;padding:14px 48px;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;">🚀 开始考试</button>
+            </div>
+
+            <!-- 答题区域 -->
+            <div id="examArea" style="display:none;">
+                <!-- 顶部进度条 -->
+                <div class="card" style="padding:16px 20px;margin-bottom:16px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                        <div style="font-weight:600;color:#0b2b5c;" id="examProgress">第 1 题 / 共 200 题</div>
+                        <div style="display:flex;gap:16px;align-items:center;">
+                            <span id="examTimer" style="font-size:18px;font-weight:700;color:#c0392b;">⏱ 90:00</span>
+                            <button onclick="submitExam()" style="background:#c0392b;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px;">提交试卷</button>
+                        </div>
+                    </div>
+                    <div style="margin-top:8px;background:#eee;border-radius:4px;height:6px;">
+                        <div id="examProgressBar" style="background:#0b2b5c;height:6px;border-radius:4px;width:0%;transition:width 0.3s;"></div>
+                    </div>
+                </div>
+
+                <!-- 题目卡片 -->
+                <div class="card" id="questionCard" style="padding:24px;margin-bottom:16px;">
+                    <div id="questionType" style="font-size:12px;color:#fff;background:#0b2b5c;display:inline-block;padding:2px 10px;border-radius:20px;margin-bottom:12px;"></div>
+                    <div id="questionText" style="font-size:16px;font-weight:500;line-height:1.7;margin-bottom:20px;color:#1a2a3a;"></div>
+                    <div id="questionOpts"></div>
+                </div>
+
+                <!-- 上下题按钮 -->
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <button id="prevBtn" onclick="prevQuestion()" style="background:#dce3ed;color:#1a2a3a;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;">← 上一题</button>
+                    <div id="answerStatus" style="font-size:13px;color:#888;"></div>
+                    <button id="nextBtn" onclick="nextQuestion()" style="background:#0b2b5c;color:#fff;border:none;padding:10px 24px;border-radius:6px;cursor:pointer;font-size:14px;">下一题 →</button>
+                </div>
+
+                <!-- 题目导航 -->
+                <div class="card" style="margin-top:16px;padding:16px 20px;">
+                    <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:10px;">题目导航（点击跳转）：</div>
+                    <div id="questionNav" style="display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;"></div>
+                </div>
+            </div>
+
+            <!-- 成绩页面 -->
+            <div id="examResult" style="display:none;">
+                <div class="card" style="text-align:center;padding:40px 20px;">
+                    <div id="resultEmoji" style="font-size:56px;margin-bottom:16px;">🎉</div>
+                    <h2 id="resultTitle" style="margin-bottom:8px;">考试完成</h2>
+                    <div id="resultScore" style="font-size:48px;font-weight:700;color:#0b2b5c;margin:16px 0;"></div>
+                    <div id="resultDetail" style="color:#666;margin-bottom:24px;"></div>
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                        <button onclick="reviewExam()" style="background:#0b2b5c;color:#fff;border:none;padding:12px 32px;border-radius:8px;font-size:14px;cursor:pointer;">📋 查看解析</button>
+                        <button onclick="restartExam()" style="background:#e67e22;color:#fff;border:none;padding:12px 32px;border-radius:8px;font-size:14px;cursor:pointer;">🔄 重新考试</button>
+                    </div>
+                </div>
+                <!-- 错题解析 -->
+                <div id="wrongList" class="card" style="margin-top:16px;padding:20px;display:none;">
+                    <h3 style="margin-bottom:16px;color:#c0392b;">❌ 错题解析</h3>
+                    <div id="wrongItems"></div>
+                </div>
+            </div>
+        </div>`;
+
+        document.querySelector('main') && document.querySelector('main').insertAdjacentHTML('beforeend', examPageHtml);
+
+        // ================================================================
+        // 考试逻辑
+        // ================================================================
+        let examQuestions = [];
+        let userAnswers   = {};
+        let currentIdx    = 0;
+        let timerInterval = null;
+        let timeLeft      = 0;
+        let examMode      = 'full';
+
+        window.startExam = function() {
+            if (typeof EXAM_QUESTIONS === 'undefined') { alert('题库加载失败，请刷新页面重试'); return; }
+            examMode = document.querySelector('input[name="examMode"]:checked')?.value || 'full';
+
+            let questions = [];
+            if (examMode === 'full') {
+                questions = [
+                    ...EXAM_QUESTIONS.single.map(q => ({...q, _type:'单选题'})),
+                    ...EXAM_QUESTIONS.multi.map(q => ({...q, _type:'多选题'})),
+                    ...EXAM_QUESTIONS.judge.map(q => ({...q, _type:'判断题'}))
+                ];
+                timeLeft = 90 * 60;
+            } else if (examMode === 'single') {
+                questions = EXAM_QUESTIONS.single.map(q => ({...q, _type:'单选题'}));
+                timeLeft = 40 * 60;
+            } else {
+                // 练习模式：随机50题
+                const all = [
+                    ...EXAM_QUESTIONS.single.map(q => ({...q, _type:'单选题'})),
+                    ...EXAM_QUESTIONS.multi.map(q => ({...q, _type:'多选题'})),
+                    ...EXAM_QUESTIONS.judge.map(q => ({...q, _type:'判断题'}))
+                ];
+                questions = all.sort(() => Math.random() - 0.5).slice(0, 50);
+                timeLeft = 0; // 不计时
+            }
+
+            examQuestions = questions;
+            userAnswers   = {};
+            currentIdx    = 0;
+
+            document.getElementById('examEntry').style.display = 'none';
+            document.getElementById('examResult').style.display = 'none';
+            document.getElementById('examArea').style.display = '';
+
+            renderQuestion(0);
+            renderNav();
+
+            if (examMode !== 'practice') {
+                startTimer();
+            } else {
+                document.getElementById('examTimer').textContent = '练习模式';
+            }
+        };
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) { clearInterval(timerInterval); submitExam(); }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+            document.getElementById('examTimer').textContent = '⏱ ' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+            document.getElementById('examTimer').style.color = timeLeft < 300 ? '#c0392b' : '#0b2b5c';
+        }
+
+        function renderQuestion(idx) {
+            const q = examQuestions[idx];
+            if (!q) return;
+            currentIdx = idx;
+
+            const total = examQuestions.length;
+            document.getElementById('examProgress').textContent = '第 ' + (idx+1) + ' 题 / 共 ' + total + ' 题';
+            document.getElementById('examProgressBar').style.width = ((idx+1)/total*100) + '%';
+            document.getElementById('questionType').textContent = q._type;
+            document.getElementById('questionType').style.background = q._type==='单选题'?'#0b2b5c':q._type==='多选题'?'#e67e22':'#27ae60';
+            document.getElementById('questionText').textContent = (idx+1) + '. ' + q.q;
+
+            const optsEl = document.getElementById('questionOpts');
+
+            if (q._type === '判断题') {
+                const cur = userAnswers[q.id];
+                optsEl.innerHTML = ['正确','错误'].map((opt, oi) => {
+                    const val = oi === 0;
+                    const sel = cur === val;
+                    return '<div onclick="selectJudge(this,'+val+')" style="display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:8px;border-radius:8px;cursor:pointer;border:2px solid '+(sel?'#27ae60':'#dce3ed')+';background:'+(sel?'#e8f5e9':'#fff')+';" data-val="'+val+'">'
+                        +'<div style="width:20px;height:20px;border-radius:50%;border:2px solid '+(sel?'#27ae60':'#aaa')+';background:'+(sel?'#27ae60':'#fff')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+                        +(sel?'<div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div>':'')+'</div>'
+                        +'<span style="font-size:15px;">'+(oi===0?'✅':'❌')+' '+opt+'</span></div>';
+                }).join('');
+            } else if (q._type === '单选题') {
+                const cur = userAnswers[q.id] || '';
+                optsEl.innerHTML = q.opts.map((opt, oi) => {
+                    const letter = String.fromCharCode(65+oi);
+                    const sel = cur === letter;
+                    return '<div onclick="selectSingle(this,\''+letter+'\')" style="display:flex;align-items:flex-start;gap:10px;padding:12px 16px;margin-bottom:8px;border-radius:8px;cursor:pointer;border:2px solid '+(sel?'#0b2b5c':'#dce3ed')+';background:'+(sel?'#e8f4fd':'#fff')+';" data-val="'+letter+'">'
+                        +'<div style="width:20px;height:20px;border-radius:50%;border:2px solid '+(sel?'#0b2b5c':'#aaa')+';background:'+(sel?'#0b2b5c':'#fff')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+                        +(sel?'<div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div>':'')+'</div>'
+                        +'<span style="font-size:15px;line-height:1.5;">'+opt+'</span></div>';
+                }).join('');
+            } else {
+                // 多选题
+                const cur = userAnswers[q.id] || [];
+                optsEl.innerHTML = q.opts.map((opt, oi) => {
+                    const letter = String.fromCharCode(65+oi);
+                    const sel = cur.includes(letter);
+                    return '<div onclick="selectMulti(this,\''+letter+'\')" style="display:flex;align-items:flex-start;gap:10px;padding:12px 16px;margin-bottom:8px;border-radius:8px;cursor:pointer;border:2px solid '+(sel?'#e67e22':'#dce3ed')+';background:'+(sel?'#fff3e0':'#fff')+';" data-val="'+letter+'">'
+                        +'<div style="width:20px;height:20px;border-radius:4px;border:2px solid '+(sel?'#e67e22':'#aaa')+';background:'+(sel?'#e67e22':'#fff')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+                        +(sel?'<span style="color:#fff;font-size:12px;font-weight:700;">✓</span>':'')+'</div>'
+                        +'<span style="font-size:15px;line-height:1.5;">'+opt+'</span></div>';
+                }).join('');
+            }
+
+            const answered = userAnswers[q.id] !== undefined && userAnswers[q.id] !== '' &&
+                !(Array.isArray(userAnswers[q.id]) && userAnswers[q.id].length===0);
+            document.getElementById('answerStatus').textContent = answered ? '✅ 已作答' : '⭕ 未作答';
+            document.getElementById('prevBtn').disabled = idx === 0;
+            document.getElementById('nextBtn').textContent = idx === examQuestions.length-1 ? '提交试卷 →' : '下一题 →';
+            renderNav();
+        }
+
+        window.selectSingle = function(el, val) {
+            const q = examQuestions[currentIdx];
+            userAnswers[q.id] = val;
+            renderQuestion(currentIdx);
+        };
+        window.selectMulti = function(el, val) {
+            const q = examQuestions[currentIdx];
+            if (!userAnswers[q.id]) userAnswers[q.id] = [];
+            const idx = userAnswers[q.id].indexOf(val);
+            if (idx >= 0) userAnswers[q.id].splice(idx,1); else userAnswers[q.id].push(val);
+            userAnswers[q.id].sort();
+            renderQuestion(currentIdx);
+        };
+        window.selectJudge = function(el, val) {
+            const q = examQuestions[currentIdx];
+            userAnswers[q.id] = val;
+            renderQuestion(currentIdx);
+        };
+        window.prevQuestion = function() { if (currentIdx > 0) renderQuestion(currentIdx-1); };
+        window.nextQuestion = function() {
+            if (currentIdx < examQuestions.length-1) renderQuestion(currentIdx+1);
+            else submitExam();
+        };
+
+        function renderNav() {
+            const nav = document.getElementById('questionNav');
+            if (!nav) return;
+            nav.innerHTML = examQuestions.map((q,i) => {
+                const answered = userAnswers[q.id] !== undefined && userAnswers[q.id] !== '' &&
+                    !(Array.isArray(userAnswers[q.id]) && userAnswers[q.id].length===0);
+                const cur = i === currentIdx;
+                const bg = cur ? '#0b2b5c' : answered ? '#27ae60' : '#dce3ed';
+                const col = (cur || answered) ? '#fff' : '#555';
+                return '<div onclick="renderQuestion('+i+')" style="width:32px;height:32px;border-radius:6px;background:'+bg+';color:'+col+';display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:600;">'+(i+1)+'</div>';
+            }).join('');
+        }
+
+        window.submitExam = function() {
+            clearInterval(timerInterval);
+            const total = examQuestions.length;
+            let correct = 0;
+            const wrongs = [];
+
+            examQuestions.forEach(q => {
+                let isCorrect = false;
+                const ua = userAnswers[q.id];
+                if (q._type === '判断题') {
+                    isCorrect = ua === q.ans;
+                } else if (q._type === '多选题') {
+                    const uaS = (ua||[]).slice().sort().join(',');
+                    const anS = q.ans.slice().sort().join(',');
+                    isCorrect = uaS === anS;
+                } else {
+                    isCorrect = ua === q.ans;
+                }
+                if (isCorrect) correct++;
+                else wrongs.push({q, ua});
+            });
+
+            const score = Math.round(correct / total * 100);
+            document.getElementById('examArea').style.display = 'none';
+            document.getElementById('examResult').style.display = '';
+
+            let emoji = score >= 80 ? '🎉' : score >= 60 ? '😊' : '😢';
+            let title = score >= 80 ? '优秀！考试通过' : score >= 60 ? '合格！继续加油' : '未通过，建议复习';
+            document.getElementById('resultEmoji').textContent = emoji;
+            document.getElementById('resultTitle').textContent = title;
+            document.getElementById('resultScore').textContent = score + ' 分';
+            document.getElementById('resultScore').style.color = score >= 80 ? '#27ae60' : score >= 60 ? '#e67e22' : '#c0392b';
+            document.getElementById('resultDetail').innerHTML = '答对 <strong>'+correct+'</strong> 题 / 共 '+total+' 题 · 正确率 '+score+'%';
+
+            // 存储错题用于解析
+            window._examWrongs = wrongs;
+            document.getElementById('wrongList').style.display = wrongs.length > 0 ? 'none' : 'none';
+        };
+
+        window.reviewExam = function() {
+            const wrongs = window._examWrongs || [];
+            const el = document.getElementById('wrongList');
+            const items = document.getElementById('wrongItems');
+            if (wrongs.length === 0) { el.style.display = ''; items.innerHTML = '<p style="color:#27ae60">🎉 全部答对！</p>'; return; }
+            el.style.display = '';
+            items.innerHTML = wrongs.map((w, i) => {
+                const q = w.q;
+                let uaText = '';
+                if (q._type === '判断题') uaText = w.ua === undefined ? '未作答' : (w.ua ? '正确' : '错误');
+                else if (q._type === '多选题') uaText = w.ua && w.ua.length ? w.ua.join('、') : '未作答';
+                else uaText = w.ua || '未作答';
+                let ansText = '';
+                if (q._type === '判断题') ansText = q.ans ? '正确' : '错误';
+                else if (q._type === '多选题') ansText = q.ans.join('、');
+                else ansText = q.ans;
+                return '<div style="border-left:3px solid #c0392b;padding:12px 16px;margin-bottom:12px;background:#fff9f9;border-radius:0 8px 8px 0;">'
+                    +'<div style="font-size:12px;color:#fff;background:#c0392b;display:inline-block;padding:1px 8px;border-radius:10px;margin-bottom:8px;">'+q._type+'</div>'
+                    +'<div style="font-size:14px;font-weight:500;margin-bottom:8px;line-height:1.6;">'+(i+1)+'. '+q.q+'</div>'
+                    +'<div style="font-size:13px;color:#c0392b;margin-bottom:4px;">你的答案：'+uaText+'</div>'
+                    +'<div style="font-size:13px;color:#27ae60;margin-bottom:6px;">正确答案：'+ansText+'</div>'
+                    +'<div style="font-size:13px;color:#666;background:#f5f5f5;padding:8px 10px;border-radius:6px;">💡 '+q.exp+'</div>'
+                    +'</div>';
+            }).join('');
+        };
+
+        window.restartExam = function() {
+            document.getElementById('examResult').style.display = 'none';
+            document.getElementById('wrongList').style.display = 'none';
+            document.getElementById('examEntry').style.display = '';
+        };
+    })();
     </script>
 
 </body>
