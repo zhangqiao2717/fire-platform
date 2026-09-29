@@ -2324,6 +2324,7 @@
             <div class="doc-modal-header">
                 <h3 id="docModalTitle">📄 文档名称</h3>
                 <div class="header-btns" id="docModalHeaderBtns">
+                    <a id="docDownloadBtn" href="#" class="feishu-btn" style="display:none;">⬇️ 下载文件</a>
                     <a id="docFeishuBtn" href="#" target="_blank" class="feishu-btn" style="display:none;">🔗 在飞书中查看</a>
                     <button onclick="closeDocModal()">✕ 关闭</button>
                 </div>
@@ -2332,16 +2333,20 @@
                 <div style="text-align:center;padding:60px 0;color:var(--text-light);">
                     <div style="font-size:40px;margin-bottom:12px;">📂</div>
                     <div style="font-size:15px;">尚未导入文档内容</div>
-                    <div style="font-size:13px;margin-top:8px;">请管理员导入 Excel 文件或绑定飞书文档链接</div>
+                    <div style="font-size:13px;margin-top:8px;">请管理员在本机浏览器中导入原始 Excel 文件或绑定飞书文档链接</div>
                 </div>
             </div>
             <div class="doc-modal-footer" id="docModalFooter">
                 <div class="footer-row">
-                    <label>📂 导入 Excel：</label>
+                    <label>📂 上传或替换文件：</label>
                     <div class="doc-drop-zone" id="docDropZone">
-                        拖入 .xlsx 文件或点击选择
+                        拖入 Excel 文件，或点击选择
                         <input type="file" id="docFileInput" accept=".xlsx,.xls">
                     </div>
+                </div>
+                <div class="footer-row">
+                    <span id="docUploadStatus" style="font-size:12px;color:var(--text-light);flex:1;">支持 Excel 原始文件，仅保存于本机浏览器</span>
+                    <button class="footer-btn" id="docDeleteBtn" type="button" onclick="deleteCurrentDeviceDoc()" style="display:none;background:#c0392b;color:#fff;">🗑 删除文件</button>
                 </div>
                 <div class="footer-row">
                     <label>🔗 飞书链接：</label>
@@ -2384,8 +2389,8 @@
         <div class="admin-modal">
             <div class="modal-icon">🔐</div>
             <h3>管理员验证</h3>
-            <p>请输入密码以进入数据导入模式</p>
-            <input type="password" id="adminPwdInput" placeholder="请输入密码" maxlength="20"
+            <p>请输入密码以进入设备清单材料管理模式</p>
+            <input type="password" id="adminPwdInput" placeholder="请输入密码" autocomplete="current-password" maxlength="20"
                 onkeydown="if(event.key==='Enter')checkAdminPwd()">
             <div class="modal-err" id="modalErr"></div>
             <button class="modal-btn" onclick="checkAdminPwd()">确认登录</button>
@@ -3461,7 +3466,7 @@
             _currentExamId = examId;
             const data  = loadExamData();
             const saved = data[examId] || {};
-            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
+            const isAdmin = false; // 右下角钥匙仅授予设备清单材料管理权限
 
             document.getElementById('examModalTitle').textContent =
                 `🔥 第${EXAM_BANK.indexOf(item)+1}题：${item.name}`;
@@ -3556,7 +3561,7 @@
         function renderIdentify() {
             const tbody = document.getElementById('identifyTableBody');
             const data  = loadExamData();
-            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
+            const isAdmin = false; // 右下角钥匙仅授予设备清单材料管理权限
 
             // 显示管理员操作按钮
             const adminActions = document.getElementById('identifyAdminActions');
@@ -3603,7 +3608,7 @@
             _currentExamId = examId;
             const data  = loadExamData();
             const saved = data[examId] || {};
-            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
+            const isAdmin = false; // 右下角钥匙仅授予设备清单材料管理权限
 
             // 标题
             document.getElementById('examModalTitle').textContent =
@@ -4127,7 +4132,7 @@
             const tbody  = document.getElementById('planDispatchLog');
             const subEl  = document.getElementById('planDispatchSub');
             const btnEl  = document.getElementById('planDispatchBtn');
-            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
+            const isAdmin = false; // 右下角钥匙仅授予设备清单材料管理权限
 
             // 管理员可见「立即下发」按钮
             if (btnEl) btnEl.style.display = isAdmin ? 'inline-block' : 'none';
@@ -4155,10 +4160,9 @@
         }
 
         // ================================================================
-        // 设备清单文档管理模块
+        // 设备清单文档管理模块（原始文件仅保存于当前浏览器）
         // ================================================================
 
-        // 12 个文档版块名称
         const DOC_NAMES = [
             '泄漏电流报警排查专项',
             '北京基地消防切电、漏电统计',
@@ -4173,199 +4177,405 @@
             '外援引入全流程操作指南',
             '外援人员管理系统操作说明',
         ];
+        const DEVICE_DOCS_STORAGE_KEY = 'fire_device_docs';
+        const DEVICE_FILES_DB_NAME = 'fire_device_documents';
+        const DEVICE_FILES_STORE = 'device_documents';
+        let _deviceDocs = {};
+        let _currentDocName = '';
+        let _deviceFileDbPromise = null;
 
-        // 从 localStorage 读取文档数据
         function loadDeviceDocs() {
             try {
-                const raw = localStorage.getItem('fire_device_docs');
-                return raw ? JSON.parse(raw) : {};
-            } catch { return {}; }
+                const raw = localStorage.getItem(DEVICE_DOCS_STORAGE_KEY);
+                _deviceDocs = raw ? JSON.parse(raw) : {};
+            } catch (error) {
+                console.warn('读取本机设备清单失败：', error);
+                _deviceDocs = {};
+            }
+            renderDeviceDocs();
         }
 
-        // 保存文档数据到 localStorage
-        function saveDeviceDocs(docs) {
-            localStorage.setItem('fire_device_docs', JSON.stringify(docs));
+        function saveDeviceDocs() {
+            try {
+                localStorage.setItem(DEVICE_DOCS_STORAGE_KEY, JSON.stringify(_deviceDocs));
+                return true;
+            } catch (error) {
+                console.error('保存本机设备清单失败：', error);
+                alert('保存失败：浏览器本地存储空间不足。请删除不需要的本机材料后重试。');
+                return false;
+            }
         }
 
-        let _deviceDocs = loadDeviceDocs();  // 内存中的文档数据
-        let _currentDocName = '';             // 当前打开的文档名
+        function openDeviceFileDatabase() {
+            if (_deviceFileDbPromise) return _deviceFileDbPromise;
+            if (!window.indexedDB) return Promise.reject(new Error('当前浏览器不支持本机文件存储。'));
+            _deviceFileDbPromise = new Promise((resolve, reject) => {
+                const request = window.indexedDB.open(DEVICE_FILES_DB_NAME, 1);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains(DEVICE_FILES_STORE)) {
+                        db.createObjectStore(DEVICE_FILES_STORE, { keyPath: 'doc_key' });
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error || new Error('无法打开本机文件存储。'));
+            });
+            return _deviceFileDbPromise;
+        }
 
-        // 渲染文档卡片列表
+        async function getDeviceFile(docName) {
+            const db = await openDeviceFileDatabase();
+            return new Promise((resolve, reject) => {
+                const request = db.transaction(DEVICE_FILES_STORE, 'readonly')
+                    .objectStore(DEVICE_FILES_STORE).get(docName);
+                request.onsuccess = () => resolve(request.result || null);
+                request.onerror = () => reject(request.error || new Error('读取本机文件失败。'));
+            });
+        }
+
+        async function saveDeviceFile(docName, file) {
+            const db = await openDeviceFileDatabase();
+            const record = {
+                doc_key: docName,
+                file_name: file.name,
+                file_type: file.type || 'application/octet-stream',
+                file_size: file.size,
+                updated: new Date().toISOString(),
+                blob: file.slice(0, file.size, file.type || 'application/octet-stream')
+            };
+            return new Promise((resolve, reject) => {
+                const request = db.transaction(DEVICE_FILES_STORE, 'readwrite')
+                    .objectStore(DEVICE_FILES_STORE).put(record);
+                request.onsuccess = () => resolve(record);
+                request.onerror = () => reject(request.error || new Error('保存原始文件失败。'));
+            });
+        }
+
+        async function removeDeviceFile(docName) {
+            const db = await openDeviceFileDatabase();
+            return new Promise((resolve, reject) => {
+                const request = db.transaction(DEVICE_FILES_STORE, 'readwrite')
+                    .objectStore(DEVICE_FILES_STORE).delete(docName);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error || new Error('删除本机文件失败。'));
+            });
+        }
+
+        function blobToArrayBuffer(blob) {
+            if (blob.arrayBuffer) return blob.arrayBuffer();
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = event => resolve(event.target.result);
+                reader.onerror = () => reject(reader.error || new Error('读取文件失败。'));
+                reader.readAsArrayBuffer(blob);
+            });
+        }
+
+        function formatDeviceFileSize(bytes) {
+            if (!Number.isFinite(bytes) || bytes <= 0) return '';
+            return bytes >= 1024 * 1024
+                ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+                : `${Math.ceil(bytes / 1024)} KB`;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>'"]/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[char]));
+        }
+
+        function isDocAdmin() {
+            return sessionStorage.getItem('fire_admin_unlocked') === '1';
+        }
+
+        function setDocUploadStatus(message, isError = false) {
+            const el = document.getElementById('docUploadStatus');
+            if (!el) return;
+            el.textContent = message;
+            el.style.color = isError ? '#c0392b' : 'var(--text-light)';
+        }
+
+        function hasDeviceFile(doc) {
+            return Boolean(doc && (doc.has_file || (Array.isArray(doc.excel_data) && doc.excel_data.length)));
+        }
+
         function renderDeviceDocs() {
             const grid = document.getElementById('docGrid');
-            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
-            // 显示/隐藏管理员提示
+            if (!grid) return;
+            const isAdmin = isDocAdmin();
             const tip = document.getElementById('docAdminTip');
             if (tip) tip.style.display = isAdmin ? 'inline' : 'none';
 
             grid.innerHTML = DOC_NAMES.map(name => {
                 const doc = _deviceDocs[name] || {};
-                const hasExcel = doc.excel_data && doc.excel_data.length > 0;
-                const hasFeishu = !!doc.feishu_url;
-                const updated = doc.updated || '';
-
+                const hasFile = hasDeviceFile(doc);
+                const hasFeishu = Boolean(doc.feishu_url);
                 let tags = '';
-                if (hasExcel) tags += `<span class="doc-tag has-excel">✓ Excel</span>`;
-                if (hasFeishu) tags += `<span class="doc-tag has-feishu">🔗 飞书</span>`;
-                if (!hasExcel && !hasFeishu) tags += `<span class="doc-tag empty">未导入</span>`;
-
-                return `<div class="doc-card" onclick="openDocModal('${name.replace(/'/g, "\\'")}')">
-                    <div class="doc-name">📄 ${name}</div>
-                    <div class="doc-meta">
-                        ${tags}
-                        ${updated ? `<span style="color:var(--text-light);font-size:10px;">更新: ${updated}</span>` : ''}
-                    </div>
+                if (hasFile) tags += '<span class="doc-tag has-excel">✓ EXCEL</span>';
+                if (hasFeishu) tags += '<span class="doc-tag has-feishu">🔗 飞书</span>';
+                if (!hasFile && !hasFeishu) tags += '<span class="doc-tag empty">暂未导入</span>';
+                const meta = [doc.file_name, formatDeviceFileSize(doc.file_size), doc.updated ? `更新: ${doc.updated}` : '']
+                    .filter(Boolean).map(escapeHtml).join(' · ');
+                const encodedName = encodeURIComponent(name);
+                return `<div class="doc-card" data-doc-name="${encodedName}">
+                    <div class="doc-name">📄 ${escapeHtml(name)}</div>
+                    <div class="doc-meta">${tags}${meta ? `<span>${meta}</span>` : ''}</div>
                     <div class="doc-actions ${isAdmin ? 'admin-visible' : ''}">
-                        <button class="doc-btn primary" onclick="event.stopPropagation();openDocModal('${name.replace(/'/g, "\\'")}')">📂 导入/查看</button>
-                        ${hasFeishu ? `<a class="doc-btn" href="${doc.feishu_url}" target="_blank" onclick="event.stopPropagation()">🔗 飞书</a>` : ''}
+                        <button class="doc-btn primary" type="button" data-open-doc="${encodedName}">${isAdmin ? '📂 管理/查看' : '👁 查看内容'}</button>
                     </div>
                 </div>`;
             }).join('');
+
+            grid.querySelectorAll('[data-doc-name], [data-open-doc]').forEach(el => {
+                el.addEventListener('click', event => {
+                    event.stopPropagation();
+                    openDocModal(decodeURIComponent(el.dataset.openDoc || el.dataset.docName));
+                });
+            });
         }
 
-        // 打开文档查看弹窗
-        function openDocModal(name) {
+        function renderExcelPreview(body, rows) {
+            if (!rows.length) {
+                body.innerHTML = '<div style="text-align:center;padding:60px 0;color:var(--text-light);">Excel 中没有可预览的内容。</div>';
+                return;
+            }
+            const tableWrap = document.createElement('div');
+            tableWrap.className = 'table-wrap';
+            const table = document.createElement('table');
+            const thead = table.createTHead().insertRow();
+            rows[0].forEach(value => {
+                const cell = document.createElement('th');
+                cell.textContent = String(value ?? '');
+                thead.appendChild(cell);
+            });
+            const tbody = table.createTBody();
+            rows.slice(1, 501).forEach(row => {
+                const tr = tbody.insertRow();
+                row.forEach(value => {
+                    const cell = tr.insertCell();
+                    cell.textContent = String(value ?? '');
+                });
+            });
+            tableWrap.appendChild(table);
+            body.appendChild(tableWrap);
+        }
+
+        async function renderStoredFilePreview(body, docName, doc) {
+            const loading = document.createElement('div');
+            loading.style.cssText = 'padding:24px;color:var(--text-light);';
+            loading.textContent = '正在读取本机原始文件…';
+            body.appendChild(loading);
+            try {
+                const record = await getDeviceFile(docName);
+                if (_currentDocName !== docName) return;
+                if (!record?.blob) throw new Error('未找到原始文件。');
+                const workbook = XLSX.read(await blobToArrayBuffer(record.blob), { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' })
+                    .filter(row => row.some(cell => cell !== ''));
+                loading.remove();
+                renderExcelPreview(body, rows);
+            } catch (error) {
+                if (_currentDocName !== docName) return;
+                if (Array.isArray(doc.excel_data) && doc.excel_data.length) {
+                    loading.remove();
+                    renderExcelPreview(body, doc.excel_data);
+                    return;
+                }
+                loading.textContent = '无法读取本机原始文件。文件可能已被浏览器清除，请管理员重新导入。';
+                console.warn('读取设备清单原始文件失败：', error);
+            }
+        }
+
+        async function openDocModal(name) {
             _currentDocName = name;
             const doc = _deviceDocs[name] || {};
-            const isAdmin = sessionStorage.getItem('fire_admin_unlocked') === '1';
-
-            // 标题
+            const isAdmin = isDocAdmin();
+            const hasFile = hasDeviceFile(doc);
             document.getElementById('docModalTitle').textContent = `📄 ${name}`;
 
-            // 飞书按钮
+            const downloadBtn = document.getElementById('docDownloadBtn');
+            if (hasFile) {
+                downloadBtn.href = '#';
+                downloadBtn.onclick = event => {
+                    event.preventDefault();
+                    downloadCurrentDeviceDoc();
+                };
+                downloadBtn.style.display = 'inline-block';
+            } else {
+                downloadBtn.removeAttribute('href');
+                downloadBtn.onclick = null;
+                downloadBtn.style.display = 'none';
+            }
+
             const feishuBtn = document.getElementById('docFeishuBtn');
             if (doc.feishu_url) {
                 feishuBtn.href = doc.feishu_url;
                 feishuBtn.style.display = 'inline-block';
             } else {
+                feishuBtn.removeAttribute('href');
                 feishuBtn.style.display = 'none';
             }
 
-            // 内容区
             const body = document.getElementById('docModalBody');
-            if (doc.excel_data && doc.excel_data.length > 0) {
-                const rows = doc.excel_data;
-                const thead = rows[0].map(h => `<th>${h ?? ''}</th>`).join('');
-                const tbody = rows.slice(1).map(row =>
-                    `<tr>${row.map(cell => `<td>${cell ?? ''}</td>`).join('')}</tr>`
-                ).join('');
-                body.innerHTML = `
-                    <div style="margin-bottom:8px;font-size:12px;color:var(--text-light);">
-                        共 ${rows.length - 1} 行 × ${rows[0].length} 列
-                        ${doc.updated ? `· 更新于 ${doc.updated}` : ''}
-                    </div>
-                    <div class="table-wrap"><table>
-                        <thead><tr>${thead}</tr></thead>
-                        <tbody>${tbody}</tbody>
-                    </table></div>`;
+            body.innerHTML = '';
+            if (hasFile) {
+                const info = document.createElement('div');
+                info.style.cssText = 'margin-bottom:12px;font-size:12px;color:var(--text-light);';
+                info.textContent = [doc.file_name, formatDeviceFileSize(doc.file_size), doc.updated ? `更新于 ${doc.updated}` : ''].filter(Boolean).join(' · ');
+                body.appendChild(info);
+                if (doc.has_file) {
+                    renderStoredFilePreview(body, name, doc);
+                } else {
+                    renderExcelPreview(body, doc.excel_data);
+                }
+            } else if (doc.feishu_url) {
+                body.innerHTML = '<div style="text-align:center;padding:60px 0;color:var(--text-light);"><div style="font-size:40px;margin-bottom:12px;">🔗</div><div style="font-size:15px;">此清单已绑定飞书文档</div><div style="font-size:13px;margin-top:8px;">请点击右上角“在飞书中查看”。</div></div>';
             } else {
-                body.innerHTML = `
-                    <div style="text-align:center;padding:60px 0;color:var(--text-light);">
-                        <div style="font-size:40px;margin-bottom:12px;">📂</div>
-                        <div style="font-size:15px;">尚未导入 Excel 内容</div>
-                        <div style="font-size:13px;margin-top:8px;">
-                            ${isAdmin ? '请使用下方操作区导入文件或绑定飞书链接' : '请联系管理员导入文档'}
-                        </div>
-                    </div>`;
+                body.innerHTML = `<div style="text-align:center;padding:60px 0;color:var(--text-light);"><div style="font-size:40px;margin-bottom:12px;">📂</div><div style="font-size:15px;">暂未导入文档内容</div><div style="font-size:13px;margin-top:8px;">${isAdmin ? '请在下方导入 Excel 文件或绑定飞书链接。' : '请联系管理员在本机浏览器中导入设备清单。'}</div></div>`;
             }
 
-            // 管理员底部操作区
             const footer = document.getElementById('docModalFooter');
             footer.className = `doc-modal-footer ${isAdmin ? 'admin-visible' : ''}`;
-
-            // 填入已有飞书链接
-            const feishuInput = document.getElementById('docFeishuInput');
-            feishuInput.value = doc.feishu_url || '';
-
-            // 绑定文件拖拽
-            initDocDropZone();
-
+            document.getElementById('docFeishuInput').value = doc.feishu_url || '';
+            document.getElementById('docDeleteBtn').style.display = isAdmin && hasFile ? 'inline-block' : 'none';
+            setDocUploadStatus('支持 .xlsx、.xls；原始文件仅保存于当前浏览器。');
+            if (isAdmin) initDocDropZone();
             document.getElementById('docModal').classList.add('show');
         }
 
-        // 关闭文档弹窗
         function closeDocModal() {
             document.getElementById('docModal').classList.remove('show');
             _currentDocName = '';
         }
 
-        // 初始化文档弹窗内的拖拽区域
         function initDocDropZone() {
             const dropZone = document.getElementById('docDropZone');
-            const input = document.getElementById('docFileInput');
-
-            // 避免重复绑定
             const newDrop = dropZone.cloneNode(true);
             dropZone.parentNode.replaceChild(newDrop, dropZone);
-            const newInput = newDrop.querySelector('input[type="file"]');
-
-            newInput.addEventListener('change', e => {
-                if (e.target.files[0]) handleDocExcelUpload(e.target.files[0]);
-                newInput.value = '';
+            const input = newDrop.querySelector('input[type="file"]');
+            input.addEventListener('change', event => {
+                if (event.target.files[0]) handleDocExcelUpload(event.target.files[0]);
+                input.value = '';
             });
-            newDrop.addEventListener('dragover', e => { e.preventDefault(); newDrop.classList.add('dragover'); });
+            newDrop.addEventListener('dragover', event => { event.preventDefault(); newDrop.classList.add('dragover'); });
             newDrop.addEventListener('dragleave', () => newDrop.classList.remove('dragover'));
-            newDrop.addEventListener('drop', e => {
-                e.preventDefault();
+            newDrop.addEventListener('drop', event => {
+                event.preventDefault();
                 newDrop.classList.remove('dragover');
-                if (e.dataTransfer.files[0]) handleDocExcelUpload(e.dataTransfer.files[0]);
+                if (event.dataTransfer.files[0]) handleDocExcelUpload(event.dataTransfer.files[0]);
             });
         }
 
-        // 处理文档 Excel 上传
-        function handleDocExcelUpload(file) {
-            if (!_currentDocName) return;
-            const ext = file.name.split('.').pop().toLowerCase();
+        async function handleDocExcelUpload(file) {
+            if (!_currentDocName || !isDocAdmin()) return;
+            const ext = String(file.name || '').split('.').pop().toLowerCase();
             if (!['xlsx', 'xls'].includes(ext)) {
-                alert('请选择 .xlsx 或 .xls 文件');
+                setDocUploadStatus('请选择 .xlsx 或 .xls 文件。', true);
                 return;
             }
-            const reader = new FileReader();
-            reader.onload = e => {
-                try {
-                    const wb = XLSX.read(e.target.result, { type: 'array' });
-                    const ws = wb.Sheets[wb.SheetNames[0]];
-                    const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-                    const filtered = data.filter(row => row.some(c => c !== ''));
+            setDocUploadStatus('正在保存本机原始文件…');
+            try {
+                await saveDeviceFile(_currentDocName, file);
+                const previous = _deviceDocs[_currentDocName] || {};
+                _deviceDocs[_currentDocName] = {
+                    ...previous,
+                    has_file: true,
+                    file_name: file.name,
+                    file_type: file.type || 'application/octet-stream',
+                    file_size: file.size,
+                    updated: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).slice(0, 16)
+                };
+                delete _deviceDocs[_currentDocName].excel_data;
+                if (!saveDeviceDocs()) return;
+                renderDeviceDocs();
+                await openDocModal(_currentDocName);
+                setDocUploadStatus('✅ 原始 Excel 文件已保存到当前浏览器。');
+            } catch (error) {
+                console.error('保存原始 Excel 文件失败：', error);
+                setDocUploadStatus(`保存失败：${error.message}`, true);
+            }
+        }
 
-                    if (!_deviceDocs[_currentDocName]) _deviceDocs[_currentDocName] = {};
-                    _deviceDocs[_currentDocName].excel_data = filtered;
-                    _deviceDocs[_currentDocName].updated = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).slice(0, 16);
-                    saveDeviceDocs(_deviceDocs);
+        function downloadLegacyDeviceDoc(doc) {
+            if (!Array.isArray(doc.excel_data) || !doc.excel_data.length) return false;
+            const workbook = XLSX.utils.book_new();
+            const sheet = XLSX.utils.aoa_to_sheet(doc.excel_data);
+            XLSX.utils.book_append_sheet(workbook, sheet, '设备清单');
+            const baseName = (doc.file_name || `${_currentDocName}.xlsx`).replace(/\.(xlsx|xls)$/i, '');
+            XLSX.writeFile(workbook, `${baseName}.xlsx`);
+            return true;
+        }
 
-                    // 刷新弹窗内容
-                    openDocModal(_currentDocName);
-                    // 刷新卡片列表
-                    renderDeviceDocs();
-                } catch(err) {
-                    alert('文件解析失败：' + err.message);
+        async function downloadCurrentDeviceDoc() {
+            const doc = _deviceDocs[_currentDocName];
+            if (!doc) return;
+            try {
+                const record = doc.has_file ? await getDeviceFile(_currentDocName) : null;
+                if (record?.blob) {
+                    const url = URL.createObjectURL(record.blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = record.file_name || doc.file_name || '设备清单文件';
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    return;
                 }
-            };
-            reader.readAsArrayBuffer(file);
+                if (downloadLegacyDeviceDoc(doc)) return;
+                throw new Error('未找到原始文件。');
+            } catch (error) {
+                console.error('下载设备清单文件失败：', error);
+                alert('下载失败：未找到本机原始文件。请管理员重新导入。');
+            }
         }
 
-        // 保存飞书链接
+        async function deleteCurrentDeviceDoc() {
+            const doc = _deviceDocs[_currentDocName];
+            if (!isDocAdmin() || !doc || !hasDeviceFile(doc)) return;
+            if (!confirm(`确定删除“${_currentDocName}”的本机材料吗？`)) return;
+            setDocUploadStatus('正在删除本机文件…');
+            try {
+                if (doc.has_file) await removeDeviceFile(_currentDocName);
+                delete doc.has_file;
+                delete doc.file_name;
+                delete doc.file_type;
+                delete doc.file_size;
+                delete doc.updated;
+                delete doc.excel_data;
+                if (!doc.feishu_url) delete _deviceDocs[_currentDocName];
+                if (!saveDeviceDocs()) return;
+                renderDeviceDocs();
+                await openDocModal(_currentDocName);
+                setDocUploadStatus('✅ 本机材料已删除。');
+            } catch (error) {
+                console.error('删除设备清单文件失败：', error);
+                setDocUploadStatus(`删除失败：${error.message}`, true);
+            }
+        }
+
         function saveDocFeishuUrl() {
-            if (!_currentDocName) return;
+            if (!_currentDocName || !isDocAdmin()) return;
             const url = document.getElementById('docFeishuInput').value.trim();
-            if (!url) { alert('请填写飞书文档链接'); return; }
-            if (!url.startsWith('http')) { alert('链接格式不正确，请以 https:// 开头'); return; }
-
-            if (!_deviceDocs[_currentDocName]) _deviceDocs[_currentDocName] = {};
-            _deviceDocs[_currentDocName].feishu_url = url;
-            _deviceDocs[_currentDocName].updated = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }).slice(0, 16);
-            saveDeviceDocs(_deviceDocs);
-
-            // 刷新弹窗和卡片
-            openDocModal(_currentDocName);
+            if (url && !/^https:\/\//i.test(url)) {
+                setDocUploadStatus('链接格式不正确，请以 https:// 开头。', true);
+                return;
+            }
+            const doc = _deviceDocs[_currentDocName] || {};
+            if (url) doc.feishu_url = url;
+            else delete doc.feishu_url;
+            if (Object.keys(doc).length) _deviceDocs[_currentDocName] = doc;
+            else delete _deviceDocs[_currentDocName];
+            if (!saveDeviceDocs()) return;
             renderDeviceDocs();
-            alert('✅ 飞书链接已保存！');
+            openDocModal(_currentDocName);
+            setDocUploadStatus('✅ 飞书链接已保存到当前浏览器。');
         }
 
-        // 点击遮罩关闭文档弹窗
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('docModal').addEventListener('click', function(e) {
-                if (e.target === this) closeDocModal();
+            document.getElementById('docModal').addEventListener('click', function(event) {
+                if (event.target === this) closeDocModal();
             });
         });
 
@@ -5022,17 +5232,15 @@
         }
 
         // ================================================================
-        // 管理员密码验证模块
+        // 设备清单管理员验证模块
         // ================================================================
 
-        // ⚠️ 修改此处密码（建议用字母+数字组合）
-        const ADMIN_PWD_HASH = 'zq2026fire';  // 你的密码，可自行修改
+        const ADMIN_PWD_HASH = 'zq2026fire';
         const ADMIN_KEY = 'fire_admin_unlocked';
 
         function openAdminModal() {
-            // 如果已登录，直接切换导入栏显示/隐藏
-            if (localStorage.getItem(ADMIN_KEY) === '1') {
-                toggleImportBar(true);
+            if (isDocAdmin()) {
+                renderDeviceDocs();
                 return;
             }
             document.getElementById('adminModal').classList.add('show');
@@ -5049,42 +5257,24 @@
             const input = document.getElementById('adminPwdInput');
             const errEl = document.getElementById('modalErr');
             if (input.value === ADMIN_PWD_HASH) {
-                // 密码正确 → 记录登录状态（sessionStorage：关闭浏览器后失效；换成 localStorage 则长期保存）
                 sessionStorage.setItem(ADMIN_KEY, '1');
                 closeAdminModal();
-                toggleImportBar(true);
-            } else {
-                errEl.textContent = '密码错误，请重试';
-                input.classList.add('shake');
-                input.value = '';
-                setTimeout(() => input.classList.remove('shake'), 400);
+                renderDeviceDocs();
+                return;
             }
-        }
-
-        function toggleImportBar(show) {
-            const bar = document.getElementById('importBar');
-            bar.style.display = show ? 'flex' : 'none';
-            // 同步刷新设备清单卡片（显示/隐藏管理员操作按钮）
-            renderDeviceDocs();
-            // 同步刷新保养下发按钮
-            const planBtn = document.getElementById('planDispatchBtn');
-            if (planBtn) planBtn.style.display = show ? 'inline-block' : 'none';
-            // 同步刷新技能鉴定管理员按钮
-            renderIdentify();
-            // 同步刷新火警确认按钮（管理员登录/退出时重新渲染）
-            renderAlarmHistory();
+            errEl.textContent = '密码错误，请重试';
+            input.classList.add('shake');
+            input.value = '';
+            setTimeout(() => input.classList.remove('shake'), 400);
         }
 
         function adminLogout() {
             sessionStorage.removeItem(ADMIN_KEY);
-            toggleImportBar(false);
+            renderDeviceDocs();
         }
 
-        // 页面加载时检查是否已登录
         function checkAdminSession() {
-            if (sessionStorage.getItem(ADMIN_KEY) === '1') {
-                toggleImportBar(true);
-            }
+            renderDeviceDocs();
         }
 
         // ================================================================
@@ -5286,7 +5476,7 @@
             safeInit('loadRemoteData',    loadRemoteData);
             safeInit('initWelcomeScreen', initWelcomeScreen); // 全屏欢迎开屏页
             safeInit('initSplash',        initSplash); // 开屏弹窗
-            safeInit('renderDeviceDocs',  renderDeviceDocs); // 设备清单文档卡片
+            safeInit('loadDeviceDocs',    loadDeviceDocs);   // 加载本机设备清单文件
             safeInit('renderExamBank',    renderExamBank);   // 实操考核题库
             safeInit('initPanorama',      initPanoramaViewport); // 全景图滚动视窗
             const _pv0 = document.getElementById('panoramaViewport');
