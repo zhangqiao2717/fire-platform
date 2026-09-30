@@ -2345,7 +2345,7 @@
       }
     ]
   },
-  "_updated": "2026-09-30T05:29:55.130Z",
+  "_updated": "2026-09-30T05:34:07.360Z",
   "_source": "local_scrape",
   "tianze_alarms": [],
   "tianze_last_check": "2026/9/30 08:08:10",
@@ -14618,7 +14618,7 @@
   "_maintain_plan_updated": "2026-09-30T00:08:24.560Z",
   "_facility_inspections_updated": "2026-09-30T05:29:55.130Z",
   "fireInspections": {
-    "updatedAt": "2026/9/30 08:08:38",
+    "updatedAt": "2026/9/30 13:34:07",
     "currentMonth": "2026-09",
     "totalRecords": 6,
     "totalOk": 60,
@@ -14884,5 +14884,5 @@
       }
     ]
   },
-  "_fire_inspections_updated": "2026-09-28T10:45:40.437Z"
+  "_fire_inspections_updated": "2026-09-30T05:34:07.360Z"
 }
