@@ -685,13 +685,8 @@
   ],
   "_record_updated": "2026-09-28T00:06:20.815Z",
   "facilityInspections": {
-<<<<<<< Updated upstream
-    "updatedAt": "2026/9/30 13:29:55",
-    "month": "2026-09",
-=======
     "updatedAt": "2026/10/1 08:37:20",
     "month": "2026-10",
->>>>>>> Stashed changes
     "totalOk": 1368,
     "totalNg": 22,
     "areas": [
@@ -786,8 +781,6 @@
         "ok": 72,
         "ng": 0,
         "ngItems": [],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -802,7 +795,6 @@
           "2026/9/27",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -903,8 +895,6 @@
         "ok": 143,
         "ng": 0,
         "ngItems": [],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -920,7 +910,6 @@
           "2026/9/29",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -1028,8 +1017,6 @@
         "ok": 121,
         "ng": 0,
         "ngItems": [],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -1046,7 +1033,6 @@
           "2026/9/29",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -1154,8 +1140,6 @@
         "ok": 126,
         "ng": 0,
         "ngItems": [],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -1172,7 +1156,6 @@
           "2026/9/29",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -1273,8 +1256,6 @@
         "ok": 117,
         "ng": 0,
         "ngItems": [],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -1290,7 +1271,6 @@
           "2026/9/29",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -1500,8 +1480,6 @@
         "ok": 72,
         "ng": 0,
         "ngItems": [],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -1516,7 +1494,6 @@
           "2026/9/28",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -1624,8 +1601,6 @@
         "ok": 84,
         "ng": 0,
         "ngItems": [],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -1642,7 +1617,6 @@
           "2026/9/29",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -1806,8 +1780,6 @@
             "system": "火灾自动报警系统"
           }
         ],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -1823,7 +1795,6 @@
           "2026/9/29",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -2129,8 +2100,6 @@
             "system": "火灾自动报警系统"
           }
         ],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -2146,7 +2115,6 @@
           "2026/9/29",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -2228,8 +2196,6 @@
             "system": "消防供配电设施"
           }
         ],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -2241,7 +2207,6 @@
           "2026/9/26",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -2351,8 +2316,6 @@
             "system": "消防供配电设施"
           }
         ],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -2368,7 +2331,6 @@
           "2026/9/29",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -2469,8 +2431,6 @@
         "ok": 39,
         "ng": 0,
         "ngItems": [],
-<<<<<<< Updated upstream
-=======
         "dates": [
           "2026/9/17",
           "2026/9/18",
@@ -2486,7 +2446,6 @@
           "2026/9/29",
           "2026/9/30"
         ],
->>>>>>> Stashed changes
         "lastDate": "2026/9/30"
       },
       {
@@ -2563,11 +2522,7 @@
       }
     ]
   },
-<<<<<<< Updated upstream
-  "_updated": "2026-09-30T05:34:07.360Z",
-=======
   "_updated": "2026-10-01T00:36:56.025Z",
->>>>>>> Stashed changes
   "_source": "local_scrape",
   "tianze_alarms": [],
   "tianze_last_check": "2026/10/1 08:36:56",
@@ -14980,19 +14935,11 @@
       "✅ 正常"
     ]
   ],
-<<<<<<< Updated upstream
-  "_maintain_plan_updated": "2026-09-30T00:08:24.560Z",
-  "_facility_inspections_updated": "2026-09-30T05:29:55.130Z",
-  "fireInspections": {
-    "updatedAt": "2026/9/30 13:34:07",
-    "currentMonth": "2026-09",
-=======
   "_maintain_plan_updated": "2026-10-01T00:37:08.178Z",
   "_facility_inspections_updated": "2026-09-21T01:33:20.156Z",
   "fireInspections": {
     "updatedAt": "2026/10/1 08:37:21",
     "currentMonth": "2026-10",
->>>>>>> Stashed changes
     "totalRecords": 6,
     "totalOk": 60,
     "totalNg": 0,
