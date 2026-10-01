@@ -21,6 +21,11 @@ on:
 permissions:
   contents: write
 
+# 与其它 data.json 写入任务串行执行，避免自动同步产生 Git 合并冲突。
+concurrency:
+  group: fire-platform-data-json-write
+  cancel-in-progress: false
+
 jobs:
   maintenance-notify:
     runs-on: ubuntu-latest

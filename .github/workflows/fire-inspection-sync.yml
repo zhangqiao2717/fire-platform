@@ -1,38 +1,20 @@
-name: 同步防火巡查飞书数据
+# 已由 inspection-data-sync.yml 接管。
+# 保留此文件仅供历史参考；请勿恢复单独触发，否则会与设施巡查同步并发写入 data.json。
+name: 已停用 - 防火巡查单独同步
 
 on:
-  schedule:
-    # 每日 UTC 00:20 = 北京时间 08:20
-    - cron: '20 0 * * *'
   workflow_dispatch:
-
-permissions:
-  contents: write
+    inputs:
+      disabled:
+        description: 此旧工作流已停用，请运行“同步巡查飞书数据”
+        required: false
+        default: 'true'
 
 jobs:
-  sync-fire-inspections:
+  disabled:
     runs-on: ubuntu-latest
     steps:
-      - name: 📥 拉取代码
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 🟢 设置 Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: 🔥 同步北京基地防火巡查数据
-        env:
-          FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
-          FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
-        run: node scripts/sync_fire_inspections.js
-
-      - name: 📦 提交同步后的数据
+      - name: 提示使用新的合并工作流
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "FireBot"
-          git add data.json
-          git diff --staged --quiet || git commit -m "🔥 同步防火巡查数据 $(TZ='Asia/Shanghai' date '+%Y-%m-%d')"
-          git push
+          echo "此工作流已停用，避免并发修改 data.json。"
+          echo "请运行：同步巡查飞书数据"
