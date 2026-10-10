@@ -827,7 +827,7 @@
       "source": "feishu"
     }
   ],
-  "_updated": "2026-10-09T06:04:53.744Z",
+  "_updated": "2026-10-10T05:47:56.812Z",
   "_source": "local_scrape",
   "tianze_last_check": "2026/10/9 08:00:13",
   "tianze_new_count": 0,
@@ -13602,10 +13602,10 @@
   ],
   "_maintain_plan_updated": "2026-10-09T00:00:31.823Z",
   "facilityInspections": {
-    "updatedAt": "2026/10/9 14:04:51",
+    "updatedAt": "2026/10/10 13:47:54",
     "month": "2026-10",
-    "totalOk": 1721,
-    "totalNg": 44,
+    "totalOk": 1793,
+    "totalNg": 51,
     "areas": [
       {
         "area": "消控室",
@@ -13842,12 +13842,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 11,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 187,
+        "ok": 198,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/10/9"
+        "lastDate": "2026/10/10"
       },
       {
         "area": "冲压",
@@ -13977,12 +13984,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 9,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 157,
+        "ok": 166,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/10/9"
+        "lastDate": "2026/10/10"
       },
       {
         "area": "焊装",
@@ -14112,12 +14126,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 9,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 162,
+        "ok": 171,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/10/9"
+        "lastDate": "2026/10/10"
       },
       {
         "area": "总装",
@@ -14240,12 +14261,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 9,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 153,
+        "ok": 162,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/10/9"
+        "lastDate": "2026/10/10"
       },
       {
         "area": "餐厅",
@@ -14612,12 +14640,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 6,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 108,
+        "ok": 114,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/10/9"
+        "lastDate": "2026/10/10"
       },
       {
         "area": "污水站",
@@ -14784,10 +14819,24 @@
               "无手报无应急照明",
               "无消防广播"
             ]
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 4,
+            "ng": 3,
+            "ngSystems": [
+              "应急广播系统",
+              "消防专用电话",
+              "火灾自动报警系统"
+            ],
+            "problems": [
+              "无手报",
+              "无消防广播"
+            ]
           }
         ],
-        "ok": 99,
-        "ng": 20,
+        "ok": 103,
+        "ng": 23,
         "ngItems": [
           {
             "date": "2026/9/24",
@@ -14868,9 +14917,21 @@
           {
             "date": "2026/10/9",
             "system": "火灾自动报警系统"
+          },
+          {
+            "date": "2026/10/10",
+            "system": "应急广播系统"
+          },
+          {
+            "date": "2026/10/10",
+            "system": "消防专用电话"
+          },
+          {
+            "date": "2026/10/10",
+            "system": "火灾自动报警系统"
           }
         ],
-        "lastDate": "2026/10/9"
+        "lastDate": "2026/10/10"
       },
       {
         "area": "物流LOC",
@@ -14986,12 +15047,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 8,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 128,
+        "ok": 136,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/10/9"
+        "lastDate": "2026/10/10"
       },
       {
         "area": "1号仓库",
@@ -15220,10 +15288,25 @@
               "无手报",
               "无消防广播无应急照明"
             ]
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 3,
+            "ng": 4,
+            "ngSystems": [
+              "应急广播系统",
+              "应急照明和疏散指示标志",
+              "消防专用电话",
+              "火灾自动报警系统"
+            ],
+            "problems": [
+              "无手报",
+              "无应急广播无应急照明"
+            ]
           }
         ],
-        "ok": 98,
-        "ng": 21,
+        "ok": 101,
+        "ng": 25,
         "ngItems": [
           {
             "date": "2026/9/24",
@@ -15308,9 +15391,25 @@
           {
             "date": "2026/10/9",
             "system": "火灾自动报警系统"
+          },
+          {
+            "date": "2026/10/10",
+            "system": "应急广播系统"
+          },
+          {
+            "date": "2026/10/10",
+            "system": "应急照明和疏散指示标志"
+          },
+          {
+            "date": "2026/10/10",
+            "system": "消防专用电话"
+          },
+          {
+            "date": "2026/10/10",
+            "system": "火灾自动报警系统"
           }
         ],
-        "lastDate": "2026/10/9"
+        "lastDate": "2026/10/10"
       },
       {
         "area": "售后备件库",
@@ -15402,9 +15501,16 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 3,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 35,
+        "ok": 38,
         "ng": 1,
         "ngItems": [
           {
@@ -15412,7 +15518,7 @@
             "system": "消防供配电设施"
           }
         ],
-        "lastDate": "2026/10/9"
+        "lastDate": "2026/10/10"
       },
       {
         "area": "交检",
@@ -15539,9 +15645,16 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 118,
+        "ok": 125,
         "ng": 1,
         "ngItems": [
           {
@@ -15549,7 +15662,7 @@
             "system": "消防供配电设施"
           }
         ],
-        "lastDate": "2026/10/9"
+        "lastDate": "2026/10/10"
       },
       {
         "area": "4#厂房",
@@ -15672,12 +15785,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 3,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 51,
+        "ok": 54,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/10/9"
+        "lastDate": "2026/10/10"
       },
       {
         "area": "厂区",
@@ -15754,7 +15874,7 @@
     ]
   },
   "fireInspections": {
-    "updatedAt": "2026/10/9 14:04:53",
+    "updatedAt": "2026/10/10 13:47:56",
     "currentMonth": "2026-10",
     "totalRecords": 6,
     "totalOk": 60,
@@ -16020,6 +16140,6 @@
       }
     ]
   },
-  "_facility_inspections_updated": "2026-10-09T06:04:51.954Z",
-  "_fire_inspections_updated": "2026-10-09T06:04:53.744Z"
+  "_facility_inspections_updated": "2026-10-10T05:47:54.318Z",
+  "_fire_inspections_updated": "2026-10-10T05:47:56.812Z"
 }
