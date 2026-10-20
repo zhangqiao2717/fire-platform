@@ -550,19 +550,16 @@
             position: absolute;
             top: 112px;
             bottom: 142px;
-            left: 0;
+            left: 8vw;
+            right: 8vw;
             display: flex;
             align-items: center;
-            gap: 32px;
-            width: max-content;
-            padding: 0 12vw;
-            will-change: transform;
+            justify-content: center;
         }
         .welcome-scroll img {
-            width: min(42vw, 680px);
+            width: 100%;
             height: min(54vh, 520px);
             object-fit: cover;
-            flex-shrink: 0;
             display: block;
             border: 1px solid rgba(255, 255, 255, 0.28);
             border-radius: 22px;
@@ -1778,7 +1775,6 @@
     <div class="welcome-screen" id="welcomeScreen">
         <div class="welcome-scroll" id="welcomeScroll">
             <img src="images/base-map.jpg"  alt="北京基地全景图">
-            <img src="images/key-areas.jpg" alt="北京基地消防重点部位">
         </div>
         <div class="welcome-mask"></div>
         <div class="welcome-title">
