@@ -857,7 +857,7 @@
       "source": "feishu"
     }
   ],
-  "_updated": "2026-10-25T04:36:31.402Z",
+  "_updated": "2026-10-26T04:41:42.431Z",
   "_source": "local_scrape",
   "tianze_last_check": "2026/10/23 08:08:48",
   "tianze_new_count": 0,
@@ -14120,9 +14120,9 @@
   ],
   "_maintain_plan_updated": "2026-10-23T00:09:06.470Z",
   "facilityInspections": {
-    "updatedAt": "2026/10/25 12:36:29",
+    "updatedAt": "2026/10/26 12:41:40",
     "month": "2026-10",
-    "totalOk": 2126,
+    "totalOk": 2169,
     "totalNg": 80,
     "areas": [
       {
@@ -14402,12 +14402,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/26",
+            "ok": 11,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 253,
+        "ok": 264,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/10/21"
+        "lastDate": "2026/10/26"
       },
       {
         "area": "冲压",
@@ -14742,12 +14749,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/26",
+            "ok": 9,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 207,
+        "ok": 216,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/10/18"
+        "lastDate": "2026/10/26"
       },
       {
         "area": "总装",
@@ -14909,9 +14923,16 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/26",
+            "ok": 9,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 197,
+        "ok": 206,
         "ng": 1,
         "ngItems": [
           {
@@ -14919,7 +14940,7 @@
             "system": "火灾自动报警系统"
           }
         ],
-        "lastDate": "2026/10/18"
+        "lastDate": "2026/10/26"
       },
       {
         "area": "餐厅",
@@ -15186,12 +15207,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/26",
+            "ok": 6,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 96,
+        "ok": 102,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/10/18"
+        "lastDate": "2026/10/26"
       },
       {
         "area": "综合站房",
@@ -15895,12 +15923,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/10/26",
+            "ok": 8,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 168,
+        "ok": 176,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/10/18"
+        "lastDate": "2026/10/26"
       },
       {
         "area": "1号仓库",
@@ -16916,7 +16951,7 @@
     ]
   },
   "fireInspections": {
-    "updatedAt": "2026/10/25 12:36:31",
+    "updatedAt": "2026/10/26 12:41:42",
     "currentMonth": "2026-10",
     "totalRecords": 6,
     "totalOk": 60,
@@ -17182,6 +17217,6 @@
       }
     ]
   },
-  "_facility_inspections_updated": "2026-10-25T04:36:29.487Z",
-  "_fire_inspections_updated": "2026-10-25T04:36:31.402Z"
+  "_facility_inspections_updated": "2026-10-26T04:41:40.858Z",
+  "_fire_inspections_updated": "2026-10-26T04:41:42.431Z"
 }
