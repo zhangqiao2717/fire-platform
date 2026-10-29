@@ -887,7 +887,7 @@
       "source": "feishu"
     }
   ],
-  "_updated": "2026-10-28T05:35:52.664Z",
+  "_updated": "2026-10-29T05:43:08.869Z",
   "_source": "local_scrape",
   "tianze_last_check": "2026/10/28 08:00:19",
   "tianze_new_count": 0,
@@ -14519,7 +14519,7 @@
   ],
   "_maintain_plan_updated": "2026-10-28T00:00:50.216Z",
   "facilityInspections": {
-    "updatedAt": "2026/10/28 13:35:50",
+    "updatedAt": "2026/10/29 13:43:06",
     "month": "2026-10",
     "totalOk": 2215,
     "totalNg": 86,
@@ -17447,7 +17447,7 @@
     ]
   },
   "fireInspections": {
-    "updatedAt": "2026/10/28 13:35:52",
+    "updatedAt": "2026/10/29 13:43:08",
     "currentMonth": "2026-10",
     "totalRecords": 7,
     "totalOk": 69,
@@ -17786,6 +17786,6 @@
       }
     ]
   },
-  "_facility_inspections_updated": "2026-10-28T05:35:50.531Z",
-  "_fire_inspections_updated": "2026-10-28T05:35:52.664Z"
+  "_facility_inspections_updated": "2026-10-29T05:43:06.892Z",
+  "_fire_inspections_updated": "2026-10-29T05:43:08.869Z"
 }
