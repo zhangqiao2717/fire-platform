@@ -1061,7 +1061,12 @@ async function syncFaultRecords() {
 
         // 转换为网页 faultData 格式：
         // [序号, 检查主题, 时间, 隐患类型, 位置, 设备名称, 状态, 原因, 描述, 责任人, 整改措施, 整改情况]
+        // 先剔除表格末尾的完全空白行（否则空"整改情况"会默认成"整改中"，混入未闭环清单）
         const faultData = allRecords
+            .filter(item => {
+                const f = item.fields || {};
+                return f['时间'] || f['隐患描述'] || f['项目内容'] || f['隐患位置'];
+            })
             .sort((a, b) => {
                 const ta = a.fields?.['时间'] || 0;
                 const tb = b.fields?.['时间'] || 0;
