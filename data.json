@@ -902,7 +902,7 @@
       "source": "feishu"
     }
   ],
-  "_updated": "2026-11-09T06:18:26.268Z",
+  "_updated": "2026-11-10T07:12:12.195Z",
   "_source": "local_scrape",
   "tianze_last_check": "2026/11/9 08:07:20",
   "tianze_new_count": 0,
@@ -15195,10 +15195,10 @@
   ],
   "_maintain_plan_updated": "2026-11-09T00:07:43.768Z",
   "facilityInspections": {
-    "updatedAt": "2026/11/9 14:18:23",
+    "updatedAt": "2026/11/10 15:12:10",
     "month": "2026-11",
-    "totalOk": 2680,
-    "totalNg": 133,
+    "totalOk": 2694,
+    "totalNg": 135,
     "areas": [
       {
         "area": "消控室",
@@ -15328,12 +15328,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/11/9",
+            "ok": 6,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 108,
+        "ok": 114,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/11/8"
+        "lastDate": "2026/11/9"
       },
       {
         "area": "办公楼",
@@ -18586,10 +18593,21 @@
             "problems": [
               "无"
             ]
+          },
+          {
+            "date": "2026/11/9",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
           }
         ],
-        "ok": 185,
-        "ng": 4,
+        "ok": 191,
+        "ng": 5,
         "ngItems": [
           {
             "date": "2026/9/27",
@@ -18606,9 +18624,13 @@
           {
             "date": "2026/11/8",
             "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/9",
+            "system": "消防供配电设施"
           }
         ],
-        "lastDate": "2026/11/8"
+        "lastDate": "2026/11/9"
       },
       {
         "area": "4#厂房",
@@ -18773,12 +18795,28 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/11/9",
+            "ok": 2,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
           }
         ],
-        "ok": 69,
-        "ng": 0,
-        "ngItems": [],
-        "lastDate": "2026/11/4"
+        "ok": 71,
+        "ng": 1,
+        "ngItems": [
+          {
+            "date": "2026/11/9",
+            "system": "消防供配电设施"
+          }
+        ],
+        "lastDate": "2026/11/9"
       },
       {
         "area": "厂区",
@@ -18855,7 +18893,7 @@
     ]
   },
   "fireInspections": {
-    "updatedAt": "2026/11/9 14:18:26",
+    "updatedAt": "2026/11/10 15:12:12",
     "currentMonth": "2026-11",
     "totalRecords": 7,
     "totalOk": 69,
@@ -19194,6 +19232,6 @@
       }
     ]
   },
-  "_facility_inspections_updated": "2026-11-09T06:18:23.909Z",
-  "_fire_inspections_updated": "2026-11-09T06:18:26.268Z"
+  "_facility_inspections_updated": "2026-11-10T07:12:10.235Z",
+  "_fire_inspections_updated": "2026-11-10T07:12:12.195Z"
 }
