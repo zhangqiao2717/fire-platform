@@ -917,7 +917,7 @@
       "source": "feishu"
     }
   ],
-  "_updated": "2026-11-25T08:25:20.596Z",
+  "_updated": "2026-11-26T08:10:38.564Z",
   "_source": "local_scrape",
   "tianze_last_check": "2026/11/23 08:00:15",
   "tianze_new_count": 0,
@@ -15623,10 +15623,10 @@
   ],
   "_maintain_plan_updated": "2026-11-23T00:01:01.546Z",
   "facilityInspections": {
-    "updatedAt": "2026/11/25 16:25:18",
+    "updatedAt": "2026/11/26 16:10:35",
     "month": "2026-11",
-    "totalOk": 3475,
-    "totalNg": 228,
+    "totalOk": 3756,
+    "totalNg": 241,
     "areas": [
       {
         "area": "消控室",
@@ -16101,12 +16101,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/11/26",
+            "ok": 11,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 429,
+        "ok": 440,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/11/25"
+        "lastDate": "2026/11/26"
       },
       {
         "area": "冲压",
@@ -16658,12 +16665,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/11/26",
+            "ok": 9,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 342,
+        "ok": 351,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/11/25"
+        "lastDate": "2026/11/26"
       },
       {
         "area": "总装",
@@ -17154,12 +17168,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/11/26",
+            "ok": 10,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 290,
+        "ok": 300,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/11/25"
+        "lastDate": "2026/11/26"
       },
       {
         "area": "涂装",
@@ -17531,12 +17552,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/11/26",
+            "ok": 6,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 186,
+        "ok": 192,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/11/25"
+        "lastDate": "2026/11/26"
       },
       {
         "area": "综合站房",
@@ -17806,12 +17834,19 @@
             "ng": 0,
             "ngSystems": [],
             "problems": []
+          },
+          {
+            "date": "2026/11/26",
+            "ok": 6,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
           }
         ],
-        "ok": 228,
+        "ok": 234,
         "ng": 0,
         "ngItems": [],
-        "lastDate": "2026/11/25"
+        "lastDate": "2026/11/26"
       },
       {
         "area": "污水站",
@@ -20298,6 +20333,372 @@
         "lastDate": "2026/11/25"
       },
       {
+        "area": "交检",
+        "records": [
+          {
+            "date": "2026/9/17",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/9/18",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/9/19",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/9/20",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/9/21",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/9/22",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/9/23",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/9/24",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/9/25",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/9/26",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/9/27",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无消防供配电设施"
+            ]
+          },
+          {
+            "date": "2026/9/29",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/9/30",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/10/1",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/10/4",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/10/8",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/10/9",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/10/10",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/10/12",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/10/15",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/10/16",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/10/18",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/10/26",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/11/4",
+            "ok": 7,
+            "ng": 0,
+            "ngSystems": [],
+            "problems": []
+          },
+          {
+            "date": "2026/11/5",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无问题"
+            ]
+          },
+          {
+            "date": "2026/11/7",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
+          },
+          {
+            "date": "2026/11/8",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
+          },
+          {
+            "date": "2026/11/9",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
+          },
+          {
+            "date": "2026/11/11",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
+          },
+          {
+            "date": "2026/11/12",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
+          },
+          {
+            "date": "2026/11/16",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
+          },
+          {
+            "date": "2026/11/17",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
+          },
+          {
+            "date": "2026/11/18",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
+          },
+          {
+            "date": "2026/11/19",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
+          },
+          {
+            "date": "2026/11/23",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
+          },
+          {
+            "date": "2026/11/24",
+            "ok": 6,
+            "ng": 1,
+            "ngSystems": [
+              "消防供配电设施"
+            ],
+            "problems": [
+              "无"
+            ]
+          }
+        ],
+        "ok": 239,
+        "ng": 13,
+        "ngItems": [
+          {
+            "date": "2026/9/27",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/5",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/7",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/8",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/9",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/11",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/12",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/16",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/17",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/18",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/19",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/23",
+            "system": "消防供配电设施"
+          },
+          {
+            "date": "2026/11/24",
+            "system": "消防供配电设施"
+          }
+        ],
+        "lastDate": "2026/11/24"
+      },
+      {
         "area": "4#厂房",
         "records": [
           {
@@ -20678,7 +21079,7 @@
     ]
   },
   "fireInspections": {
-    "updatedAt": "2026/11/25 16:25:20",
+    "updatedAt": "2026/11/26 16:10:38",
     "currentMonth": "2026-11",
     "totalRecords": 7,
     "totalOk": 69,
@@ -21017,6 +21418,6 @@
       }
     ]
   },
-  "_facility_inspections_updated": "2026-11-25T08:25:18.465Z",
-  "_fire_inspections_updated": "2026-11-25T08:25:20.596Z"
+  "_facility_inspections_updated": "2026-11-26T08:10:35.216Z",
+  "_fire_inspections_updated": "2026-11-26T08:10:38.564Z"
 }
